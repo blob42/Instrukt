@@ -1,0 +1,37 @@
+BaseModalMenu {
+    /* background: $background 70%; */
+    background: $background 1%;
+}
+
+BaseModalMenu #menu {
+    min-width: 20;
+    max-width: 25;
+    offset: 100vw 0;
+    height: auto;
+}
+
+#menu SelectionList {
+    height: auto;
+}
+
+#menu Button#manage {
+    border: none;
+    width: 100%;
+    height: 1;
+}
+
+/* grid here */
+/* #index-menu.modal--menu {
+/*     grid-size: 2; */
+/*     grid-rows: 1fr 3; */
+/*     grid-gutter: 1 2; */
+/*     width: 60; */
+/*     height: 11; */
+/*     border: thick $background 80%; */
+/* } */
+
+Placeholder {
+    height: 2;
+    width: 20;
+    offset: 0 0;
+}

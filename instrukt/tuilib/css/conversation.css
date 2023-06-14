@@ -1,0 +1,63 @@
+AgentConversation.window {
+    /* background: gray; */
+    scrollbar-size-vertical: 1;
+    border: solid $panel;
+}
+
+ChatBubble {
+    padding: 0 1;
+    height: auto;
+}
+
+/* left padding space for messages on right side */
+ChatBubble .left-space {
+    display: none;
+}
+
+
+ChatBubble.human .left-space {
+    display: block;
+    width: 1fr;
+}
+
+ChatBubble.agent {
+    width: 100%;
+    background: $foreground 15%;
+}
+
+ChatBubble.human {
+    background: $panel 100%;
+}
+
+MessageContainer {
+    background: $background-lighten-2 50%;
+    height: auto;
+    border-title-color: $foreground;
+    /* border: wide $foreground 5%; */
+    padding-top: 1;
+    padding-bottom: 1;
+}
+
+MessageContainer.human {
+    width: 3fr;
+    border: wide $foreground 10%;
+}
+
+MessageContainer.human MessageBody {
+    /* background: blue; */
+    text-align: left;
+}
+
+MessageContainer.agent {
+    border: wide $foreground 10%;
+    background: transparent;
+}
+
+MessageBody {
+    margin: 0;
+    /* padding-top: 1; */
+    /* background: $warning 50%; */
+    width: 100%;
+    height: auto;
+    content-align: center middle;
+}

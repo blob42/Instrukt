@@ -1,0 +1,55 @@
+StartupMenu {
+    display: none;
+}
+
+.-no-agent StartupMenu {
+    display: block;
+}
+
+.-show-new-agent StartupMenu {
+    display: block;
+}
+
+StartupMenu #welcome {
+    /* background: pink; */
+    height: 0fr;
+}
+
+StartupMenu #agents-container {
+    /* background: $foreground 50%; */
+    height: 3fr;
+}
+
+#agents-container .-agents-list {
+    /* background: blue 50%; */
+    background: $background 10%;
+    width: 1fr;
+    height: 100%;
+    padding: 3;
+}
+
+.-agents-list ListView {
+    /* background: blue; */
+}
+
+.-agents-list ListItem {
+    color: $secondary;
+}
+
+.-agents-list ListItem.--highlight {
+    background: $secondary;
+    color: $background;
+}
+
+#agents-container .-agent-info {
+    /* background: yellow 20%; */
+    background: $foreground 10%;
+    width: 3fr;
+    height: 100%;
+    padding: 5;
+}
+
+StartupMenu ListView:hover, StartupMenu ListView:focus {
+    border-bottom: heavy $secondary;
+}
+

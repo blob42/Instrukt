@@ -1,0 +1,126 @@
+[tool.poetry]
+name = "instrukt"
+version = "0.4.0"
+homepage = "https://github.com/blob42/instrukt"
+repository = "https://github.com/blob42/instrukt"
+documentation = "https://github.com/blob42/instrukt/docs"
+description = "Build and instruct AI agents to perform tasks and query infromation in a keyboard driven terminal UI."
+authors = ["Chakib Ben Ziane <instrukt@blob42.xyz>"]
+license = "AGPL3"
+readme = "README.md"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Environment :: Web Environment",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Software Development :: User Interfaces",
+  "Topic :: Text Processing :: Linguistic",
+  "Topic :: Utilities",
+]
+include = ["instrukt/docs/*"]
+
+
+[tool.poetry.scripts]
+instrukt = 'instrukt.app:run'
+
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"
+textual = "^0.27.0"
+langchain = "^0.0.205"
+pyxdg = "^0.28"
+tomli = "^2.0.1"
+pydantic = "^1.10.7"
+pyyaml = "^6.0"
+chromadb = { git = "https://github.com/blob42/chromadb", branch="fix-duckdb-atexit"}
+# chromadb = "^0.3.23"
+pydantic-yaml = "^0.11.2"
+nest-asyncio = "^1.5.6"
+ipython = "^8.13.2"
+python-magic = "^0.4.27"
+pdfminer-six = "^20221105"
+rich = "^13.4.1" #NOTE: frozen until fix https://github.com/Textualize/rich/issues/2866
+unstructured = { version = "^0.6.11", extras = ["local-inference"], optional=true}
+pyperclip = "^1.8.2"
+wikipedia = { version = "^1.4.0", optional = true }
+openai = {version = "^0.27.8"}
+tiktoken = {version = "^0.4.0"}
+
+[tool.poetry.extras]
+tools = ["wikipedia"]
+loaders = ["unstructured"]
+# vectorstores = ["chromadb"]
+openai = ["openai", "tiktoken"]
+# local-inference = [""]
+
+[tool.poetry.group.dev.dependencies]
+textual-dev = "^0.0.2"
+jupyter = "^1.0.0"
+mypy = "^1.0.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.3.1"
+pytest-cov = "^4.0.0"
+pytest-dotenv = "^0.5.2"
+pytest-watcher = "^0.2.6"
+pytest-golden = "^0.2.2"
+pytest-asyncio = "^0.21.0"
+pytest-mypy = "^0.10.3"
+omegaconf = "^2.3.0"
+pytest-mock = "^3.10.0"
+
+[tool.poetry.group.lint.dependencies]
+ruff = "^0.0.249"
+types-toml = "^0.10.8.1"
+types-redis = "^4.3.21.6"
+black = "^23.1.0"
+
+[tool.ruff]
+select = [
+  "E",  # pycodestyle
+  "F",  # pyflakes
+  "I",  # isort
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+enable_assertion_pass_hook=true
+filterwarnings="ignore::DeprecationWarning"
+markers = [
+    "requires: mark tests as requiring a specific library"
+]
+
+[tool.mypy]
+# plugins = [
+#     "pydantic.mypy"
+# ]
+
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+
+# for strict mypy: (this is the tricky one :-))
+#disallow_untyped_defs = true
+
+# [tool.pydantic-mypy]
+# init_forbid_extra = true
+# init_typed = true
+# warn_required_dynamic_aliases = true
+# warn_untyped_fields = true

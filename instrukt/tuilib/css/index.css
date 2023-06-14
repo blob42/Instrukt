@@ -1,0 +1,124 @@
+IndexScreen #content {
+    /* background: pink 70%; */
+}
+
+
+IndexScreen #main {
+    /* background: pink 70%; */
+    layout: grid;
+    grid-size: 1;
+    grid-rows: 1fr 5fr;
+}
+
+IndexScreen IndexInfo {
+    /* background: blue 30%; */
+}
+
+IndexScreen IndexInfo .action-bar {
+    height: auto;
+    dock: bottom;
+}
+
+IndexInfo .action-bar .header {
+    padding: 0 1;
+}
+
+IndexInfo .action-bar Horizontal {
+    height: auto;
+    background: $foreground 10%;
+}
+
+IndexInfo .action-bar Button {
+    border: none;
+    height: 1;
+
+}
+
+
+/* IndexScreen #console { */
+/*     width: 100%; */
+/*     height: 100%; */
+/* } */
+
+/* index list  */
+
+IndexList {
+    background: $foreground 20%;
+    dock: left;
+    width: 20%;
+}
+
+IndexList .header {
+    padding: 1;
+    width: 100%;
+    text-style: bold;
+    text-align: center;
+    background: $success 70%;
+}
+
+IndexList ListItem {
+    padding: 1;
+}
+
+
+/* Add Form */
+#add-index-form {
+    /* background: cyan 30%; */
+    padding: 1;
+    display: none;
+    scrollbar-size: 1 1;
+}
+
+#add-index-form #path Input {
+    width: 1fr;
+}
+
+#add-index-form #description Input {
+    width: 1fr;
+}
+
+#add-index-form #submit {
+    background: $foreground 10%;
+    dock: bottom;
+    width: 100%;
+    height: auto;
+    border-top: tall $foreground 20%;
+    padding-bottom: 1;
+    padding-right: 2;
+}
+
+#add-index-form #submit Label {
+    width: 4fr;
+    height: 100%;
+    content-align: center middle;
+}
+
+#add-index-form #submit LoadingIndicator {
+    display: none;
+}
+
+#add-index-form #submit Button {
+    border: none;
+    height: 1;
+    width: 1fr;
+}
+
+
+#add-index-form #submit LoadingIndicator {
+    height: auto;
+    width: 1fr;
+}
+
+
+/* form styles for processing */
+
+#add-index-form.processing Button#create-index {
+    display: none;
+}
+#add-index-form.processing #submit LoadingIndicator {
+    display: block;
+}
+
+#add-index-form.processing FormGroup {
+    display: none;
+}

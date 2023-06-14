@@ -1,0 +1,29 @@
+InstruktHeader {
+    layout: horizontal;
+    dock: top;
+    width: 100%;
+    background: $foreground 5%;
+    color: $text;
+    height: 1;
+}
+
+
+InstruktHeader HeaderTitle {
+    width: auto;
+    margin-left: 2;
+    /* background: yellow; */
+    /* color: blue; */
+}
+
+MenuWrapper {
+    min-width: 2;
+    width: auto;
+}
+
+MenuWrapper Button {
+    border: none;
+    height: auto;
+    min-width: 2;
+}
+
+

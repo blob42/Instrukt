@@ -1,0 +1,15 @@
+FormControl Horizontal {
+    height: auto;
+}
+
+FormControl Button {
+    border: none;
+}
+
+FormControl Input.error {
+    border-subtitle-color: $warning;
+}
+
+FormGroup.error {
+    border: wide $error;
+}

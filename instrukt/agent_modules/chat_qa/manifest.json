@@ -1,0 +1,5 @@
+{
+    "name": "chat_qa",
+    "version": "0.0.1",
+    "description": "An agent optimized for conversational chat with QA over indexes."
+}
