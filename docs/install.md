@@ -20,7 +20,7 @@ your pip version is old.
 - Install the dependencies with:
 
 ```sh
-    poetry install -E tools -E unstructured
+    poetry install -E tools -E loaders
 ```
 
 ## Extra Dependencies
