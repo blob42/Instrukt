@@ -18,15 +18,14 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
-import asyncio
+
+from typing import TYPE_CHECKING, Tuple
 
 from ..commands.command import CallbackOutput, CmdGroup, CmdLog
 from ..commands.root_cmd import ROOT as root
 from ..context import Context
-from ..utils.asynctools import run_async, create_ctx_task
 from ..indexes.schema import Index
-from typing import TYPE_CHECKING, Tuple
-from functools import partial
+from ..utils.asynctools import create_ctx_task, run_async
 
 if TYPE_CHECKING:
     from instrukt.indexes.schema import Collection

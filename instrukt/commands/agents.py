@@ -20,24 +20,15 @@
 ## 
 """Agent commands"""
 
-import asyncio
+
 from rich.markdown import Markdown
-from .root_cmd import ROOT as root
-from ..commands.command import CmdGroup, CallbackOutput, CmdLog
-from ..context import Context
-from ..utils.debug import notify
-import typing as t
 
 from ..agent import (
-        AgentLoader,
-        ModuleManager,
-        AgentEvents,
-        AgentState,
-        )
-
-from instrukt.messages.agents import AgentLoaded
-from instrukt.errors import AgentError
-
+    ModuleManager,
+)
+from ..commands.command import CallbackOutput, CmdGroup, CmdLog
+from ..context import Context
+from .root_cmd import ROOT as root
 
 
 @root.group(name="agent")
@@ -66,20 +57,10 @@ class Agent(CmdGroup):
         else:
             return CmdLog("Stopping agent ...")
 
-    #HACK: unload agent and clear state and callbacks
-    @staticmethod
-    async def cmd_unload(ctx: Context) -> CallbackOutput:
-        """Unloads the currently loaded agent."""
-        assert ctx.app is not None
-        ctx.app.active_agent.realm.stop_session()
-        del ctx.app.active_agent
-        return CmdLog("Unloaded agent.")
-
     @staticmethod
     async def cmd_list(ctx: Context) -> CallbackOutput:
         """Lists loadable agents."""
         agents = list(ModuleManager.list_modules())
-        # print as a markdown list
         _agents = """\nAvailable Agents:\n"""
         for a in agents:
             _agents += (f"- {a}\n")
@@ -91,13 +72,6 @@ class Agent(CmdGroup):
         """Lists active agents by `name`."""
         assert ctx.app is not None
         return(ctx.app.agent_manager.loaded_agents)
-
-    # @staticmethod
-    # async def cmd_add_tool(ctx: Context) -> CallbackOutput:
-    #     """Add a tool to the active agent."""
-    #     assert ctx.app is not None
-    #     am = ctx.app.agent_manager
-    #     await am.add_tool()
 
     @staticmethod
     async def cmd_update_tool_name(ctx: Context, old: str, new: str) -> None:
@@ -124,7 +98,6 @@ class Agent(CmdGroup):
         ctx.app.agent_manager.active_agent.forget_about(term)
         ctx.app.agent_manager.active_agent.reload_agent()
         return CmdLog(f"Forgot {term}.")
-
 
 
 

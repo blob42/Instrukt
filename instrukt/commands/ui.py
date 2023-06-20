@@ -20,10 +20,9 @@
 ## 
 """UI commands."""
 
-from textual.widgets import TextLog
-from typing import cast
 
 from .root_cmd import ROOT as root
+
 
 @root.command(name="clear")
 async def clear_chat_buffer(ctx) -> None:
