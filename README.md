@@ -15,10 +15,10 @@
 Instrukt is a terminal-based tool for AI productivity and development. It offers a platform where users can:
 
 - :robot: Create and instruct modular AI agents
-- :card_file_box: Generate document indexes for question-answering with AI agents
+- :card_file_box: Generate document indexes for question-answering
 - :toolbox: Create or use tools and attach them to any agent
 
-Instrukt is designed with with an easy interface and API for composing and using AI agents. It plays nicely with [LangChain](https://github.com/hwchase17/langchain), extending its base agents and tools. 
+Instrukt is designed with with an easy interface and API for composing and using agents. It is built with [LangChain](https://github.com/hwchase17/langchain), extending its base agents and tools. 
 
 Instrukt agents are simple **drop-in Python packages** that can be extended, shared with others, attached to tools, and augmented with document indexes. Instruct them in natural language and, for safety, attach them to inside secure containers (currently implemented with Docker) to perform tasks in their dedicated, sandboxed space :shield:.
 
@@ -42,11 +42,14 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 
 ### Setup
 
+**note**: the package is not yet released on PyPi
+
 **From pre-built package**:
 
 - download and install the released package with `pip package_name[tools]`.
 
 #### From source:
+
 - Make sure the latest version of `poetry` is installed.
 - Set your virtualenv
 - Clone the repository
@@ -62,7 +65,8 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 
 ### Running:
 
-- type `instrukt`.
+- Type `instrukt`.
+- On the first run, it will create a config file in `~/.config/instrukt/instrukt.yml`
 
 ### Default Agents:
 
@@ -71,13 +75,17 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 ## Features 
 
 #### :computer: Keyboard and Mouse Terminal Interface:
-A terminal-based interface that prioritizes ease-of-use, keeping you focused on the task at hand. Run Instrukt in bare metal and access it remotely via SSH.
+
+- A terminal-based interface optimized for speed and ease-of-use. 
+- Run Instrukt in bare metal and access it remotely via SSH.
 
 #### :robot: Custom Agents:
-Design your own AI agents and custom tools. Agents are simple python packages can be shared and loaded by other users.
+- Design your own AI agents and custom tools. 
+- Agents are simple python packages can be shared and loaded by other users.
 
 #### :wrench: Tools:
-Use the pre-defined toolset or design your own. Connect or disconnect tools to agents on-the-go, tailoring your AI workflows to your needs.
+- Use the pre-defined toolset or design your own. 
+- Connect or disconnect tools to agents on-the-go, tailoring your AI workflows to your needs.
 
 #### :books: Vectorstore Indexes:
 Create indexes over your data, attach them to agents, and use them for question-answering.
@@ -95,7 +103,7 @@ Debug and introspect agents using an in-built IPython console.
 ## Document Indexes and Question-Answering
 
 - Indexes are created using OpenAI embeddings.
-- They are stored locally using the [Chroma](https://github.com/chroma-core/chroma)
+- They are stored locally using the [ChromaDB](https://github.com/chroma-core/chroma)
 embedding database.
 - You create and manage indexes using the **Index Management** UI press capital `I`
 - An index can be attached to any agent as a **retrieval** tool using the `index` menu

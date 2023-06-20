@@ -67,4 +67,9 @@ may expect from the command line. The exact modifier key depends on the terminal
 
 Refer to the documentation for your terminal emulator, if it is not listed above.
 
+## Nerdfonts Icons
+
+You can activate nerdfont icons for a compact interface by setting the appropriate
+setting in `~/.config/instrukt/instrukt.yml`:
+
 
