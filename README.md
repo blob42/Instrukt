@@ -80,7 +80,7 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 - Run Instrukt in bare metal and access it remotely via SSH.
 
 #### :robot: Custom Agents:
-- Design your own AI agents and custom tools. 
+- Design your [own AI agents](docs/quickstart.md#custom-agents) and custom tools. 
 - Agents are simple python packages can be shared and loaded by other users.
 
 #### :wrench: Tools:

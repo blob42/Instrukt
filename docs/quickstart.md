@@ -12,6 +12,13 @@ Patreon supporters have also access to an early preview of the **Docker Agent**.
 
 Instrukt encourages you to create custom workflows with a quick feedback loop while testing agents. The developer console `press D` gives you access to a live IPython console in the running namespace to introspect and debug agents and tools.
 
+### Custom Agents
+
+Instrukt agents a simple python packages that live in the `agent_modules` folder within
+the package. You can create your own agents and share them with others. 
+
+Take a look at the `demo` and `chat_qa` agents for examples of how to create your own.
+
 # User Interface
 
 The interface is divided in two main parts: *The Console Panel* and the *Monitor Panel*
