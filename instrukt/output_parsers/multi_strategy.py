@@ -23,7 +23,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Generic, Sequence, Tuple, TypeVar, Union
 
-from xdg import BaseDirectory  # type: ignore
 from langchain.agents.agent import AgentOutputParser
 from langchain.agents.conversational_chat.prompt import FORMAT_INSTRUCTIONS
 from langchain.schema import (
@@ -34,7 +33,6 @@ from langchain.schema import (
 )
 
 from .strategies import json_react_strategies
-from ..config import APP_SETTINGS
 
 log = logging.getLogger(__name__)
 # get logger to file

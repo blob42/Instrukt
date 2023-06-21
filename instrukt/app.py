@@ -241,9 +241,6 @@ class InstruktApp(App[None]):
         """toggle dark mode"""
         self.dark = not self.dark
 
-    def action_test_modal(self) -> None:
-        self.push_screen("test_modal")
-
     # NOTE: the main render loop is running at the same time as IPython's loop
     # this means terminal state can change while being inside IPython session
     # TODO!: find a way to Textual writing to the terminal when IPython is running.
