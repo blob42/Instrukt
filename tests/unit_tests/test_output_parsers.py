@@ -51,9 +51,8 @@ def _test_json_react_strategy(output, name, parser):
         except Exception as e:
             pytest.fail(f"Error parsing output entry: {name}.")
 
-#TODO: rename output files with meaningful names
 def test_fix_json_with_embedded_code_block():
-    path =  (Path(__file__).parent / "data/llm_outputs/parser_error_35513")
+    path =  (Path(__file__).parent / "data/llm_outputs/json_embed_code_block")
     with open(str(path), "r") as f:
         output = f.read()
     res = fix_json_with_embedded_code_block(output)

@@ -21,7 +21,15 @@
 """Output parsers library."""
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Generic, Sequence, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from langchain.agents.agent import AgentOutputParser
 from langchain.agents.conversational_chat.prompt import FORMAT_INSTRUCTIONS
@@ -32,38 +40,36 @@ from langchain.schema import (
     OutputParserException,
 )
 
+from .strategy import Strategy
 from .strategies import json_react_strategies
 
+
 log = logging.getLogger(__name__)
-# get logger to file
 
 
 T = TypeVar("T")
 S = TypeVar("S")
 
-# type for a predicate
-TPredicate = Callable[[str], bool]
-
-# type for a strategy (callbale, predicate)
-TStrategy = Tuple[Callable[[str], S], TPredicate]
-
 
 class MultiStrategyParser(BaseOutputParser[T], ABC, Generic[T, S]):
     """A parser that tries multiple strategies to parse the output.
 
+    Strategies are tried in order. The first one that succeeds is returned.
 
-    The strategies are tried in order. The first one that succeeds is returned.
-
-    A strategy is a callable that takes in text and returns some type.
+    A strategy is a tuple (callable, predicate) where the callbale takes in text 
+    and returns some type. The callable is called only if the predicate returns True.
 
     The returned type is then passed to the final_parse method to produce the
     final result compatible with the output parser interface.
     """
 
-    strategies: Sequence[TStrategy[S]]
+    strategies: Sequence[Strategy[S]]
     """List of strategies to try. The first one that succeeds is returned."""
 
-    def add_strategy(self, *strategy: TStrategy[S]) -> None:
+    class Config:
+        arbitrary_types_allowed = True
+
+    def add_strategy(self, *strategy: Strategy[S]) -> None:
         """Register a new strategy. 
 
         A strategy is a callbale that takes in text and returns some type 
@@ -117,7 +123,7 @@ class ConvMultiStrategyParser(MultiStrategyParser[U, W], AgentOutputParser):
     def get_format_instructions(self) -> str:
         return FORMAT_INSTRUCTIONS
 
-    def __init__(self, strategies: Sequence[TStrategy[W]], **kwargs) -> None:
+    def __init__(self, strategies: Sequence[Strategy[W]], **kwargs) -> None:
         super().__init__(strategies=strategies, **kwargs)
 
     def final_parse(self, text: str, parsed: W) -> U:

@@ -21,14 +21,16 @@
 
 import json
 import re
-
 from typing import Any
+
 from .parser_lib import (
-        parse_json_md_langchain,
-        parse_json_md_nested_code_block,
-        )
+    parse_json_md_langchain,
+    parse_json_md_nested_code_block,
+)
+from .strategy import Strategy
 
 T = dict[str, Any]
+
 
 def is_bare_json(text: str) -> T:
     """Tries to load as bare json"""
@@ -42,26 +44,25 @@ def json_markdown(text: str) -> T:
 
 def fix_code_in_json(text):
     """Use the dark force."""
-    # Step 1: Extract the code block and replace it with a placeholder
+    # extract the code block and replace it with a placeholder
     pattern = r"```([^`]*?)```"
     match = re.search(pattern, text)
     if match:
         code_block = match.group(1)
         text = re.sub(pattern, "CODE_BLOCK_PLACEHOLDER", text, count=1)
 
-        # Step 2: Escape the special characters in the code block
-        escaped_code_block = (code_block.
-                              replace("\n", "\\n")
-                              .replace("\t", "\\t")
-                              .replace("\"", "\\\""))
+        # escape the special characters in the code block
+        escaped_code_block = (code_block.replace("\n", "\\n").replace(
+            "\t", "\\t").replace("\"", "\\\""))
 
         # add backtick pairs to escaped code block
         escaped_code_block = "[BEGIN_CODE]" + escaped_code_block + "[END_CODE]"
 
-        # Replace the placeholder in the original text with the escaped code block
+        # replace the placeholder in the original text with the escaped code block
         text = text.replace("CODE_BLOCK_PLACEHOLDER", escaped_code_block)
 
     return text
+
 
 def fix_json_with_embedded_code_block(text: str, max_loop: int = 20) -> T:
     loop = 0
@@ -76,6 +77,7 @@ def fix_json_with_embedded_code_block(text: str, max_loop: int = 20) -> T:
             if text[e.pos] == '\n':
                 text = text[:e.pos] + "\\n" + text[e.pos + 1:]
                 text = text.replace("[BEGIN_CODE]", "```")
+                #NOTE: END_CODE must replaced in the end of the loop
             else:
                 raise
         finally:
@@ -84,19 +86,22 @@ def fix_json_with_embedded_code_block(text: str, max_loop: int = 20) -> T:
     return json.loads(final_text)
 
 
-
 def json_nested_code_block(text: str) -> T:
     """Extract the outermost code block. Can accomodate nested code blocks."""
     return parse_json_md_nested_code_block(text)
+
 
 def fallback(text: str) -> T:
     """Fallback strategy"""
     return {"action": "Final Answer", "action_input": text}
 
+
 json_react_strategies = (
-        (is_bare_json, lambda text: text.startswith("{")),
-         (json_markdown, lambda text: text.find("```") != -1),
-         (json_nested_code_block, lambda text: text.find("```") != -1),
-         (fix_json_with_embedded_code_block, lambda text: text.find("```") != -1),
-         (fallback, lambda text: True),
-        )
+    Strategy(is_bare_json, lambda text: text.startswith("{")),
+    Strategy(json_markdown, lambda text: text.find("```") != -1),
+    Strategy(json_nested_code_block, lambda text: text.find("```") != -1),
+    Strategy(fix_json_with_embedded_code_block,
+             lambda text: text.find("```") != -1),
+    Strategy(fallback, lambda _: True),
+)
+
