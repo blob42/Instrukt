@@ -28,10 +28,6 @@ S = TypeVar("S")
 TPredicate = Callable[[str], bool]
 TParser = Callable[[str], S]
 
-# type for a strategy (callbale, predicate)
-TStrategy = Tuple[TParser[S], TPredicate]
-
-
 class Strategy(Generic[S]):
     def __init__(self,
                  parser: TParser[S],
