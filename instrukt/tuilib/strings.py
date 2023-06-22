@@ -73,6 +73,12 @@ If you need more information about a specific command, type `.help <command>`.
 You can also load the Instrukt manual by typing `.man`.
 """
 
+#TODO!: contextual tips 
+TIPS = """
+## TIPS:
+- You can stop a **thinking** agent by pressing `ctrl+s` while in the prompt.
+"""
+
 AGENT_WINDOW_INTRO = """
 This is the agent window. It is used to display the conversation with the agent and the agent's final replies.
 """

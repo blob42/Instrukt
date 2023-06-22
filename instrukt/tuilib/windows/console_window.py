@@ -23,7 +23,7 @@ import typing as t
 from rich.markdown import Markdown
 
 from ...messages.log import LogLevel, LogMessage
-from ...tuilib.strings import INTRO_MESSAGE
+from ...tuilib.strings import INTRO_MESSAGE, TIPS
 from ...tuilib.widgets.textlog import TextLogUp
 
 if t.TYPE_CHECKING:
@@ -34,7 +34,7 @@ class ConsoleWindow(TextLogUp):
     """Window with bottom-up scrolling view"""
 
     def on_instrukt_app_ready(self):
-        self.write(Markdown(INTRO_MESSAGE))
+        self.write(Markdown(INTRO_MESSAGE + TIPS))
 
     async def on_instrukt_log_message(self, message: 'AnyMessage') -> None:
         if isinstance(message, LogMessage) and message.level == LogLevel.ERROR:
