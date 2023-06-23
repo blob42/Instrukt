@@ -90,20 +90,31 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 #### :books: Vectorstore Indexes:
 Create indexes over your data, attach them to agents, and use them for question-answering.
 
-#### :zap: Fast Feedback:
-Integrated REPL-Prompt for quick interaction with agents, and a fast feedback loop for development and testing.
+#### :zap: Prompt Console :
+- Integrated REPL-Prompt for quick interaction with agents, and a fast feedback loop for development and testing.
+- Add custom commands commands.
 
 #### :bird: LangChain:
-Built to work seamlessly with the LangChain with an extensible API for integrating with other frameworks.
+
+- Built with the LangChain 
+- Extensible API for integrating with other frameworks.
 
 #### :microscope: Developer Console:
 Debug and introspect agents using an in-built IPython console.
+
+#### :shield: Secure Containers:
+
+- Run agents in secure docker containers for safety and privacy.
+- Use [gVisor](https://gvisor.dev/) runtime for extra security.
+
+**note**: the docker agent is available as preview for [Patreon](#patreon) supporters.
+
 
 
 ## Document Indexes and Question-Answering
 
 - Indexes are created using OpenAI embeddings.
-- They are stored locally using the [ChromaDB](https://github.com/chroma-core/chroma)
+- They are stored locally using the ChromaDB(https://github.com/chroma-core/chroma)
 embedding database.
 - You create and manage indexes using the **Index Management** UI press capital `I`
 - An index can be attached to any agent as a **retrieval** tool using the `index` menu
