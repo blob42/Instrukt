@@ -12,18 +12,21 @@
 
 ## Introduction
 
-Instrukt is a terminal-based tool for AI productivity and development. It offers a platform where users can:
+Instrukt is a terminal-based environment for AI productivity and development. It offers a platform where users can:
 
 - :robot: Create and instruct modular AI agents
 - :card_file_box: Generate document indexes for question-answering
-- :toolbox: Create or use tools and attach them to any agent
-
-Instrukt is designed with with an easy interface and API for composing and using agents. It is built with [LangChain](https://github.com/hwchase17/langchain), extending its base agents and tools. 
+- :toolbox: Create and attach tools to any agent
 
 Instrukt agents are simple **drop-in Python packages** that can be extended, shared with others, attached to tools, and augmented with document indexes. Instruct them in natural language and, for safety, attach them to inside secure containers (currently implemented with Docker) to perform tasks in their dedicated, sandboxed space :shield:.
 
-For agent developers, it offers a **builtin IPython console** :microscope: for on-the-go debugging and introspection and allows for quick development and testing of `Langchain` agents in an interactive environment.
+Instrukt is designed with with an easy interface and API for composing and using agents. It is built with [LangChain](https://github.com/hwchase17/langchain), extending its base agents and tools. 
 
+For agent developers, it offers a **builtin IPython console** for on-the-go debugging and introspection and allows for quick development and testing of `Langchain` agents in an interactive environment.
+
+Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https://github.com/Textualize/textual), [Chroma](https://github.com/chroma-core/chroma)
+
+**Consulting Services**: Need help with Langchain or AI development/deployment ? You can reach out to me at [contact@blob42.xyz](mailto://contact@blob42.xyz)
 
 ## TOC
 
@@ -32,9 +35,9 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 - [Supported Platforms](#supported-platforms)
 - [LLM Models](#llm-models)
 - [Document Indexes and Question-Answering](#document-indexes-and-question-answering)
+- [Roadmap](#roadmap)
 - [Patreon](#patreon)
 - [Social](#social)
-- [Roadmap](#roadmap)
 - [Vision](#vision)
 - [License](#license)
 
@@ -46,14 +49,14 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 
 **From pre-built package**:
 
-- download and install the released package with `pip package_name[tools]`.
+- download and install the released package with `pip install package_name[tools]`.
 
 #### From source:
 
 - Make sure the latest version of `poetry` is installed.
 - Set your virtualenv
 - Clone the repository
-- Run `poetry install -E tools`
+- Run `poetry install -E tools --with dev` 
 - This will install Instrukt including extra tools for agents. 
 
 [See the installation guide for more details](docs/install.md)
@@ -61,30 +64,42 @@ For agent developers, it offers a **builtin IPython console** :microscope: for o
 ### Requirements:
 
 - Export `OPENAI_API_KEY` environment variable with your OpenAI API key.
-- Use a modern terminal that supports 24-bit color.
+- Use a modern terminal that supports 24-bit color and mouse input.
 
 ### Running:
 
 - Type `instrukt`.
-- On the first run, it will create a config file in `~/.config/instrukt/instrukt.yml`
+- On the first run, it will create a config file in
+  `~/.config/instrukt/instrukt.yml`
+
+#### From source
+
+- If you did not install the dependencies using poetry make sure to install textual dev dependencies with: `pip install textual[dev]`
+
+- From the project's root run: `textual run instrukt.app:InstruktApp`
 
 ### Default Agents:
 
-**Chat Q&A**: A simple conversational agent. Attach it to indexes and tools to create a question-answering agent. It also serves as an example of how to create an agent.
+**Chat Q&A**: A simple conversational agent. Attach document indexes and tools to create a question-answering agent. It also serves as an example for making custom agents.
+
+**Demo**: The same agent used in the demo video.
 
 ## Features 
 
 #### :computer: Keyboard and Mouse Terminal Interface:
 
-- A terminal-based interface optimized for speed and ease-of-use. 
-- Run Instrukt in bare metal and access it remotely via SSH.
+- A terminal-based interface for power keyboard users to instruct AI agents without ever leaving the keyboard.
+- Mouse support and [Rich](https://github.com/Textualize/rich) colorful agent outputs such as markdown and source
+  code thanks to the [Textual](https://github.com/Textualize/textual) TUI library.
+- Run Instrukt in bare metal and access it remotely via SSH and/or terminal
+  multiplexer.
 
-#### :robot: Custom Agents:
-- Design your [own AI agents](docs/quickstart.md#custom-agents) and custom tools. 
+#### :robot: Custom AI Agents:
+- Design your [own agents](docs/quickstart.md#custom-agents) and custom tools. 
 - Agents are simple python packages can be shared and loaded by other users.
 
 #### :wrench: Tools:
-- Use the pre-defined toolset or design your own. 
+- Use the pre-defined toolset or design your own tools.
 - Connect or disconnect tools to agents on-the-go, tailoring your AI workflows to your needs.
 
 #### :books: Vectorstore Indexes:
@@ -92,11 +107,12 @@ Create indexes over your data, attach them to agents, and use them for question-
 
 #### :zap: Prompt Console :
 - Integrated REPL-Prompt for quick interaction with agents, and a fast feedback loop for development and testing.
-- Add custom commands commands.
+- Add your own custom commands to automate repetitive tasks.
+- Builtin prompt/chat history to quickly edit/correct messages.
 
 #### :bird: LangChain:
 
-- Built with the LangChain 
+- Leverage the LangChain ecosystem to automate anything.
 - Extensible API for integrating with other frameworks.
 
 #### :microscope: Developer Console:
@@ -104,27 +120,23 @@ Debug and introspect agents using an in-built IPython console.
 
 #### :shield: Secure Containers:
 
-- Run agents in secure docker containers for safety and privacy.
-- Use [gVisor](https://gvisor.dev/) runtime for extra security.
+- Run agents inside secure docker containers for safety and privacy.
+- Use [gVisor](https://gvisor.dev/) runtime for a full isolation of the agent.
 
-**note**: the docker agent is available as preview for [Patreon](#patreon) supporters.
-
+**note**: The docker agent is only available to [Patreon](#patreon) supporters as an early preview.
 
 
 ## Document Indexes and Question-Answering
 
 - Indexes are created using OpenAI embeddings.
-- They are stored locally using the ChromaDB(https://github.com/chroma-core/chroma)
-embedding database.
+- They are stored locally using the [Chroma](https://github.com/chroma-core/chroma) embedding database.
 - You create and manage indexes using the **Index Management** UI press capital `I`
 - An index can be attached to any agent as a **retrieval** tool using the `index` menu
   from the agent's window.
 - Once an index is attached you can do question-answering with your agent and it will
   automatically lookup your index whenever its name is mentioned.
 
-**note**: This currently using naive document chunking/splitting heuristics without
-any optimizations. The quality of document retrieval will be greatly improved in future
-iterations.
+**note**: Indexing is currently using naive document chunking/splitting heuristics without any optimizations. The quality of document retrieval and agent's answers can be greatly improved in future iterations.
 
 ## Supported platforms:
 
@@ -133,8 +145,23 @@ iterations.
 
 ### LLM Models
 
-Currently only **OpenAI** supported, fully private local models is the next priority.
+- Currently only **OpenAI** supported.
+- Using private local models is the **next priority**.
 
+## Roadmap
+
+- [ ] Private local models
+    - [ ] Use a self hosted [go-skynet/LocalAI](https://github.com/go-skynet/LocalAI)
+    - [ ] Emulate [PrivateGPT](https://github.com/imartinez/privateGPT)
+    - [ ] Local embeddings
+        - [ ] wip: HF SetenceTransformers or other embeddings models.
+        - [ ] [Instructor Embeddings](https://instructor-embedding.github.io/)
+- [ ] Documentation
+    - [ ] Creating agents
+    - [ ] Creating tools
+    - [ ] Indexing and chat with documents and source code.
+    - [ ] Example use cases  
+    - [ ] Tutorials for users non familiar with AI/LLM terms.
 
 ## Patreon
 
@@ -142,18 +169,7 @@ By becoming a patron, you will help me continue committing time to the developme
 
 ## Social
 
-Join the [Discord](https://discord.gg/wxRwRcJ7) server to keep updated. 
-
-## Roadmap
-
-Here are the next top priorities.
-
-- [ ] documentation
-    - [ ] creating agents
-    - [ ] creating tools
-- [ ] run local private models
-    - [ ] local llm models
-    - [ ] local embeddings model
+Join the [Discord](https://discord.gg/wxRwRcJ7) server to keep updated on the progress or ask for help.
 
 ## Vision
 
