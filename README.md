@@ -36,6 +36,7 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 - [LLM Models](#llm-models)
 - [Document Indexes and Question-Answering](#document-indexes-and-question-answering)
 - [Roadmap](#roadmap)
+- [Contributing](#contributing)
 - [Patreon](#patreon)
 - [Social](#social)
 - [Vision](#vision)
@@ -151,8 +152,9 @@ Debug and introspect agents using an in-built IPython console.
 ## Roadmap
 
 - [ ] Private local models
-    - [ ] Use a self hosted [go-skynet/LocalAI](https://github.com/go-skynet/LocalAI)
+    - [ ] Use text-generation-webui API
     - [ ] Emulate [PrivateGPT](https://github.com/imartinez/privateGPT)
+    - [ ] Use a self hosted [go-skynet/LocalAI](https://github.com/go-skynet/LocalAI)
     - [ ] Local embeddings
         - [ ] wip: HF SetenceTransformers or other embeddings models.
         - [ ] [Instructor Embeddings](https://instructor-embedding.github.io/)
@@ -162,6 +164,17 @@ Debug and introspect agents using an in-built IPython console.
     - [ ] Indexing and chat with documents and source code.
     - [ ] Example use cases  
     - [ ] Tutorials for users non familiar with AI/LLM terms.
+
+## Contributing
+
+Any contribution, feedback and PR is welcome !
+
+You can help with:
+
+- Testing and creating Issues for bugs or features that would be useful.
+- If you have technical skills, you are welcome to create a PR.
+- If you don't have technical skills you can help with documentation, adding examples
+  and tutorials or create new user stories.
 
 ## Patreon
 
