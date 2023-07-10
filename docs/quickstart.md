@@ -1,8 +1,8 @@
-# Overview
+# Quickstart
 
 ## Introduction
 
-Welcome to Instrukt! This is your handy terminal-based interface for running and prototyping AI agents. Instrukt provides chat-like interface serving as a prompt and REPL at the same time, helping you conveniently develop, instruct, and debug your AI agents. 
+Welcome to Instrukt ! This is your handy terminal-based interface for running and prototyping AI agents. Instrukt provides chat-like interface serving as a prompt and REPL at the same time, helping you conveniently develop, instruct, and debug your AI agents. 
 
 Instrukt leverages LangChain and provides extra utilities with a simple interface to add vectorstore indexes `press I` and tools, which can be attached to an agent in real time.
 
@@ -19,16 +19,16 @@ the package. You can create your own agents and share them with others.
 
 Take a look at the `demo` and `chat_qa` agents for examples of how to create your own.
 
-# User Interface
+## User Interface
 
 The interface is divided in two main parts: *The Console Panel* and the *Monitor Panel*
 
-## Console Panel
+### Console Panel
 
 Located on the left side of the interface, this is where you interact with the AI agents. It provides a prompt where you can input queries and instructions for the agents to execute.
 Additionally, the prompt serves as a command line REPL to interact with the *Instrukt* environment.
 
-## Monitor Panel
+### Monitor Panel
 On the right side of the interface is the Monitor Panel where you will find the agent output alongside the user messages.
 
 ### Agent Output
@@ -43,9 +43,9 @@ The _realm window_ is an optional component that can be displayed for agents usi
 
 The index management window allows you to manage and create new vectorstore indexes. These indexes can be used to provide more context to the agent's underlying LLM. You can create indexes and attach them to active agents at any time during the agent's lifecycle. 
 
-# FAQ
+## FAQ
 
-## Terminal Colors
+### Terminal Colors
 
 If the colors seem off make sure to:
 
@@ -55,14 +55,14 @@ If the colors seem off make sure to:
 - Make sure your terminal that supports 256 color palette.
 
 
-## Select And Copy
+### Select And Copy
 
-### Copy Agent Replies
+#### Copy Agent Replies
 
 **Click** on a reply from an agent to copy its content to the clipboard.
 Make sure to install a clipboard utility like xsel or xclip if you're on Linux.
 
-### Terminal Select/Copy
+#### Terminal Select/Copy
 
 Running a Textual app puts your terminal in to *application mode* which disables clicking and dragging to select text.
 Most terminal emulators offer a modifier key which you can hold while you click and drag to restore the behavior you
@@ -77,6 +77,12 @@ Refer to the documentation for your terminal emulator, if it is not listed above
 ## Nerdfonts Icons
 
 You can activate nerdfont icons for a compact interface by setting the appropriate
-setting in `~/.config/instrukt/instrukt.yml`:
+setting in:
 
+=== "~/.config/instrukt/instrukt.yml"
+```yaml
+interface:
+  nerd_fonts: true
+
+```
 

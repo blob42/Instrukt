@@ -1,5 +1,6 @@
 # Installation Guide
 
+
 Instrukt is not yet available on package managers. To install it, you can install it from the source code or download the [pre-built pacakges](https://github.com/blob42/Instrukt/releases).
 
 ## Minimum requirements
@@ -28,3 +29,4 @@ your pip version is old.
 - libmagic (file type detection)
 - sqlite (for caching)
 - docker: optional for Patreons with access to the docker agent preview.
+
