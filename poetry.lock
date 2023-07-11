@@ -5256,6 +5256,25 @@ code-style = ["pre-commit (==2.12.1)"]
 rtd = ["ipython", "myst-nb", "sphinx", "sphinx-book-theme", "sphinx-examples"]
 
 [[package]]
+name = "sphinx-markdown-builder"
+version = "0.6.2"
+description = "A Sphinx extension to add markdown generation support."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "sphinx-markdown-builder-0.6.2.tar.gz", hash = "sha256:e0e93dd2458c335390fe81094eaa850e96625e034d5a7c8c220b5ea05db6b897"},
+    {file = "sphinx_markdown_builder-0.6.2-py3-none-any.whl", hash = "sha256:8069eab7b2dc38198fcdfc5c6ec4654aa663a2c58bdb9e74efde3b41b205c83e"},
+]
+
+[package.dependencies]
+docutils = "*"
+sphinx = ">=2.2.0"
+tabulate = "*"
+
+[package.extras]
+dev = ["black", "bumpver", "coveralls", "flake8", "isort", "pip-tools", "pylint", "pytest", "pytest-cov"]
+
+[[package]]
 name = "sphinx-rtd-theme"
 version = "1.2.2"
 description = "Read the Docs theme for Sphinx"
@@ -5525,6 +5544,20 @@ files = [
 
 [package.dependencies]
 mpmath = ">=0.19"
+
+[[package]]
+name = "tabulate"
+version = "0.9.0"
+description = "Pretty-print tabular data"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f"},
+    {file = "tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c"},
+]
+
+[package.extras]
+widechars = ["wcwidth"]
 
 [[package]]
 name = "tenacity"
@@ -6750,4 +6783,4 @@ tools = ["wikipedia"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "fc2a052ea388a9c7a036d02ed76d6a85b54419a006538769a4dc9fd9a7b49dec"
+content-hash = "7266c98c32605bef34d3a555d742619c2cbff136029fb3a7e9408ed2b6784f33"

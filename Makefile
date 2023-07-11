@@ -1,4 +1,4 @@
-.PHONY: all build clean clean_docs test
+.PHONY: all build docs clean clean_docs test
 
 BUILD := poetry build --no-cache
 
@@ -8,12 +8,16 @@ BUILD := poetry build --no-cache
 # version extratected from pyproject.toml
 package := $(shell grep "^name" pyproject.toml | cut -d "=" -f 2 | sed 's/ //g' | sed 's/"//g')
 docs_dst := $(package)/docs
-docs_src := docs
+docs_src := docs/build/markdown
 docs := $(shell find $(docs_src) -type f -name "*.md")
 version := $(shell grep "^version" pyproject.toml | cut -d "=" -f 2 | sed 's/ //g' | sed 's/"//g')
 
 all: build
 
+docs-%:
+	cd docs && poetry run make $*
+
+docs: docs-html docs-markdown sync_docs
 
 build: sync_docs
 	$(BUILD)

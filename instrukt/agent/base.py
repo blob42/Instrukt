@@ -21,6 +21,7 @@
 """Docker based agents."""
 
 import uuid
+import sys
 import copy
 import re
 import logging
@@ -35,7 +36,8 @@ from typing import (
     Sequence,
     Union,
     ClassVar,
-    Coroutine
+    Coroutine,
+    Type
 )
 
 from langchain.memory.chat_memory import BaseChatMemory
@@ -70,12 +72,13 @@ def make_mem() -> BaseChatMemory:
 class InstruktAgent(BaseModel, ABC):
     """Instrukt agents need to satisfy this base class.
 
-    Example:
-        ```python
+    .. code-block::
+        :caption: defining a custom agent
+
         class MyAgent(InstruktAgent):
             name = "my_agent"
             description = "my agent description"
-        ```
+
     """
 
     name: ClassVar[str | None] = None
@@ -108,8 +111,10 @@ class InstruktAgent(BaseModel, ABC):
     class Config:
         arbitrary_types_allowed = True
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls: Type["InstruktAgent"], **kwargs):
         """Subclass must define a class var name and description"""
+        if 'sphinx' in sys.modules:
+            return
         if cls.name is None:
             raise NotImplementedError(
                 f"{cls.__name__} must define a `name` as class attribute."
@@ -335,4 +340,5 @@ class InstruktAgent(BaseModel, ABC):
         if name in self._attached_tools:
             self._attached_tools.remove(name)
             self.reload_agent()
+
 

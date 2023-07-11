@@ -33,10 +33,41 @@ extensions = [
         "sphinx_tabs.tabs",
         "IPython.sphinxext.ipython_console_highlighting",
         "IPython.sphinxext.ipython_directive",
+        "myst_parser",
+        "sphinx_markdown_builder"
         ]
 
+source_suffix = {
+        ".rst": "restructuredtext",
+        ".md": "markdown",
+        }
+
+myst_enable_extensions = [
+        "colon_fence",
+        ]
+
+autodoc_pydantic_model_show_json = False
+autodoc_pydantic_field_list_validators = False
+autodoc_pydantic_config_members = False
+autodoc_pydantic_model_show_config_summary = False
+autodoc_pydantic_model_show_validator_members = False
+autodoc_pydantic_model_show_validator_summary = False
+autodoc_pydantic_model_signature_prefix = "class"
+autodoc_pydantic_field_signature_prefix = "param"
+autodoc_member_order = "groupwise"
+autoclass_content = "both"
+autodoc_typehints_format = "short"
+
+autodoc_default_options = {
+    "members": True,
+    "show-inheritance": True,
+    "inherited-members": "BaseModel",
+    "undoc-members": True,
+    "special-members": "__call__",
+}
+
 templates_path = ['_templates']
-exclude_patterns = ["build"]
+exclude_patterns = []
 
 
 

@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 class AgentManager:
-    """AgentManager"""
+    """AgentManager handles loading and switching between agents."""
 
     def __init__(self, ctx: 'Context'):
         self.ctx = ctx
@@ -49,12 +49,14 @@ class AgentManager:
 
     @property
     def active_agent(self) -> Optional['InstruktAgent']:
+        """List of currently active agents (implies loaded)."""
         if self.active_agent_name is not None:
             return self._agents[self.active_agent_name]
         return None
 
     @property
     def loaded_agents(self) -> Sequence[str]:
+        """List of all loaded agents."""
         return list(self._agents.keys())
 
     def from_name(self, name: str) -> Optional['InstruktAgent']:

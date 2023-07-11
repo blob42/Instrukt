@@ -34,7 +34,7 @@ class ManualScreen(Screen[None]):
         ("escape", "dismiss", "exit manual"),
     ]
 
-    path = var(Path(__file__).parent.parent /  "docs/quickstart.md")
+    path = var(Path(__file__).parent.parent /  "docs/index.md")
 
     @property
     def markdown_viewer(self) -> MarkdownViewer:

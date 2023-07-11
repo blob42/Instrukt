@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>instrukt.agent.base.InstruktAgent &mdash; Instrukt 0.4.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/autodoc_pydantic.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="instrukt.agent.manager.AgentManager" href="instrukt.agent.manager.AgentManager.html" />
+    <link rel="prev" title="API" href="../api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Instrukt
+          </a>
+              <div class="version">
+                0.4.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#module-instrukt.agent"><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent</span></code>: Instrukt Agent</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../api.html#classes">Classes</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent.base</span></code>.InstruktAgent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="instrukt.agent.manager.AgentManager.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent.manager</span></code>.AgentManager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="instrukt.agent.state.StateObserver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent.state</span></code>.StateObserver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="instrukt.agent.state.AgentStateSubject.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent.state</span></code>.AgentStateSubject</a></li>
+<li class="toctree-l4"><a class="reference internal" href="instrukt.agent.state.AgentStateMachine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent.state</span></code>.AgentStateMachine</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Instrukt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API</a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent.base</span></code>.InstruktAgent</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/agent/instrukt.agent.base.InstruktAgent.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="instrukt-agent-base-instruktagent">
+<h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">instrukt.agent.base</span></code>.InstruktAgent<a class="headerlink" href="#instrukt-agent-base-instruktagent" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">instrukt.agent.base.</span></span><span class="sig-name descname"><span class="pre">InstruktAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">llm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseChatModel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toolset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SomeTool</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">executor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AgentExecutor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">realm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="instrukt.agent.state.AgentStateMachine.html#instrukt.agent.state.AgentStateMachine" title="instrukt.agent.state.AgentStateMachine"><span class="pre">AgentStateMachine</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseChatMemory</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">executor_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">llm_callback_handlers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">langchain.callbacks.base.BaseCallbackHandler</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Instrukt agents need to satisfy this base class.</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">defining a custom agent</span><a class="headerlink" href="#id1" title="Permalink to this code"></a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyAgent</span><span class="p">(</span><span class="n">InstruktAgent</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_agent&quot;</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;my agent description&quot;</span>
+</pre></div>
+</div>
+</div>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.executor">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">executor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AgentExecutor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.executor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.executor_params">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">executor_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Optional]</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.executor_params" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.id">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"> <span class="pre">[Optional]</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.llm">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">llm</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">BaseChatModel</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.llm" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.llm_callback_handlers">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">llm_callback_handlers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">langchain.callbacks.base.BaseCallbackHandler</span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Optional]</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.llm_callback_handlers" title="Permalink to this definition"></a></dt>
+<dd><p>OpenAI callback handler for this agent.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.memory">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">memory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">BaseChatMemory</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">[Optional]</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.memory" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.realm">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">realm</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.realm" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.state">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="instrukt.agent.state.AgentStateMachine.html#instrukt.agent.state.AgentStateMachine" title="instrukt.agent.state.AgentStateMachine"><span class="pre">AgentStateMachine</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Optional]</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.state" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.toolset">
+<em class="property"><span class="pre">param</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">toolset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SomeTool</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.toolset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.add_tool">
+<span class="sig-name descname"><span class="pre">add_tool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SomeTool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.add_tool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.add_tool" title="Permalink to this definition"></a></dt>
+<dd><p>Add a tool to the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.agent_running">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent_running</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.agent_running"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.agent_running" title="Permalink to this definition"></a></dt>
+<dd><p>Check if a task is running for this agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.attach_tool">
+<span class="sig-name descname"><span class="pre">attach_tool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.attach_tool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.attach_tool" title="Permalink to this definition"></a></dt>
+<dd><p>Attach a tool to the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.dettach_tool">
+<span class="sig-name descname"><span class="pre">dettach_tool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.dettach_tool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.dettach_tool" title="Permalink to this definition"></a></dt>
+<dd><p>Dettach a tool from the agent.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.forget_about">
+<span class="sig-name descname"><span class="pre">forget_about</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.forget_about"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.forget_about" title="Permalink to this definition"></a></dt>
+<dd><p>Removes all occurences of <cite>term</cite> from chat memory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.is_attached_tool">
+<span class="sig-name descname"><span class="pre">is_attached_tool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tool_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.is_attached_tool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.is_attached_tool" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.load">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Context</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#instrukt.agent.base.InstruktAgent" title="instrukt.agent.base.InstruktAgent"><span class="pre">InstruktAgent</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.load" title="Permalink to this definition"></a></dt>
+<dd><p>Agent loading logic goes here.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.reload_agent">
+<span class="sig-name descname"><span class="pre">reload_agent</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.reload_agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.reload_agent" title="Permalink to this definition"></a></dt>
+<dd><p>Reloads the agent. Call this method after you modify the agent’s toolset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.send_message">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">send_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.send_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.send_message" title="Permalink to this definition"></a></dt>
+<dd><p>Send a message to the agent (async).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.stop_agent">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stop_agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Context</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.stop_agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.stop_agent" title="Permalink to this definition"></a></dt>
+<dd><p>Stop the agent task.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.update_tool_name">
+<span class="sig-name descname"><span class="pre">update_tool_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.update_tool_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.update_tool_name" title="Permalink to this definition"></a></dt>
+<dd><p>Change the name of an attached tool.</p>
+</dd></dl>
+
+<dl class="py method pydantic_validator">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.validate_executor_params">
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_executor_params</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><a class="reference internal" href="#instrukt.agent.base.InstruktAgent.executor_params" title="instrukt.agent.base.InstruktAgent.executor_params"><em class="xref py py-obj"><span class="pre">executor_params</span></em></a><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.validate_executor_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.validate_executor_params" title="Permalink to this definition"></a></dt>
+<dd><p>memory cannot be passed in executor_params as well as attribute.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.attached_tools">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">attached_tools</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.attached_tools" title="Permalink to this definition"></a></dt>
+<dd><p>Return the list of attached tools as str.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.base_agent">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">base_agent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">BaseSingleActionAgent</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BaseMultiActionAgent</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.base_agent" title="Permalink to this definition"></a></dt>
+<dd><p>Return underlying agent (langchain).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.description" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.display_name" title="Permalink to this definition"></a></dt>
+<dd><p>Display name of the agent. Can contain spaces.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.name" title="Permalink to this definition"></a></dt>
+<dd><p>Name of the agent. Must not contain spaces.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.openai_cb_handler">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">openai_cb_handler</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">OpenAICallbackHandler</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.openai_cb_handler" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.toolset_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">toolset_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.toolset_names" title="Permalink to this definition"></a></dt>
+<dd><p>Return the names of the tools in toolset.</p>
+</dd></dl>
+
+<dl class="py class pydantic_config">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.Config">
+<em class="property"><span class="pre">model</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="reference internal" href="../_modules/instrukt/agent/base.html#InstruktAgent.Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.Config" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="instrukt.agent.base.InstruktAgent.Config.arbitrary_types_allowed">
+<span class="sig-name descname"><span class="pre">arbitrary_types_allowed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#instrukt.agent.base.InstruktAgent.Config.arbitrary_types_allowed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../api.html" class="btn btn-neutral float-left" title="API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="instrukt.agent.manager.AgentManager.html" class="btn btn-neutral float-right" title="instrukt.agent.manager.AgentManager" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Chakib Benziane.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

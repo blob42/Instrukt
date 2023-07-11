@@ -96,6 +96,7 @@ linkchecker = "^10.2.1"
 sphinx-tabs = "^3.4.1"
 autodoc-pydantic = "^1.9.0"
 sphinx-rtd-theme = "^1.2.2"
+sphinx-markdown-builder = "^0.6.2"
 
 [tool.ruff]
 select = [
