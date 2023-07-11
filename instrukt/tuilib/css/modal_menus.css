@@ -12,6 +12,7 @@ BaseModalMenu #menu {
 
 #menu SelectionList {
     height: auto;
+    border: heavy $accent;
 }
 
 #menu Button#manage {

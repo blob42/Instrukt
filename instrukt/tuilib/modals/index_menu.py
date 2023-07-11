@@ -40,18 +40,20 @@ if t.TYPE_CHECKING:
 
 class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
 
+    AUTO_FOCUS = "#menu SelectionList"
+
     collections: reactive[dict[str, "Collection"]] = reactive({})
 
     def compose(self) -> ComposeResult:
 
         with Container(id="menu"):
-            yield from self._build_menu()
             yield Button("Manage", id="manage", variant="warning")
+            yield from self._build_menu()
 
     def index_attached_as_tool(self, index: str) -> bool:
         agent = self._app.agent_manager.active_agent
         assert agent is not None, "No active agent"
-        return index in agent.attached_tools   # type: ignore
+        return index in agent.attached_tools
 
 
     def _build_menu(self, *args, **kwargs) -> ComposeResult:
@@ -72,6 +74,8 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
     async def _update_menu(self) -> None:
         await self.query_one(SelectionList).remove()
         await self.query_one("Container#menu").mount(*self._build_menu())
+        self.query_one(SelectionList).focus()
+
 
 
 
@@ -145,11 +149,6 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
                 sel_list.select(col)
             else:
                 sel_list.deselect(col)
-
-
-
-
-
 
 
     @on(Button.Pressed, "#manage")
