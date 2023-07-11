@@ -209,6 +209,17 @@ AgentTabs {
 AgentTabs Tabs {
     height: 1;
 }
+
+AgentTabs Tab {
+    height: 1;
+    padding: 0 1;
+}
+
+AgentTabs #tabs-list-bar {
+    height: 1;
+}
+
+
 AgentTabs Tabs Underline {
     display: none;
 }
