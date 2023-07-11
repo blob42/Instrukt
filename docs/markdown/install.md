@@ -1,6 +1,5 @@
 # Installation Guide
 
-
 Instrukt is not yet available on package managers. To install it, you can install it from the source code or download the [pre-built pacakges](https://github.com/blob42/Instrukt/releases).
 
 ## Minimum requirements

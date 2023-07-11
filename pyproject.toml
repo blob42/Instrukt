@@ -5,7 +5,7 @@ homepage = "https://github.com/blob42/instrukt"
 repository = "https://github.com/blob42/instrukt"
 documentation = "https://github.com/blob42/instrukt/docs"
 description = "Build and instruct AI agents to perform tasks and query infromation in a keyboard driven terminal UI."
-authors = ["Chakib Ben Ziane <instrukt@blob42.xyz>"]
+authors = ["Chakib Benziane <instrukt@blob42.xyz>"]
 license = "AGPL3"
 readme = "README.md"
 classifiers = [
@@ -36,7 +36,7 @@ instrukt = 'instrukt.app:run'
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-textual = "^0.27.0"
+textual = "^0.29.0"
 langchain = "^0.0.205"
 pyxdg = "^0.28"
 tomli = "^2.0.1"
@@ -64,7 +64,7 @@ openai = ["openai", "tiktoken"]
 # local-inference = [""]
 
 [tool.poetry.group.dev.dependencies]
-textual-dev = "^0.0.2"
+textual-dev = "^1.0.1"
 jupyter = "^1.0.0"
 mypy = "^1.0.1"
 
@@ -84,6 +84,18 @@ ruff = "^0.0.249"
 types-toml = "^0.10.8.1"
 types-redis = "^4.3.21.6"
 black = "^23.1.0"
+
+
+[tool.poetry.group.docs.dependencies]
+sphinx-book-theme = "^1.0.1"
+sphinx = "^6.2.0"
+myst-parser = "^2.0.0"
+sphinx-autobuild = "^2021.3.14"
+sphinx-copybutton = "^0.5.2"
+linkchecker = "^10.2.1"
+sphinx-tabs = "^3.4.1"
+autodoc-pydantic = "^1.9.0"
+sphinx-rtd-theme = "^1.2.2"
 
 [tool.ruff]
 select = [
