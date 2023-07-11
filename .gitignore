@@ -9,7 +9,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -160,6 +159,7 @@ cython_debug/
 
 
 # Sphinx documentation
+docs/build/*
 !docs/build/html/
 
 instrukt/docs
