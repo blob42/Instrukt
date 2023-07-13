@@ -181,7 +181,7 @@ class CreateIndex(VerticalScroll):
         if any([len(i.value) == 0 for i in r_inputs]):
             return
 
-        valid = self._validate_new_index()
+        valid = self.__validate_new_index()
         if not valid:
             self.state = FormState.INVALID
             # add error class to form group
@@ -255,7 +255,7 @@ class CreateIndex(VerticalScroll):
         for input in inputs:
             input.value = ""
 
-    def _validate_new_index(self) -> ValidForm:
+    def __validate_new_index(self) -> ValidForm:
         """Validates the new_index form data"""
         try:
             valid_index = Index(**self.new_index.dict())
