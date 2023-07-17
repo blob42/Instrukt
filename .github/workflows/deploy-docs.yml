@@ -1,4 +1,4 @@
-name: Deploy Instruct Documentation
+name: Deploy Docs
 
 on:
   # Runs on pushes targeting the default branch
