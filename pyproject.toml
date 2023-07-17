@@ -37,6 +37,7 @@ instrukt = 'instrukt.app:run'
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
 textual = "^0.29.0"
+#textual = { path = "/home/spike/dev/instrukt-project/reference_libs/textual", develop=true}
 langchain = "^0.0.205"
 pyxdg = "^0.28"
 tomli = "^2.0.1"
@@ -97,6 +98,7 @@ sphinx-tabs = "^3.4.1"
 autodoc-pydantic = "^1.9.0"
 sphinx-rtd-theme = "^1.2.2"
 sphinx-markdown-builder = "^0.6.2"
+toml = "^0.10.2"
 
 [tool.ruff]
 select = [
