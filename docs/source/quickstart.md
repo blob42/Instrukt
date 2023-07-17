@@ -4,7 +4,7 @@
 
 Welcome to Instrukt ! This is your handy terminal-based interface for running and prototyping AI agents. Instrukt provides chat-like interface serving as a prompt and REPL at the same time, helping you conveniently develop, instruct, and debug your AI agents. 
 
-Instrukt leverages LangChain and provides extra utilities with a simple interface to add vectorstore indexes `press I` and tools, which can be attached to an agent in real time.
+Instrukt leverages LangChain and provides extra utilities with a simple interface to add vectorstore indexes `press I` and tools, which can be attached to any agent on the fly.
 
 By default, Instrukt features a Q&A agent that is tailored for conversations with question/answering over document indexes.
 

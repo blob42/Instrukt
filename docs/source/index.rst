@@ -3,22 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Instrukt's documentation!
-====================================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   install
-   quickstart
-   api
 
 
+.. only:: html
 
-Indices and tables
-==================
+   .. include:: html_index.rst
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+.. only:: markdown
+
+    .. include:: md_index.rst

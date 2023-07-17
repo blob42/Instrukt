@@ -46,6 +46,8 @@ myst_enable_extensions = [
         "colon_fence",
         ]
 
+markdown_anchor_sections = True
+
 autodoc_pydantic_model_show_json = False
 autodoc_pydantic_field_list_validators = False
 autodoc_pydantic_config_members = False
@@ -67,7 +69,8 @@ autodoc_default_options = {
 }
 
 templates_path = ['_templates']
-exclude_patterns = []
+
+# exclude_patterns = []
 
 
 
@@ -76,5 +79,7 @@ exclude_patterns = []
 
 # html_theme = 'alabaster'
 html_theme = "sphinx_rtd_theme"
+#https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html
+
 # html_theme = "sphinx_book_theme"
 html_static_path = ['_static']
