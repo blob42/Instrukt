@@ -160,6 +160,5 @@ cython_debug/
 
 # Sphinx documentation
 docs/build/*
-!docs/build/html/
 
 instrukt/docs

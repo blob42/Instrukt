@@ -40,7 +40,7 @@ jobs:
         id: pages
         uses: actions/configure-pages@v3
 
-      - name: Build with mdBook
+      - name: Build sphinx doc
         run: make docs-html
 
       - name: Upload artifact
