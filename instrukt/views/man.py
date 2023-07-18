@@ -20,13 +20,14 @@
 ## 
 from pathlib import Path
 
+from textual import on
 from textual.app import ComposeResult
-from textual.screen import Screen
+from textual.screen import ModalScreen
 from textual.reactive import var
 from textual.widgets import Footer, MarkdownViewer
 
 
-class ManualScreen(Screen[None]):
+class ManualScreen(ModalScreen[None]):
     BINDINGS = [
         ("t", "toggle_table_of_contents", "TOC"),
         ("b", "back", "Back"),
@@ -62,3 +63,4 @@ class ManualScreen(Screen[None]):
 
     async def action_forward(self) -> None:
         await self.markdown_viewer.forward()
+
