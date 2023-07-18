@@ -3,13 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. only:: html
 
+   Main
+   ====
+
+.. toctree::
+   :maxdepth: 3
+
+   quickstart
+   install
 
 .. only:: html
 
-   .. include:: html_index.rst
+    .. toctree::
+       :maxdepth: 4
 
+       api
 
-.. only:: markdown
+    Indices and tables
+    ==================
 
-    .. include:: md_index.rst
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
