@@ -38,7 +38,7 @@ instrukt = 'instrukt.app:run'
 python = ">=3.9,<4.0"
 textual = "^0.30.0"
 #textual = { path = "/home/spike/dev/instrukt-project/reference_libs/textual", develop=true}
-langchain = "^0.0.205"
+langchain = "^0.0.235"
 pyxdg = "^0.28"
 tomli = "^2.0.1"
 pydantic = "^1.10.7"
