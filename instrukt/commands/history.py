@@ -39,7 +39,7 @@ class HistEntry(YamlModelMixin, BaseModel):
 
 class CommandHistory(YamlModelMixin, BaseModel):
     max_size: int = Field(500, exclude=True)
-    config: Settings = Field(default_factory=Settings, exclude=True)
+    config: Settings = Field(default=Settings, exclude=True)
     _history: deque[HistEntry] = PrivateAttr()
     history: Optional[List[HistEntry]] = Field(None) # exported to hist file
     _current_index: int = PrivateAttr(0)
@@ -62,7 +62,8 @@ class CommandHistory(YamlModelMixin, BaseModel):
 
     def load(self) -> None:
         """Restore command history"""
-        path = self.config.history_file + '.yaml'
+        path = self.config.history_file
+        assert path.endswith(".yaml")
         if os.path.exists(path):
             new_hist = self.parse_file(path)
             self.clear()
@@ -80,7 +81,8 @@ class CommandHistory(YamlModelMixin, BaseModel):
         """Store command history in yaml format"""
         self.history = list(self._history)
         path = self.config.history_file 
-        with open(path + '.yaml', 'w') as f:
+        assert path.endswith(".yaml")
+        with open(path, 'w') as f:
             f.write(self.yaml())
 
     # TEST: should get the last command
