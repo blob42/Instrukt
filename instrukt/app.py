@@ -56,6 +56,7 @@ from .tuilib.repl_prompt import REPLPrompt
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
 from .views.index import IndexScreen
 from .views.man import ManualScreen
+from .views.keybindings import KeyBindingsScreen
 
 
 _loop = _asyncio.get_event_loop()
@@ -74,7 +75,6 @@ if t.TYPE_CHECKING:
 PLATFORM = platform.system()
 WINDOWS = PLATFORM == "Windows"
 
-
 class SettingsScreen(Screen[None]):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
@@ -87,13 +87,6 @@ class SettingsScreen(Screen[None]):
         self.app.pop_screen()
 
 
-# class SettingsScreen(ModalScreen):
-#     BINDINGS = [("escape", "dismiss", "Dismiss")]
-#     def compose(self) -> ComposeResult:
-#         yield SettingsDialogue()
-#     def action_dismiss(self) -> None:
-#         self.app.pop_screen()
-
 
 class InstruktApp(App[None]):
     """Textual TUI for Instrukt.
@@ -102,14 +95,15 @@ class InstruktApp(App[None]):
 
     BINDINGS = [
         Binding("d", "toggle_dark", "Toggle dark mode", show=False),
-        ("q", "quit", "Quit Application"),
+        ("Q", "quit", "Quit Application"),
         ("I", "push_screen('index_mgmt_screen')", "Indexes"),
         ("slash", "focus_instruct_prompt", "Focus Prompt"),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
         ("D", "dev_console", "Developer Console"),
-        ("M", "push_screen('manual_screen')", "Manual"),
+        ("?", "push_screen('manual_screen')", "Man"),
+        ("K", "push_screen('keybindings_screen')", "Keys"),
     ]
 
     CSS_PATH = [
@@ -123,6 +117,7 @@ class InstruktApp(App[None]):
         "tools_menu": ToolsMenuScreen(),
         "index_mgmt_screen": IndexScreen(),
         "manual_screen": ManualScreen(),
+        "keybindings_screen": KeyBindingsScreen(),
     }
 
     AUTO_FOCUS = "StartupMenu ListView"
@@ -164,10 +159,12 @@ class InstruktApp(App[None]):
             self.log.error("AgentConversation window not found")
 
     def notify_realm_buffer(self, message: "AnyMessage") -> None:
+        if self.active_agent.realm is not None:   # type: ignore
+            return
         try:
             self.query_one(RealmWindow).post_message(message)
         except NoMatches:
-            self.log.error("RealmWindow not found")
+            self.log.warning("RealmWindow not found")
 
     @on(AgentLoaded)
     async def handle_agent_loaded(self, message: AgentLoaded) -> None:
@@ -249,7 +246,7 @@ class InstruktApp(App[None]):
     # this means terminal state can change while being inside IPython session
     # TODO!: find a way to Textual writing to the terminal when IPython is running.
     # how to give textual a dummy pty while giving full tty control to IPython ?
-    #TODO: move to own mod/class 
+    #TODO: move to own mod/class
     def _embed_ipython(self, *args, **kwargs) -> None:
 
         # export agent to ipython namespace

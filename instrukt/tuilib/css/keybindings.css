@@ -1,0 +1,15 @@
+KeyBindingsScreen {
+    background: $background 50%;
+    align: center middle;
+}
+
+KeyBindingsScreen ScrollableContainer {
+    width: 50%;
+    height: 80%;
+    padding-left: 2;
+    padding-top: 1;
+    border: blank $foreground 80%;
+    border-title-align: center;
+    border-title-style: bold underline;
+}
+
