@@ -30,32 +30,21 @@ from .schema import Collection
 from .retrieval import retrieval_tool_from_index
 
 if TYPE_CHECKING:
-    from chromadb.api.types import Document, Include, QueryResult  # type: ignore
+    import chromadb   # type: ignore
     from langchain.embeddings.base import Embeddings
-    from ..config import ChromaSettings
     from ..tools.base import SomeTool
 
 DEFAULT_COLLECTION_NAME = "instrukt"
 
 
 class ChromaWrapper(ChromaVectorStore):
-    """Wrapper around Chroma DB
-    
-    When used as an async context manager, it will persist the client on exiting
-    the context manager. Otherwise, it persist the DB on each call to `add`.
-
-    Example:
-        ```python async with Chroma() as chroma:
-            await chroma.add([Document(...), ...])
-        ```
-    """
+    """Wrapper around Chroma DB."""
 
     def __init__(
             self,
-            settings: "ChromaSettings",
+            client: "chromadb.Client",
             collection_name: str = DEFAULT_COLLECTION_NAME,
             embedding_function: Optional['Embeddings'] = None,
-            persist_directory: Optional[str] = None,
             collection_metadata: Optional[Dict[str, Any]] = None,
             **kwargs):
         if not CHROMA_INSTALLED:
@@ -63,8 +52,6 @@ class ChromaWrapper(ChromaVectorStore):
                 "Instrukt tried to import chromadb, but it is not installed."
                 " chromadb is required for using instrukt knowledge features."
                 " Please install it with `pip install instrukt[chromadb]`")
-
-        self._persist_directory = persist_directory or settings.persist_directory
 
         #TODO!: use the stored embedding_fn name to spawn the embedding_fn
         if embedding_function is None:
@@ -79,8 +66,7 @@ class ChromaWrapper(ChromaVectorStore):
         _kwargs = {
             **kwargs,
             **{
-                "client_settings": settings,
-                "persist_directory": self._persist_directory,
+                "client": client,
                 "collection_name": collection_name,
                 "embedding_function": embedding_function,
                 "collection_metadata": collection_metadata,
@@ -88,23 +74,12 @@ class ChromaWrapper(ChromaVectorStore):
         }
         super().__init__(**_kwargs)
 
-        self._in_context = False  #context manager
 
-    async def __aenter__(self):
-        self._in_context = True
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        self._in_context = False
-        await run_async(self._client.persist)
 
     async def adelete(self,
                       ids: list[str] | None = None,
                       where: dict[Any, Any] | None = None):
         await run_async(self._collection.delete, ids=ids, where=where)
-
-    async def apersist(self):
-        await run_async(self._client.persist)
 
     async def adelete_collection(self):
         await run_async(self._client.delete_collection, self._collection.name)
@@ -124,8 +99,7 @@ class ChromaWrapper(ChromaVectorStore):
         """Bypass default chroma listing method that does not rely on
         embeddings function."""
 
-        _cols = cast(Sequence[Any], self._client._db.list_collections())
-        return [Collection(*col) for col in _cols]
+        return self._client.list_collections()
 
     @property
     def metadata(self) -> dict[Any, Any] | None:

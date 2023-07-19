@@ -1,28 +1,28 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 """Manage underlying indexes."""
 
 import typing as t
 from pathlib import Path
-import chromadb   # type: ignore 
+import chromadb   # type: ignore
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pydantic import BaseModel, Field, PrivateAttr
@@ -42,9 +42,10 @@ class IndexManager(BaseModel):
     """Helper to access chroma indexes."""
 
     chroma_settings: ChromaSettings
+    chroma_kwargs: dict[str, t.Any] = Field(default_factory=dict)
+    _client: chromadb.Client = PrivateAttr()
     _index: ChromaWrapper = PrivateAttr()
     _indexes: dict[str, ChromaWrapper] = PrivateAttr()
-    chroma_kwargs: dict[str, t.Any] = Field(default_factory=dict)
 
     class Config:
         arbitrary_types_allowed = True
@@ -53,6 +54,7 @@ class IndexManager(BaseModel):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._indexes: dict[str, ChromaWrapper] = {}
+        self._client = chromadb.Client(settings=self.chroma_settings)
 
     def get_index(
             self,
@@ -63,7 +65,7 @@ class IndexManager(BaseModel):
 
         if collection_name not in self._indexes:
             self._indexes[collection_name] = ChromaWrapper(
-                self.chroma_settings,
+                self._client,
                 collection_name=collection_name,
                 **self.chroma_kwargs)
 
@@ -88,7 +90,7 @@ class IndexManager(BaseModel):
             _loader = LOADER_MAPPINGS.get(index.loader_type)
             if _loader is not None:
                 loader_cls, loader_kwargs = _loader
-                loader = loader_cls(index.path, **loader_kwargs)   # type: ignore 
+                loader = loader_cls(index.path, **loader_kwargs)   # type: ignore
             else:
                 loader = None
         else:
@@ -107,12 +109,12 @@ class IndexManager(BaseModel):
 
         #NOTE: the used embedding function used is stored within the collection metadata
         # at the wrapper level.
-        new_index = ChromaWrapper(self.chroma_settings,
-                              collection_name=index.name,
-                              collection_metadata={
-                                  'description': index.description, 
+        new_index = ChromaWrapper(self._client,
+                                  collection_name=index.name,
+                                  collection_metadata={
+                                      'description': index.description,
                                   },
-                              **self.chroma_kwargs)
+                                  **self.chroma_kwargs)
 
         ctx.info(f"adding {len(docs)} documents to index")
 
@@ -122,19 +124,19 @@ class IndexManager(BaseModel):
         ctx.info(f"index {index.name} created")
 
         self._indexes[index.name] = new_index
-        await run_async(new_index.persist)
 
-        ctx.info(f"index persisted")
+        #FIX: removing
+        # await run_async(new_index.persist)
+        # ctx.info(f"index persisted")
 
         return new_index
-    
+
     async def remove_index(self, name: str) -> None:
         """Remove the given index."""
         if name not in self._indexes:
             raise IndexError(f"Index {name} not found")
         index = self._indexes[name]
         await index.adelete_collection()
-        await index.apersist()
         del self._indexes[name]
 
 
@@ -143,8 +145,4 @@ class IndexManager(BaseModel):
         client = chromadb.Client(self.chroma_settings)
 
         #NOTE: this is the offcial API. It's slow because it checks embedding fn
-        # return  client.list_collections()
-
-        #HACK: bypass chroma and manually list the duckdb collections
-        _cols = t.cast(t.Sequence[t.Any], client._db.list_collections())
-        return [Collection(*col) for col in _cols]
+        return  client.list_collections()

@@ -53,10 +53,9 @@ if CHROMA_INSTALLED:
         class Config:
             env_prefix = "INSTRUKT_CHROMA_"
 
-        chroma_db_impl: Literal["duckdb", "duckdb+parquet"] = "duckdb+parquet"
         persist_directory: str = "chroma_persist"
         anonymized_telemetry: bool = False
-        persist_atexit: bool = False
+        is_persistent: bool = True
 else:
 
     class ChromaSettings(BaseSettings):  # type: ignore
@@ -129,7 +128,7 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
     chroma: ChromaSettings = Field(default_factory=ChromaSettings)
 
     #COMMAND HISTORY
-    history_file: str = os.path.join(CONFIG_PATH, "history")
+    history_file: str = os.path.join(CONFIG_PATH, "history.yaml")
 
     use_llm_cache: bool = False
 

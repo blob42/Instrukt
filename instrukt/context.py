@@ -1,23 +1,23 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 import typing as t
 from typing import TYPE_CHECKING
 
@@ -39,15 +39,17 @@ class Context():
     # index_manager: 'IndexManager'
 
     def __init__(self,
-                 app: 'InstruktApp' = None) -> None:
-        self.app = app
+                 app: t.Optional['InstruktApp'] = None) -> None:
         from .config import ConfigManager
         from .indexes.manager import IndexManager
+        self.app = app
         self.config_manager = ConfigManager(self)
 
         # if openai key is not available use default embedding function
         chroma_kwargs = {}
-        if len(self.config_manager.C.openai_api_key) != 0:
+
+        if self.config_manager.C.openai_api_key is not None and len(
+                self.config_manager.C.openai_api_key) != 0:
             try:
                 from langchain.embeddings.openai import OpenAIEmbeddings
                 chroma_kwargs['embedding_function'] = OpenAIEmbeddings()   # type: ignore
