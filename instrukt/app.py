@@ -189,9 +189,13 @@ class InstruktApp(App[None]):
     # is not available
     @on(LogMessage)
     async def log_message(self, message: LogMessage) -> None:
+        # TODO: using textual notificaion system instead of console window
+        # self.notify(str(message.msg), timeout=2)
+
         try:
-            chat = self.query_one(ConsoleWindow)
-            self.call_after_refresh(chat.write, message)
+            console = self.query_one(ConsoleWindow)
+            self.call_after_refresh(console.write, " \n")
+            self.call_after_refresh(console.write, message)
         except NoMatches:
             self.log.info(message)
 
