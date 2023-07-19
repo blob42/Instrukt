@@ -36,7 +36,7 @@ instrukt = 'instrukt.app:run'
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-textual = "^0.29.0"
+textual = "^0.30.0"
 #textual = { path = "/home/spike/dev/instrukt-project/reference_libs/textual", develop=true}
 langchain = "^0.0.205"
 pyxdg = "^0.28"

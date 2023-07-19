@@ -5642,13 +5642,13 @@ test = ["django", "django (<2)", "mock", "pytest (>=3.6)", "pytest-cov", "pytest
 
 [[package]]
 name = "textual"
-version = "0.29.0"
+version = "0.30.0"
 description = "Modern Text User Interface framework"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "textual-0.29.0-py3-none-any.whl", hash = "sha256:949fd8f16a412404ba785605dda1e2fab8166656e4d29d4177ec63cd73ba83d4"},
-    {file = "textual-0.29.0.tar.gz", hash = "sha256:7eb87b6d007dc9bd08e00e893b860ecb7a11ca815c8866db39fe17ec547e2fcf"},
+    {file = "textual-0.30.0-py3-none-any.whl", hash = "sha256:e87d587e4569236f3809d41955ed9556287dbedaca64724e1d6ad5adbb69c9c5"},
+    {file = "textual-0.30.0.tar.gz", hash = "sha256:bf7045a7e9b7dc3ac589c38ce86ac31aecf0e76e8c8ce09aee474316bc2e2c03"},
 ]
 
 [package.dependencies]
@@ -6810,4 +6810,4 @@ tools = ["wikipedia"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "77a41c77e24c5798386a5832cdcab33c82b683c416d597f1137f68d78282f825"
+content-hash = "dc3bbbc57cf9734a5a5acef22d23ecf2999af94000faee122020b21cfa7d1d54"
