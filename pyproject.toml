@@ -43,8 +43,8 @@ pyxdg = "^0.28"
 tomli = "^2.0.1"
 pydantic = "^1.10.7"
 pyyaml = "^6.0"
-chromadb = { git = "https://github.com/blob42/chromadb", branch="fix-duckdb-atexit"}
-# chromadb = "^0.3.23"
+# chromadb = { git = "https://github.com/blob42/chromadb", branch="fix-duckdb-atexit"}
+chromadb = "^0.4.0"
 pydantic-yaml = "^0.11.2"
 nest-asyncio = "^1.5.6"
 ipython = "^8.13.2"
@@ -59,8 +59,8 @@ tiktoken = {version = "^0.4.0"}
 
 [tool.poetry.extras]
 tools = ["wikipedia"]
-loaders = ["unstructured"]
-# vectorstores = ["chromadb"]
+#loaders = ["unstructured"]
+#vectorstores = ["chromadb"]
 openai = ["openai", "tiktoken"]
 # local-inference = [""]
 
