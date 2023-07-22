@@ -4,18 +4,17 @@
 
 Welcome to Instrukt ! This is your handy terminal-based interface for running and prototyping AI agents. Instrukt provides chat-like interface serving as a prompt and REPL at the same time, helping you conveniently develop, instruct, and debug your AI agents. 
 
-Instrukt leverages LangChain and provides extra utilities with a simple interface to add vectorstore indexes `press I` and tools, which can be attached to any agent on the fly.
+It leverages LangChain and provides extra utilities with a simple interface to add vectorstore indexes and tools, which can be attached to any agent on the fly.
 
 By default, Instrukt features a Q&A agent that is tailored for conversations with question/answering over document indexes.
 
-Patreon supporters have also access to an early preview of the **Docker Agent**. It provides a safe, sandboxed environment for agents to perform their tasks on any existing container or image. 
+Patreon supporters have access to an early preview of the **Docker Agent**. It provides a safe, sandboxed environment for agents to perform their tasks on any existing container or image. 
 
 Instrukt encourages you to create custom workflows with a quick feedback loop while testing agents. The developer console `press D` gives you access to a live IPython console in the running namespace to introspect and debug agents and tools.
 
 ### Custom Agents
 
-Instrukt agents a simple python packages that live in the `agent_modules` folder within
-the package. You can create your own agents and share them with others. 
+Instrukt agents a simple python packages that live in the `agent_modules` folder within the package. You can create your own agents and share them with others. 
 
 Take a look at the `demo` and `chat_qa` agents for examples of how to create your own.
 
