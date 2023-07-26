@@ -1,0 +1,30 @@
+PathBrowserModal {
+    background: $foreground 10%;
+    padding-top: 1;
+    padding-left: 1;
+}
+
+PathBrowserModal DirectoryTree {
+    border: solid $foreground 20%;
+    padding: 1;
+    border-title-color: $foreground;
+    scrollbar-size-vertical: 1;
+}
+
+PathBrowserModal #selected-path.container {
+    height: 3;
+    align: left middle;
+}
+
+PathBrowserModal .path--label {
+    text-style: bold;
+    padding-left: 1;
+}
+
+PathBrowserModal .path--selected {
+    width: 100%;
+    padding-left: 2;
+    color: $warning;
+}
+
+
