@@ -38,7 +38,7 @@ instrukt = 'instrukt.app:run'
 python = ">=3.9,<4.0"
 textual = "^0.30.0"
 #textual = { path = "/home/spike/dev/instrukt-project/reference_libs/textual", develop=true}
-langchain = "^0.0.235"
+langchain = "^0.0.240"
 pyxdg = "^0.28"
 tomli = "^2.0.1"
 pydantic = "^1.10.7"
@@ -56,13 +56,14 @@ pyperclip = "^1.8.2"
 wikipedia = { version = "^1.4.0", optional = true }
 openai = {version = "^0.27.8"}
 tiktoken = {version = "^0.4.0"}
+sentence-transformers = {version = "^2.2.2", optional = true}
 
 [tool.poetry.extras]
 tools = ["wikipedia"]
 #loaders = ["unstructured"]
 #vectorstores = ["chromadb"]
 openai = ["openai", "tiktoken"]
-# local-inference = [""]
+local = ["sentence-transformers"]
 
 [tool.poetry.group.dev.dependencies]
 textual-dev = "^1.0.1"
