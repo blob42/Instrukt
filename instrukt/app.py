@@ -96,14 +96,14 @@ class InstruktApp(App[None]):
     BINDINGS = [
         Binding("d", "toggle_dark", "Toggle dark mode", show=False),
         ("Q", "quit", "Quit Application"),
-        ("I", "push_screen('index_mgmt_screen')", "Indexes"),
+        Binding("i", "push_screen('index_mgmt_screen')", "Indexes", key_display="i"),
         ("slash", "focus_instruct_prompt", "Focus Prompt"),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
-        ("D", "dev_console", "Developer Console"),
-        ("?", "push_screen('manual_screen')", "Man"),
-        ("K", "push_screen('keybindings_screen')", "Keys"),
+        Binding("D", "dev_console", "Developer Console", priority=True),
+        Binding("h", "push_screen('manual_screen')", "Man", key_display="h", priority=True),
+        Binding("?", "push_screen('keybindings_screen')", "Keys", priority=True),
     ]
 
     CSS_PATH = [
@@ -144,7 +144,8 @@ class InstruktApp(App[None]):
 
     async def on_mount(self):
         #DEBUG:
-        # self.push_screen("index_mgmt_screen")
+        # from .tuilib.modals.path_browser import PathBrowserModal
+        # self.push_screen(PathBrowserModal())
         # await self.agent_manager.load_agent("demo")
         self.screen.add_class("-no-agent")
 

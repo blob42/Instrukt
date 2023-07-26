@@ -24,7 +24,7 @@ from itertools import chain
 
 from textual import on
 from textual import events
-from textual.reactive import reactive
+from textual.reactive import reactive, var
 from textual.app import ComposeResult, RenderResult
 from textual.containers import Container, Grid, VerticalScroll, Horizontal
 from textual.screen import Screen
@@ -177,6 +177,8 @@ class IndexScreen(Screen[t.Any]):
 
     BINDINGS = [("escape", "dismiss", "Dismiss")]
 
+    reset_form = reactive(True)
+
     def on_mount(self) -> None:
         t.cast('HeaderTitle', self.query_one("HeaderTitle")).text = "Index Management"
         t.cast(Header, self.query_one("Header")).tall = True
@@ -203,7 +205,13 @@ class IndexScreen(Screen[t.Any]):
 
         # refresh the index list
         self.query_one(IndexList).fetch_collections()
-        self.query_one(CreateIndex).reset_form()
+
+        #only reset the form when not returning from modal
+        if self.reset_form:
+            self.log.debug("restting form")
+            self.query_one(CreateIndex).reset_form()
+        else:
+            self.reset_form = True
 
 
     # def on_index_info_deleted(self, e: Message) -> None:

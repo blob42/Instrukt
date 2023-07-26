@@ -1,26 +1,27 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 import typing as t
 from itertools import chain
 
+from pathlib import Path
 from pydantic import ValidationError
 from textual import on
 from textual.app import ComposeResult
@@ -33,12 +34,17 @@ from textual.widgets import Button, Input, Label, LoadingIndicator, Select
 from ...indexes.loaders import LOADER_MAPPINGS
 from ...indexes.schema import Index
 from ...tuilib.forms import FormControl, FormGroup, FormState, InvalidForm, ValidForm
+from ...tuilib.modals.path_browser import PathBrowserModal
+from ...types import InstruktDomNodeMixin
+
+if t.TYPE_CHECKING:
+    from .main import IndexScreen
 
 DEFAULT_NEW_INDEX_MSG = "Make sure the data is correct before creating the collection"
 CREATING_INDEX_MSG = "Creating index ..."
 
 
-class CreateIndex(VerticalScroll):
+class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     """Create Index Form"""
 
     new_index: reactive[Index] = reactive(Index.construct())
@@ -92,16 +98,15 @@ class CreateIndex(VerticalScroll):
                 Input(
                     classes="form-input",
                     placeholder="Path to the data source (file or directory)",
+                    id="path-input",
                     name="path"),
-                Button("Browse", id="browse", variant="primary",
-                       disabled=True),
+                Button("Browse", id="browse-path", variant="primary"),
             ),
                               label="Path",
                               required=True,
                               id="path")
 
-        # with FormGroup(border_title="indexing parameters:"):
-        #     yield Placeholder()
+        # data loader form group
         with FormGroup(border_title="data loader", id="data-loader"):
             # yield FormControl(
             #         Container(
@@ -134,6 +139,7 @@ class CreateIndex(VerticalScroll):
         input = event.control
         if len(input.value) > 0 and input.name is not None:
             setattr(self.new_index, input.name, input.value.strip())
+
         if input.name == "path":
             self.path = input.value
 
@@ -247,6 +253,7 @@ class CreateIndex(VerticalScroll):
             submit_label.refresh()
             self.query_one("Button#create-index").disabled = True
 
+
     def reset_form(self) -> None:
         self.new_index = Index.construct()
         self.path = ""
@@ -272,7 +279,23 @@ class CreateIndex(VerticalScroll):
         new_index = Index(**self.new_index.dict())
         self.log.info(f"Creating index\n{new_index}")
         self.state = FormState.PROCESSING
-        idx_mg = self.app.context.index_manager
-        await idx_mg.create(self.app.context, new_index)
+        idx_mg = self._app.context.index_manager
+        await idx_mg.create(self._app.context, new_index)
         self.post_message(self.Status(FormState.CREATED))
         self.state = FormState.CREATED
+
+    @on(Button.Pressed, "#browse-path")
+    async def browse_path(self, event: Button.Pressed) -> None:
+        """Show path browser."""
+
+        def handle_path(path: Path | None) -> None:
+            """Set path input value."""
+            self.log.debug(f"Path selected: {path}")
+            if path is not None:
+                input = t.cast(Input, self.query_one("Input#path-input"))
+                input.value = str(path)
+                t.cast("IndexScreen", self.screen).reset_form = False
+
+
+
+        self.app.push_screen(PathBrowserModal(), handle_path)
