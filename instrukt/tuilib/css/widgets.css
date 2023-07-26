@@ -1,0 +1,12 @@
+ActionBar {
+    dock: bottom;
+    width: 100%;
+    height: 1;
+    background: $foreground 20%;
+}
+
+ActionBar Button {
+    border: none;
+    height: 1;
+    border-left: vkey $panel;
+}
