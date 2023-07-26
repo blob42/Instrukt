@@ -101,8 +101,8 @@ class InstruktApp(App[None]):
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
-        Binding("D", "dev_console", "Developer Console", priority=True),
-        Binding("h", "push_screen('manual_screen')", "Man", key_display="h", priority=True),
+        Binding("ctrl+d", "dev_console", "Developer Console", priority=True),
+        Binding("h", "push_screen('manual_screen')", "Man", key_display="h"),
         Binding("?", "push_screen('keybindings_screen')", "Keys", priority=True),
     ]
 
