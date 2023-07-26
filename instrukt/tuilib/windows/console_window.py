@@ -34,7 +34,8 @@ class ConsoleWindow(TextLogUp):
     """Window with bottom-up scrolling view"""
 
     def on_instrukt_app_ready(self):
-        self.write(Markdown(INTRO_MESSAGE + TIPS))
+        self.write(Markdown(INTRO_MESSAGE + TIPS),
+                   width=self.size.width - 2)
 
     async def on_instrukt_log_message(self, message: 'AnyMessage') -> None:
         if isinstance(message, LogMessage) and message.level == LogLevel.ERROR:

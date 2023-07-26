@@ -62,9 +62,9 @@ ICONS = Icons({
 INTRO_MESSAGE = f"""
 # Instrukt v{_version()} (alpha)
 
-Welcome to Instrukt! This is the main prompt and info window for the application, where you can find various information about the agents and commands available.
+Welcome 👏 ! This is the main prompt and info window where you can find various information about the agents and commands available.
 
-Use the prompt below to execute Instrukt commands or send messages to active agents.
+Use the prompt area below to execute Instrukt commands or send messages to active agents.
 
 To get started, type `/help` or `.help` for a list of available commands.
 
@@ -76,7 +76,7 @@ You can also load the Instrukt manual by typing `.man`.
 #TODO!: contextual tips 
 TIPS = """
 ## TIPS:
-- You can stop a **thinking** agent by pressing `ctrl+s` while in the prompt.
+- You can stop a **thinking** 🤔 agent by pressing `ctrl+s` while in the prompt.
 """
 
 AGENT_WINDOW_INTRO = """

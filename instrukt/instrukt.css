@@ -50,7 +50,8 @@ SettingsScreen {
 
 #console-window TextLog {
     background: transparent;
-    padding: 1;
+    padding: 0;
+    padding-left: 1;
     padding-right: 0;
     padding-bottom: 0;
     /* border: round red; */
@@ -58,6 +59,7 @@ SettingsScreen {
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-size-vertical: 1;
+    scrollbar-gutter: stable;
 }
 
 #monitor-panel {
@@ -180,12 +182,6 @@ AgentStatus.ready {
     text-align: center;
 }
 
-/* moved to border title and tabs */
-/* #monitor-panel .header #agent-info { */
-/*     text-align: left; */
-/*     color: $text-muted; */
-/*     padding-left: 1; */
-/* } */
 
 #monitor-panel .header #realm-name {
     text-align: right;
