@@ -96,14 +96,14 @@ class InstruktApp(App[None]):
     BINDINGS = [
         Binding("d", "toggle_dark", "Toggle dark mode", show=False),
         ("Q", "quit", "Quit Application"),
-        Binding("i", "push_screen('index_mgmt_screen')", "Indexes", key_display="i"),
+        Binding("i", "uniq_screen('index_mgmt')", "Indexes", key_display="i"),
         ("slash", "focus_instruct_prompt", "Focus Prompt"),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
         Binding("ctrl+d", "dev_console", "Developer Console", priority=True),
         Binding("h", "push_screen('manual_screen')", "Man", key_display="h"),
-        Binding("?", "push_screen('keybindings_screen')", "Keys", priority=True),
+        Binding("?", "uniq_screen('keybindings')", "Keys", priority=True),
     ]
 
     CSS_PATH = [
@@ -113,11 +113,11 @@ class InstruktApp(App[None]):
     TITLE = "Instrukt"
     SCREENS = {
         "settings_screen": SettingsScreen(),
-        "index_menu": IndexMenuScreen(),
-        "tools_menu": ToolsMenuScreen(),
-        "index_mgmt_screen": IndexScreen(),
-        "manual_screen": ManualScreen(),
-        "keybindings_screen": KeyBindingsScreen(),
+        "index_menu": IndexMenuScreen(), #modal
+        "tools_menu": ToolsMenuScreen(), #modal
+        "index_mgmt": IndexScreen(),
+        "manual_screen": ManualScreen(), #modal
+        "keybindings": KeyBindingsScreen(),
     }
 
     AUTO_FOCUS = "StartupMenu ListView"
@@ -238,6 +238,15 @@ class InstruktApp(App[None]):
             self.query_one(REPLPrompt).focus()
         except NoMatches:
             pass
+
+    def action_uniq_screen(self, screen_name: str) -> None:
+        screen = self.SCREENS.get(screen_name)
+        if len(self.screen_stack) > 0 and not isinstance(
+                self.screen_stack[-1], type(screen)):
+            self.push_screen(screen)
+
+
+
 
     def action_toggle_dark(self) -> None:
         """toggle dark mode"""
