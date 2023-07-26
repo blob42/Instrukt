@@ -20,11 +20,11 @@
 ##
 """Keybindings Screen"""
 
-from textual.containers import ScrollableContainer
-from textual.widgets import Markdown, Header, Label, Static
-from textual.screen import ModalScreen
+from textual import events
 from textual.app import ComposeResult
-from rich.text import Text
+from textual.containers import ScrollableContainer
+from textual.screen import Screen
+from textual.widgets import Static
 
 # TODO: dynamically generate app bindings
 # TODO: store bindings in config file
@@ -32,9 +32,9 @@ from rich.text import Text
 BINDING_TEXT = """
 [b r] General [/]
 
-Index Management	[b]I[/]
-Dev Console		[b]D[/]
-Help/Manual		[b]?[/]
+Index Management	[b]i[/]
+Dev Console		[b]ctrl+d[/]
+Help/Manual		[b]h[/]
 Quit App		[b]Q[/]
 Force Quit		[b]ctrl+c[/]
 Focus On Prompt		[b]/ (slash)[/]
@@ -50,15 +50,16 @@ Copy Message		click on message
 
 """
 
-class KeyBindingsScreen(ModalScreen[None]):
 
-    BINDINGS = [
-        ("escape", "dismiss", "dismiss"),
-    ]
+class KeyBindingsScreen(Screen[None]):
+    """Display app key bindings."""
 
     def compose(self) -> ComposeResult:
-        container = ScrollableContainer(
-                Static(BINDING_TEXT, markup=True)
-                )
+        container = ScrollableContainer(Static(BINDING_TEXT, markup=True))
         container.border_title = "Key Bindings"
         yield container
+
+    def on_key(self, event: events.Key) -> None:
+        self.dismiss()
+        if event.key == "escape":
+            event.stop()
