@@ -58,27 +58,24 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
             super().__init__()
             self.state = state
 
-    # def __init__(
-    #     self,
-    #     *children: Widget,
-    #     name: str | None = None,
-    #     id: str | None = None,
-    #     classes: str | None = None,
-    #     disabled: bool = False,
-    # ) -> None:
-    # super().__init__(
-    #         *children,
-    #         name=name,
-    #         id=id,
-    #         classes=classes,
-    #         disabled=disabled
-    # )
-
     # generator for loader type tuples for the Select widget
     def get_loader_types(self):
         yield from [(v[0].__name__, k) for k, v in LOADER_MAPPINGS.items()]
 
     def compose(self) -> ComposeResult:
+
+        # embeddings form group
+        #TODO!: index embeddings form
+        with FormGroup(border_title="embeddings"):
+            yield FormControl(
+                Select(
+                    [('Default Embeddings', 'default')],
+                    classes="form-input",
+                    id="embeddings",
+                    )
+                )
+
+        # collction creation form group
         with FormGroup(border_title="new collection details:"):
             yield FormControl(Input(classes="form-input",
                                     placeholder="collection name",
