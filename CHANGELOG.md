@@ -12,17 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generate sphinx doc for online and offline reading from within the app. 
 - wip: offline doc reader: jump to anchors (https://github.com/Textualize/textual/pull/2941)
 - display common key bindings with `K` 
+- Index Mgmt: added a local file system path selection UI
+- UI: reusable action bar widget.
 
 ### Changed
 
 - upgrade `textual` to `v0.30.0`
 - upgrade `langchain` to `v0.0.235`
 - upgrade `chromadb` to `v0.4.0`
-- Index: no manual call to `persist`
+- ChromaDB: no more manual call to `persist`
 
 ### Fixed
 
 - Chroma: share a single client for all indexes
+- Explicit dependency on `sentence-transofmers` library for local embeddings.
 
 ## [0.5.0] - 2023-07-18
 
