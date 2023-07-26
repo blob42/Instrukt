@@ -69,6 +69,10 @@ IndexList ListItem {
     scrollbar-size: 1 1;
 }
 
+#add-index-form Input:focus {
+    background: $success-darken-3 80%;
+}
+
 #add-index-form #path Input {
     width: 1fr;
 }
