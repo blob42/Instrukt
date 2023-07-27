@@ -94,16 +94,19 @@ class InstruktApp(App[None]):
     The default layout is horizontal."""
 
     BINDINGS = [
-        Binding("d", "toggle_dark", "Toggle dark mode", show=False),
+        Binding( "d", "toggle_dark", "Toggle dark mode", show=False),
         ("Q", "quit", "Quit Application"),
-        Binding("i", "uniq_screen('index_mgmt')", "Indexes", key_display="i"),
+        Binding( "i", "uniq_screen('index_mgmt')", "Indexes", key_display="i"),
         ("slash", "focus_instruct_prompt", "Focus Prompt"),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
-        Binding("ctrl+d", "dev_console", "Developer Console", priority=True),
-        Binding("h", "push_screen('manual_screen')", "Man", key_display="h"),
-        Binding("?", "uniq_screen('keybindings')", "Keys", priority=True),
+        Binding( "ctrl+d", "dev_console", "Developer Console",
+                priority=True, key_display="ctrl+d"),
+
+        Binding( "h", "push_screen('manual_screen')", "Man", key_display="h"),
+
+        Binding( "?", "uniq_screen('keybindings')", "Keys", priority=True),
     ]
 
     CSS_PATH = [
