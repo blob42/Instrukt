@@ -30,6 +30,7 @@ from textual.containers import Container, Grid, VerticalScroll, Horizontal
 from textual.screen import Screen
 from textual.css.query import NoMatches
 from textual.message import Message
+from textual.binding import Binding
 from textual.widgets import (Header,
                              Footer,
                              Button,
@@ -175,13 +176,21 @@ class IndexInfo(Container, InstruktDomNodeMixin):
 
 class IndexScreen(Screen[t.Any]):
 
-    BINDINGS = [("escape", "dismiss", "Dismiss")]
+    BINDINGS = [
+            ("C", "create_index", "create"),
+            Binding("escape", "dismiss", "dismiss", key_display="esc"),
+            ]
+
+    AUTO_FOCUS = "IndexList ListView"
 
     reset_form = reactive(True)
 
     def on_mount(self) -> None:
         t.cast('HeaderTitle', self.query_one("HeaderTitle")).text = "Index Management"
         t.cast(Header, self.query_one("Header")).tall = True
+
+    async def action_create_index(self) -> None:
+        await self.query_one(CreateIndex).create_index()
 
 
     def compose(self) -> ComposeResult:
@@ -198,17 +207,11 @@ class IndexScreen(Screen[t.Any]):
         # yield Footer()
 
     def on_screen_resume(self) -> None:
-        try:
-            self.query("Input").first().focus()
-        except NoMatches:
-            pass
-
         # refresh the index list
         self.query_one(IndexList).fetch_collections()
 
         #only reset the form when not returning from modal
         if self.reset_form:
-            self.log.debug("restting form")
             self.query_one(CreateIndex).reset_form()
         else:
             self.reset_form = True

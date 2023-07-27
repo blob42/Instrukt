@@ -36,6 +36,7 @@ from ...indexes.schema import Index
 from ...tuilib.forms import FormControl, FormGroup, FormState, InvalidForm, ValidForm
 from ...tuilib.modals.path_browser import PathBrowserModal
 from ...types import InstruktDomNodeMixin
+from ...tuilib.widgets import ActionBar
 
 if t.TYPE_CHECKING:
     from .main import IndexScreen
@@ -125,11 +126,13 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
             yield Label(
                 "Make sure the data is correct before creating the collection",
                 classes="status-message")
-            yield Button("Create",
-                         id="create-index",
-                         variant="warning",
-                         disabled=True)
+            # yield Button("Create",
+            #              id="create-index",
+            #              variant="warning",
+            #              disabled=True)
             yield LoadingIndicator()
+
+        yield ActionBar()
 
     def on_input_changed(self, event: Input.Changed) -> None:
         event.stop()
@@ -229,10 +232,11 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
             for input in inputs:
                 input.border_subtitle = ""
 
+    #TODO: loading progress indicator
     def watch_state(self, state: FormState) -> None:
         self.set_classes(state.name.lower())
         if state == FormState.VALID:
-            self.screen.query_one("#create-index").disabled = False
+            self.screen.query_one("Button#create").disabled = False
         elif state == FormState.PROCESSING:
             submit_label = t.cast(Label, self.query_one("#submit Label"))
             submit_label.renderable = CREATING_INDEX_MSG
@@ -248,7 +252,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
             submit_label = t.cast(Label, self.query_one("#submit Label"))
             submit_label.renderable = DEFAULT_NEW_INDEX_MSG
             submit_label.refresh()
-            self.query_one("Button#create-index").disabled = True
+            self.query_one("Button#create").disabled = True
 
 
     def reset_form(self) -> None:
@@ -270,9 +274,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
 
         return ValidForm()
 
-    #WIP:
-    @on(Button.Pressed, '#create-index')
-    async def create_index(self, event: Button.Pressed) -> None:
+    async def create_index(self) -> None:
         new_index = Index(**self.new_index.dict())
         self.log.info(f"Creating index\n{new_index}")
         self.state = FormState.PROCESSING
