@@ -1,28 +1,40 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 """Chroma wrapper and utils."""
 
-from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, cast
+import logging
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Optional,
+    Sequence,
+    Union,
+    cast
+)
 
 from langchain.vectorstores import Chroma as ChromaVectorStore
+from langchain.embeddings import HuggingFaceEmbeddings
+
 
 from ..config import CHROMA_INSTALLED
 from ..utils.asynctools import run_async
@@ -34,6 +46,12 @@ if TYPE_CHECKING:
     from langchain.embeddings.base import Embeddings
     from ..tools.base import SomeTool
 
+log = logging.getLogger(__name__)
+
+TEmbeddings = Union["Embeddings", "HuggingFaceEmbeddings"]
+
+
+DEFAULT_EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 DEFAULT_COLLECTION_NAME = "instrukt"
 
 
@@ -43,8 +61,8 @@ class ChromaWrapper(ChromaVectorStore):
     def __init__(
             self,
             client: "chromadb.Client",
-            collection_name: str = DEFAULT_COLLECTION_NAME,
-            embedding_function: Optional['Embeddings'] = None,
+            collection_name: str,
+            embedding_function: Optional[TEmbeddings] = None,
             collection_metadata: Optional[Dict[str, Any]] = None,
             **kwargs):
         if not CHROMA_INSTALLED:
@@ -55,13 +73,21 @@ class ChromaWrapper(ChromaVectorStore):
 
         #TODO!: use the stored embedding_fn name to spawn the embedding_fn
         if embedding_function is None:
-            import chromadb.utils.embedding_functions as ef  # type: ignore
-            embedding_fn = f"{ef.DefaultEmbeddingFunction.__module__}.{ef.DefaultEmbeddingFunction.__name__}"
-        else:
-            embedding_fn = f"{type(embedding_function).__module__}.{type(embedding_function).__name__}"
+            embedding_function = HuggingFaceEmbeddings(
+                model_name=DEFAULT_EMBEDDINGS_MODEL)
+
+        embedding_fn = f"{type(embedding_function).__module__}\
+                .{type(embedding_function).__name__}"
+
+        log.debug(f"Using embedding function {embedding_fn}")
 
         collection_metadata = collection_metadata or {}
         collection_metadata["embedding_fn"] = embedding_fn
+
+        if type(embedding_function) is HuggingFaceEmbeddings:
+            collection_metadata["model_name"] = embedding_function.model_name
+        log.debug(collection_metadata)
+
 
         _kwargs = {
             **kwargs,
@@ -124,4 +150,3 @@ class ChromaWrapper(ChromaVectorStore):
                                          description,
                                          return_direct=return_direct,
                                          **kwargs)
-
