@@ -93,12 +93,15 @@ class Agent(CmdGroup):
         ctx.app.agent_manager.active_agent.reload_agent()
         return CmdLog("Cleared agent's memory.")
 
+    @staticmethod
     async def cmd_forget(ctx: Context, term: str) -> CallbackOutput:
         """Forgets a term in the agent's memory."""
         ctx.app.agent_manager.active_agent.forget_about(term)
         ctx.app.agent_manager.active_agent.reload_agent()
         return CmdLog(f"Forgot {term}.")
 
-
-
-
+    @staticmethod
+    async def cmd_model(ctx: Context, model: str) -> CallbackOutput:
+        """Set the LLM model to used by the agent."""
+        ctx.app.agent_manager.active_agent.base_agent.llm_chain.llm.model_name = model
+        return CmdLog(f"Set model to {model}.")
