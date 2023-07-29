@@ -11,9 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Generate sphinx doc for online and offline reading from within the app. 
 - wip: offline doc reader: jump to anchors (https://github.com/Textualize/textual/pull/2941)
-- display common key bindings with `K` 
-- Index Mgmt: added a local file system path selection UI
+- Help screen for common keybindings with `?`
 - UI: reusable action bar widget.
+
+#### index management: 
+- added a local file system path selection UI
+- ChromaDB: save used embedding function details and restore them when loading the collection.
 
 ### Changed
 
