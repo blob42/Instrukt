@@ -135,6 +135,9 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
     sqlite_cache_path: str = os.path.join(
         BaseDirectory.save_cache_path("instrukt"), "cache.sqlite")
 
+    llm_errors_logdir: str = os.path.join(
+            BaseDirectory.save_cache_path("instrukt", "llm_errors"))
+
     # TUI SETTINGS
     interface: TUISettings = Field(default_factory=TUISettings)
 

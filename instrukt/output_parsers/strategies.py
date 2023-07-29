@@ -22,12 +22,15 @@
 import json
 import re
 from typing import Any
+from datetime import datetime
 
 from .parser_lib import (
     parse_json_md_langchain,
     parse_json_md_nested_code_block,
 )
 from .strategy import Strategy
+from ..config import APP_SETTINGS
+
 
 T = dict[str, Any]
 
@@ -91,8 +94,16 @@ def json_nested_code_block(text: str) -> T:
     return parse_json_md_nested_code_block(text)
 
 
+
+
 def fallback(text: str) -> T:
     """Fallback strategy"""
+    if APP_SETTINGS.debug:
+        llm_error_log_dir = APP_SETTINGS.llm_errors_logdir
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"{llm_error_log_dir}/{timestamp}.output"
+        with open(filename, "w") as file:
+            file.write(text)
     return {"action": "Final Answer", "action_input": text}
 
 
