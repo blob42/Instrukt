@@ -34,6 +34,11 @@ class Collection(NamedTuple):
     name: str
     metadata: dict[Any, Any]
 
+class EmbeddingDetails(NamedTuple):
+    """Details about an embedding"""
+    embedding_fn_cls: str
+    model_name: str | None
+
 
 class Index(BaseModel):
     """An index"""

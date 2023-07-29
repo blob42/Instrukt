@@ -21,28 +21,19 @@
 """Chroma wrapper and utils."""
 
 import logging
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Union
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    Optional,
-    Sequence,
-    Union,
-    cast
-)
-
-from langchain.vectorstores import Chroma as ChromaVectorStore
+import chromadb
 from langchain.embeddings import HuggingFaceEmbeddings
-
+from langchain.vectorstores import Chroma as ChromaVectorStore
 
 from ..config import CHROMA_INSTALLED
 from ..utils.asynctools import run_async
-from .schema import Collection
 from .retrieval import retrieval_tool_from_index
+from .schema import Collection
 
 if TYPE_CHECKING:
-    import chromadb   # type: ignore
+    import chromadb  # type: ignore
     from langchain.embeddings.base import Embeddings
     from ..tools.base import SomeTool
 
@@ -50,44 +41,39 @@ log = logging.getLogger(__name__)
 
 TEmbeddings = Union["Embeddings", "HuggingFaceEmbeddings"]
 
-
 DEFAULT_EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
-DEFAULT_COLLECTION_NAME = "instrukt"
 
 
 class ChromaWrapper(ChromaVectorStore):
     """Wrapper around Chroma DB."""
 
-    def __init__(
-            self,
-            client: "chromadb.Client",
-            collection_name: str,
-            embedding_function: Optional[TEmbeddings] = None,
-            collection_metadata: Optional[Dict[str, Any]] = None,
-            **kwargs):
+    def __init__(self,
+                 client: "chromadb.Client",
+                 collection_name: str,
+                 embedding_function: Optional[TEmbeddings] = None,
+                 collection_metadata: Optional[Dict[str, Any]] = None,
+                 **kwargs):
         if not CHROMA_INSTALLED:
             raise ImportError(
                 "Instrukt tried to import chromadb, but it is not installed."
                 " chromadb is required for using instrukt knowledge features."
                 " Please install it with `pip install instrukt[chromadb]`")
 
-        #TODO!: use the stored embedding_fn name to spawn the embedding_fn
+        collection_metadata = collection_metadata or {}
+
         if embedding_function is None:
             embedding_function = HuggingFaceEmbeddings(
                 model_name=DEFAULT_EMBEDDINGS_MODEL)
 
-        embedding_fn = f"{type(embedding_function).__module__}\
-                .{type(embedding_function).__name__}"
+        #HACK: embedding_fn details are always saved again in the collection metadata
+        #TODO!: should only stored when index is created
+        embedding_fn_fqn = f"{type(embedding_function).__module__}.{type(embedding_function).__name__}"
 
-        log.debug(f"Using embedding function {embedding_fn}")
 
-        collection_metadata = collection_metadata or {}
-        collection_metadata["embedding_fn"] = embedding_fn
+        collection_metadata["embedding_fn"] = embedding_fn_fqn
 
         if type(embedding_function) is HuggingFaceEmbeddings:
             collection_metadata["model_name"] = embedding_function.model_name
-        log.debug(collection_metadata)
-
 
         _kwargs = {
             **kwargs,
@@ -99,8 +85,6 @@ class ChromaWrapper(ChromaVectorStore):
             }
         }
         super().__init__(**_kwargs)
-
-
 
     async def adelete(self,
                       ids: list[str] | None = None,
@@ -140,7 +124,6 @@ class ChromaWrapper(ChromaVectorStore):
             return self.metadata["description"]
         return None
 
-
     def get_retrieval_tool(self,
                            description: str | None = None,
                            return_direct: bool = False,
@@ -150,3 +133,4 @@ class ChromaWrapper(ChromaVectorStore):
                                          description,
                                          return_direct=return_direct,
                                          **kwargs)
+
