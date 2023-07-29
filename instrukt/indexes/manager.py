@@ -155,12 +155,7 @@ class IndexManager(BaseModel):
         await run_async(new_index.add_documents, docs)
 
         ctx.info(f"index {index.name} created")
-
         self._indexes[index.name] = new_index
-
-        #FIX: removing
-        # await run_async(new_index.persist)
-        # ctx.info(f"index persisted")
 
         return new_index
 
