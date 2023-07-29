@@ -125,13 +125,13 @@ class IndexDetails(Static, InstruktDomNodeMixin):
 
     collection: reactive[Collection] = reactive(Collection("","",{}))
     collection_type = reactive("")
-    count = reactive(0)
+    count = reactive(-1)
 
     def render(self) -> RenderResult:
         embedding = self.embedding_fn
         return f"""
     Collection Name: {self.collection.name}
-    Document Count: [r]{self.count}[/]
+    Document Count: [r]{'?' if self.count < 0 else self.count}[/]
     Type: {self.collection_type}
 
     [b]Embeddings:[/b]
@@ -152,6 +152,7 @@ class IndexDetails(Static, InstruktDomNodeMixin):
             self.collection.name)
 
     async def watch_collection(self, collection: Collection) -> None:
+        self.count = -1
         idx = await self.get_index()
         assert idx is not None
         self.count = idx.count()
