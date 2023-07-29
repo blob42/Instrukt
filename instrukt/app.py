@@ -106,7 +106,8 @@ class InstruktApp(App[None]):
 
         Binding( "h", "push_screen('manual_screen')", "Man", key_display="h"),
 
-        Binding( "?", "uniq_screen('keybindings')", "Keys", priority=True),
+        #TODO: set priority binding but allow in inputs
+        Binding( "?", "uniq_screen('keybindings')", "Keys"),
     ]
 
     CSS_PATH = [
