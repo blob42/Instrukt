@@ -24,6 +24,7 @@ from itertools import chain
 
 from textual import on
 from textual import events
+from textual import work
 from textual.reactive import reactive, var
 from textual.app import ComposeResult, RenderResult
 from textual.containers import Container, Grid, VerticalScroll, Horizontal
@@ -53,6 +54,8 @@ from ...types import InstruktDomNodeMixin
 
 
 if t.TYPE_CHECKING:
+    from ...indexes.schema import EmbeddingDetails
+    from ...indexes.manager import IndexManager
     from ...app import InstruktApp
     from ...tuilib.widgets.header import HeaderTitle
 
@@ -118,34 +121,40 @@ class IndexList(VerticalScroll):
 
 
 
-class IndexDetails(Static):
+class IndexDetails(Static, InstruktDomNodeMixin):
 
     collection: reactive[Collection] = reactive(Collection("","",{}))
     collection_type = reactive("")
     count = reactive(0)
 
     def render(self) -> RenderResult:
+        embedding = self.embedding_fn
         return f"""
     Collection Name: {self.collection.name}
     Document Count: [r]{self.count}[/]
     Type: {self.collection_type}
-        """
 
-    def get_index(self) -> Optional[ChromaWrapper]:
-        return t.cast('InstruktApp', self.app).context.index_manager.get_index(
+    [b]Embeddings:[/b]
+    Function : {embedding.embedding_fn_cls} 
+    Model: {embedding.model_name} 
+        """
+    @property
+    def idx_manager(self) -> "IndexManager":
+        return self._app.context.index_manager
+
+    @property
+    def embedding_fn(self) -> "EmbeddingDetails":
+        return self.idx_manager.get_embedding_fn(self.collection.name)
+
+
+    async def get_index(self) -> Optional[ChromaWrapper]:
+        return await t.cast('InstruktApp', self.app).context.index_manager.aget_index(
             self.collection.name)
 
-    def compute_count(self) -> int:
-        idx_manager = self.app.context.index_manager  # type: ignore
-        try:
-            _col = idx_manager.get_index(self.collection.name)
-            return _col.count()
-        except ValueError:
-            pass
-        return 0
-
-    def watch_collection(self, collection: Collection) -> None:
-        idx = self.get_index()
+    async def watch_collection(self, collection: Collection) -> None:
+        idx = await self.get_index()
+        assert idx is not None
+        self.count = idx.count()
         if isinstance(idx, ChromaWrapper):
             self.collection_type = "Chroma DB"
         else:
@@ -177,7 +186,7 @@ class IndexInfo(Container, InstruktDomNodeMixin):
 class IndexScreen(Screen[t.Any]):
 
     BINDINGS = [
-            ("C", "create_index", "create"),
+            Binding("C", "create_index", "create"),
             Binding("escape", "dismiss", "dismiss", key_display="esc"),
             ]
 

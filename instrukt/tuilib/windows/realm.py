@@ -62,7 +62,7 @@ class RealmInfo(Widget):
     realm_info = reactive("")
 
     def watch_state(self, state: AgentState) -> None:
-        """Implement the agents' state observer pattern (see AgentStateSubject)"""
+        """Implement the agents' state observer pattern."""
 
         if state == AgentState.READY:
             jail_image = self.app.active_agent.realm.session.image_name
