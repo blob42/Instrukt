@@ -1,34 +1,77 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 from enum import Enum
-from typing import Any
+from typing import Any, Sequence
 
+from pydantic.error_wrappers import ValidationError
 from rich.text import Text
 from textual.app import ComposeResult
-from textual import events
 from textual.containers import Container
-from textual.widget import Widget
-from textual.widgets import Label, Input
 from textual.message import Message
+from textual.reactive import reactive
+from textual.widget import Widget
+from textual.widgets import Label, Input, Select
+from textual.css.query import DOMQuery
+from textual import events, on
 
+
+class FormState(Enum):
+    """Represent the state of the form"""
+    INITIAL = 0
+    INVALID = 1
+    VALID = 2
+    PROCESSING = 3
+    CREATED = 4
+
+
+class FormValidity:
+
+    def __init__(self,
+                 value: bool = True,
+                 error: ValidationError | None = None) -> None:
+        self.value = bool(value)
+        self.error = error
+
+    def __call__(self) -> "FormValidity":
+        return self
+
+    def __bool__(self) -> bool:
+        return self.value
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, FormValidity):
+            return (self.value == other.value) and (self.error == other.error)
+        return self.value == bool(other)
+
+
+class InvalidForm(FormValidity):
+
+    def __init__(self, error: ValidationError) -> None:
+        super().__init__(False, error)
+
+
+class ValidForm(FormValidity):
+
+    def __init__(self) -> None:
+        super().__init__(True)
 
 
 class FormGroup(Container):
@@ -48,11 +91,18 @@ class FormGroup(Container):
     }
     """
 
+    state = reactive(FormState.INITIAL)
+
     class Blur(Message):
-        def __init__(self, form: 'FormGroup') -> None:
+
+        def __init__(self, form: "FormGroup", control: Widget | None) -> None:
             self.form = form
+            self._control = control
             super().__init__()
 
+        @property
+        def control(self) -> Widget | None:
+            return self._control
 
     def __init__(self,
                  *args: Any,
@@ -63,9 +113,17 @@ class FormGroup(Container):
         self.border_title = border_title
         self.border_subtitle = border_subtitle
 
-    def on_descendant_blur(self) -> None:
-        self.post_message(self.Blur(self))
+    @on(events.DescendantBlur)
+    def descendant_blur(self, event: events.DescendantBlur) -> None:
+        self.post_message(self.Blur(self, event.control))
 
+    def watch_state(self, state: FormState) -> None:
+        if state == FormState.INVALID:
+            self.add_class("error")
+            self.border_subtitle = "invalid form"
+        else:
+            self.remove_class("error")
+            self.border_subtitle = ""
 
 
 class FormControl(Container):
@@ -109,30 +167,11 @@ class FormControl(Container):
         yield Label(label)
         yield from self.__children
 
+    @property
+    def inner_controls(self) -> list[Widget]:
+        assert self.parent is not None
+        _controls = self.parent.query("FormControl *")
+        def wanted(c):
+            return type(c) in (Input, Select)
+        return list(filter(wanted, _controls))
 
-class ValidForm:
-    def __init__(self, value: bool = True, message: str | None = None) -> None:
-        self.value = bool(value)
-        self.message = message
-
-    def __call__(self) -> "ValidForm":
-        return self
-
-    def __bool__(self) -> bool:
-        return self.value
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, ValidForm):
-            return (self.value == other.value) and (self.message == other.message)
-        return self.value == bool(other)
-
-InvalidForm = ValidForm(False)
-
-
-class FormState(Enum):
-    """Represent the state of the form"""
-    INITIAL = 0
-    INVALID = 1
-    VALID = 2
-    PROCESSING = 3
-    CREATED = 4

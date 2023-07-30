@@ -81,48 +81,50 @@ IndexList ListItem {
     width: 1fr;
 }
 
-#add-index-form #submit {
-    background: $foreground 10%;
-    dock: bottom;
-    width: 100%;
-    height: auto;
-    border-top: tall $foreground 20%;
-    padding-bottom: 1;
-    padding-right: 2;
-}
+/* #add-index-form #submit { */
+/*     background: $foreground 10%; */
+/*     dock: bottom; */
+/*     width: 100%; */
+/*     height: auto; */
+/*     border-top: tall $foreground 20%; */
+/*     padding-bottom: 1; */
+/*     padding-right: 2; */
+/* } */
 
-#add-index-form #submit Label {
-    width: 4fr;
-    height: 100%;
-    content-align: center middle;
-}
+/* #add-index-form #submit Label { */
+/*     width: 4fr; */
+/*     height: 100%; */
+/*     content-align: center middle; */
+/* } */
 
-#add-index-form #submit LoadingIndicator {
-    display: none;
-}
+/* #add-index-form #submit LoadingIndicator { */
+/*     display: none; */
+/* } */
 
-#add-index-form #submit Button {
-    border: none;
-    height: 1;
-    width: 1fr;
-}
+/* #add-index-form #submit Button { */
+/*     border: none; */
+/*     height: 1; */
+/*     width: 1fr; */
+/* } */
 
 
-#add-index-form #submit LoadingIndicator {
-    height: auto;
-    width: 1fr;
-}
+/* #add-index-form #submit LoadingIndicator { */
+/*     height: auto; */
+/*     width: 1fr; */
+/* } */
 
 
 /* form styles for processing */
 
-#add-index-form.processing Button#create-index {
-    display: none;
-}
-#add-index-form.processing #submit LoadingIndicator {
-    display: block;
-}
+/* #add-index-form.processing Button#create-index { */
+/*     display: none; */
+/* } */
+
+/* #add-index-form.processing #submit LoadingIndicator { */
+/*     display: block; */
+/* } */
 
 #add-index-form.processing FormGroup {
     display: none;
 }
+

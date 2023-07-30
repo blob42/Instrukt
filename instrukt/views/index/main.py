@@ -187,6 +187,8 @@ class IndexInfo(Container, InstruktDomNodeMixin):
 class IndexScreen(Screen[t.Any]):
 
     BINDINGS = [
+            #NOTE: the name (3rd arg) is used in the ActionBar for looking up the button
+            # changing it requires updating the code in the IndexCreate view
             Binding("C", "create_index", "create"),
             Binding("escape", "dismiss", "dismiss", key_display="esc"),
             ]

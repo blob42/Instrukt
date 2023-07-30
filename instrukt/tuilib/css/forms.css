@@ -10,6 +10,14 @@ FormControl Input.error {
     border-subtitle-color: $warning;
 }
 
+FormControl Select {
+    border: solid transparent;
+}
+
+FormControl Select.error {
+    border-subtitle-color: $warning;
+}
+
 FormGroup.error {
     border: wide $error;
 }
