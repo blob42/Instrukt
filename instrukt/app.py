@@ -40,7 +40,6 @@ from textual.message import Message
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
-from .utils import debug
 from .agent import AgentEvents
 from .agent.base import InstruktAgent
 from .agent.manager import AgentManager
@@ -51,13 +50,12 @@ from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
 from .tuilib.modals.index_menu import IndexMenuScreen
 from .tuilib.modals.tools_menu import ToolsMenuScreen
-from .tuilib.widgets.header import InstruktHeader
 from .tuilib.repl_prompt import REPLPrompt
+from .tuilib.widgets.header import InstruktHeader
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
 from .views.index import IndexScreen
-from .views.man import ManualScreen
 from .views.keybindings import KeyBindingsScreen
-
+from .views.man import ManualScreen
 
 _loop = _asyncio.get_event_loop()
 _nest_asyncio.apply(_loop)
