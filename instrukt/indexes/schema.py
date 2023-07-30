@@ -26,6 +26,7 @@ from typing import Any, NamedTuple, Optional
 from pydantic import BaseModel, Field, validator
 
 from .loaders import LOADER_MAPPINGS
+from .embeddings import Embedding, EMBEDDINGS
 
 
 class Collection(NamedTuple):
@@ -41,18 +42,24 @@ class EmbeddingDetails(NamedTuple):
 
 
 class Index(BaseModel):
-    """An index"""
+    """Base Instrukt Index class.
+
+    Indexes are the the document storing and retrieval backend for agents."""
     name: str
 
     #TODO: make this a list of paths with its corresponding loader
     path: str
+    embedding: str = "default"
     description: str | None = None
-    loader_type: str | None = None  #should be auto detected or selected
+    loader_type: str | None = None  # auto detected or selected
     metadata: Optional[dict[Any, Any]] = Field(default_factory=dict)
 
     @validator("path")
     def validate_path(cls, v: str) -> str:
         """Ensure path is absolute"""
+        if len(v) == 0:
+            raise ValueError("Path cannot be empty")
+
         v = os.path.expanduser(v)
         v = os.path.abspath(v)
 
@@ -69,5 +76,20 @@ class Index(BaseModel):
                 f"Invalid loader type: {v}\n  "
                 f"Should be one of {list(LOADER_MAPPINGS.keys())}\n")
 
+        return v
+
+    # validator for embedding
+    # if embedding is the "openai" key of EMBEDDINGS raise error
+    @validator("embedding")
+    def validate_embedding(cls, v: str) -> str:
+        """Ensure embedding is valid"""
+        # if v is the one under the EMBEDDINGS["openai"] key
+        if v not in EMBEDDINGS and v is not None:
+            raise ValueError(
+                    f"Invalid Embedding type: {v}\n "
+                    f" Should be one of {list(EMBEDDINGS.keys())}\n"
+                    )
+        if v == "openai":
+            raise ValueError("requires OpenAI API key")
         return v
 
