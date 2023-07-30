@@ -59,7 +59,7 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.dirtree = DirectoryTree(".")
+        self.dirtree = DirectoryTree(Path.home())
         self.dirtree.border_title = "Select any file or directory to index:"
 
     def on_mount(self) -> None:
