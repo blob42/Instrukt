@@ -106,10 +106,12 @@ class FormGroup(Container):
 
     def __init__(self,
                  *args: Any,
+                 state: FormState = FormState.INITIAL,
                  border_title: str | Text = "",
                  border_subtitle: str | Text = "",
                  **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        self.state = state
         self.border_title = border_title
         self.border_subtitle = border_subtitle
 

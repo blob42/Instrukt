@@ -61,12 +61,22 @@ IndexList ListItem {
 }
 
 
-/* Add Form */
+/* Add Index Form */
 #add-index-form {
     /* background: cyan 30%; */
-    padding: 1;
     display: none;
+}
+
+
+#add-index-form .--container {
+    height: 1fr;
     scrollbar-size: 1 1;
+}
+
+#add-index-form FormGroup {
+    margin-top: 1;
+    margin-left: 1;
+    margin-right: 1;
 }
 
 #add-index-form Input:focus {
@@ -81,6 +91,10 @@ IndexList ListItem {
     width: 1fr;
 }
 
+#add-index-form Button#scan {
+    margin-top: 1;
+}
+ 
 /* #add-index-form #submit { */
 /*     background: $foreground 10%; */
 /*     dock: bottom; */

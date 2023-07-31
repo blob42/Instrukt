@@ -26,10 +26,10 @@ from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
 from pydantic import ValidationError
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Horizontal, VerticalScroll
+from textual.containers import Horizontal, VerticalScroll, Container
 from textual.css.query import NoMatches
 from textual.message import Message
-from textual.reactive import reactive
+from textual.reactive import reactive, var
 from textual.widgets import Button, Input, Label, LoadingIndicator, Select
 from textual import events
 
@@ -81,19 +81,27 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     loader_type: reactive[str] = reactive("")
     embedding: reactive[str] = reactive("default")
     state = reactive(FormState.INITIAL, always_update=True)
-
+    _pristine = var(True)
+ 
     class Status(Message):
         def __init__(self, state: FormState) -> None:
             super().__init__()
             self.state = state
 
-    def compute_state(self) -> FormState:
+
+    def on_mount(self):
+        create_btn = self.query_one("Button#create")
+        create_btn.variant = "success"   # type: ignore
+
+    def update_state(self) -> None:
         """Compute final form state from sub FormGroup states."""
         forms = self.query(FormGroup)
         if all(form.state == FormState.VALID for form in forms):
-            return FormState.VALID
+            self.log.debug("state valid")
+            self.state = FormState.VALID
         else:
-            return FormState.INVALID
+            self.log.debug("state invalid")
+            self.state = FormState.INVALID
 
     # generator for loader type tuples for the Select widget
     def get_loader_types(self):
@@ -116,84 +124,93 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     def compose(self) -> ComposeResult:
         # embeddings form group
         # TODO!: index embeddings form
-        with FormGroup(border_title="embeddings", name="embeddings"):
-            yield FormControl(
-                Select(
-                    self.get_embeddings(),
-                    value=self.embedding,
-                    classes="form-input",
-                    id="embedding-fn",
-                ),
-                label="embedding function",
-                id="embedding",
-            )
+        with VerticalScroll(classes="--container"):
+            with FormGroup(border_title="embeddings",
+                            name="embeddings",
+                           state=FormState.VALID):
+                yield FormControl(
+                    Select(
+                        self.get_embeddings(),
+                        value=self.embedding,
+                        classes="form-input",
+                        id="embedding-fn",
+                    ),
+                    label="embedding function",
+                    id="embedding",
+                    required=True,
+                )
 
-        # collction creation form group
-        with FormGroup(border_title="new collection details:", name="collection"):
-            yield FormControl(
-                Input(classes="form-input", placeholder="collection name", name="name"),
-                label="Name",
-                required=True,
-            )
-            yield FormControl(
-                Input(
-                    classes="form-input",
-                    placeholder="A short description of the collection. Helpful for agents.",
-                    name="description",
-                ),
-                label="Description",
-                id="description",
-            )
-            yield FormControl(
-                Horizontal(
+            # collction creation form group
+            with FormGroup(border_title="new collection details:", name="collection"):
+                yield FormControl(
+                    Input(classes="form-input", placeholder="collection name", name="name"),
+                    label="Name",
+                    required=True,
+                )
+                yield FormControl(
                     Input(
                         classes="form-input",
-                        placeholder="Path to the data source (file or directory)",
-                        id="path-input",
-                        name="path",
+                        placeholder="A short description of the collection. Helpful for agents.",
+                        name="description",
                     ),
-                    Button("Browse", id="browse-path", variant="primary"),
-                ),
-                label="Path",
-                required=True,
-                id="path",
-            )
+                    label="Description",
+                    id="description",
+                )
+                yield FormControl(
+                    Horizontal(
+                        Input(
+                            classes="form-input",
+                            placeholder="Path to the data source (file or directory)",
+                            id="path-input",
+                            name="path",
+                        ),
+                        Button("Browse", id="browse-path", variant="primary"),
+                    ),
+                    label="Path",
+                    required=True,
+                    id="path",
+                )
 
-        # data loader form group
-        with FormGroup(border_title="data loader", name="data-loader"):
-            # yield FormControl(
-            #         Container(
-            #             Label("Loader type:"),
-            #
-            #             classes="control-row"
-            #             ),
-            #             Button("Scan"),
-            #         )
-            yield FormControl(
-                Horizontal(
-                    Select(self.get_loader_types(), id="loader"),
-                    Button("Scan", id="scan", disabled=True, variant="primary"),
-                ),
-                label="loader type:",
-            )
+            # data loader form group
+            with FormGroup(border_title="data loader",
+                           name="data-loader",
+                           state=FormState.VALID):
+                # yield FormControl(
+                #         Container(
+                #             Label("Loader type:"),
+                #
+                #             classes="control-row"
+                #             ),
+                #             Button("Scan"),
+                #         )
+                yield FormControl(
+                    Horizontal(
+                        Select(self.get_loader_types(), id="loader"),
+                        Button("Scan", id="scan", disabled=True, variant="primary"),
+                    ),
+                    label="loader type:",
+                )
 
-        # with Horizontal(id="submit"):
-        #     # message for the user to make sure the data is correct before starting
-        #     # the embedding process which will consume API tokens
-        #     yield Label(
-        #         "Make sure the data is correct before creating the collection",
-        #         classes="status-message",
-        #     )
-        #     # yield Button("Create",
-        #     #              id="create-index",
-        #     #              variant="warning",
-        #     #              disabled=True)
-        #     yield LoadingIndicator()
+            # with Horizontal(id="submit"):
+            #     # message for the user to make sure the data is correct before starting
+            #     # the embedding process which will consume API tokens
+            #     yield Label(
+            #         "Make sure the data is correct before creating the collection",
+            #         classes="status-message",
+            #     )
+            #     # yield Button("Create",
+            #     #              id="create-index",
+            #     #              variant="warning",
+            #     #              disabled=True)
+            #     yield LoadingIndicator()
 
         yield ActionBar()
 
+    def parent_form_group(self, elm: "DOMNode") -> t.Optional["DOMNode"]:
+        return next(filter(lambda a: isinstance(a, FormGroup), elm.ancestors), None)
+
     def validate_parent_form(self, elm: "DOMNode"):
-        form_group = next((a for a in elm.ancestors if isinstance(a, FormGroup)), None)
+        form_group = self.parent_form_group(elm)
         if form_group is not None:
             self.validate_form(form_group)
 
@@ -206,8 +223,14 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
             self.log.debug(f"input changed: {input.name} -> {input.value}")
             setattr(self.new_index, input.name, input.value.strip())
 
+        # when the form is pristine we done show form errors related to empty input 
         if input.name == "path":
+            self._pristine = False
             self.path = input.value
+            if len(input.value) == 0:
+                self.validate_parent_form(input)
+
+
 
         if input.name == "description":
             t.cast(dict[str, t.Any], self.new_index.metadata)[
@@ -227,6 +250,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         if input.name == "path":
             self.path = input.value
             self.validate_parent_form(input)
+        self.update_state()
 
     @on(Select.Changed)
     def select_changed(self, e: Select.Changed) -> None:
@@ -241,6 +265,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     @on(FormGroup.Blur)
     def form_group_blur(self, event: FormGroup.Blur) -> None:
         self.validate_form(event.form)
+        self.update_state()
 
     def clear_formgroup_state(self, form: FormGroup):
         form.state = FormState.VALID
@@ -299,17 +324,23 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         required_forms = [f for f in form_controls if f.required]
 
         # only do form validation for FormControls with required controls
-        # if len(required_forms) == 0:
-        #     return
-
-        # if any required input is empty skip validation
-        r_inputs = chain(*[f.query(Input) for f in required_forms])
-        if any([len(i.value) == 0 for i in r_inputs]):
+        if len(required_forms) == 0:
             return
+
+        #NOTE: if any required input is empty skip validation but marked full
+        # form as invalid
+
+        # if an input with name `path` == 0
+        r_inputs = chain(*[f.query(Input) for f in required_forms])
+        if self._pristine:
+            if any([len(i.value) == 0 for i in r_inputs]):
+                return
+
 
         valid_form = self.__validate_new_index()
 
         if not valid_form:
+            self.log.debug("form is not valid")
             # form.state = FormState.INVALID
             # add error class to form group
             # form.add_class("error")
@@ -324,7 +355,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
 
                     attr = getattr(self, control.id)
 
-                    if attr is None or attr == "":
+                    if attr is None or (control.id != "path" and attr == ""):
                         continue
 
                     # check if attr is reactive
@@ -343,12 +374,15 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
                     continue
 
 
-    # TODO: loading progress indicator
+
+    # TODO!: loading progress indicator
     def watch_state(self, state: FormState) -> None:
-        self.log.warning(f"total state is {state}")
+        self.log.warning(f"Full form state is {state}")
         self.set_classes(state.name.lower())
         if state == FormState.VALID:
-            self.screen.query_one("Button#create").disabled = False
+            create_btn = self.screen.query_one("Button#create")
+            create_btn.disabled = False
+
         elif state == FormState.PROCESSING:
             self.log.warning(f"total state is {state}")
             # submit_label = t.cast(Label, self.query_one("#submit Label"))
