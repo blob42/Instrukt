@@ -21,12 +21,14 @@
 """Indexes Schemas"""
 
 import os
+import typing as t
 from typing import Any, NamedTuple, Optional
 
 from pydantic import BaseModel, Field, validator
 
 from .loaders import LOADER_MAPPINGS
 from .embeddings import Embedding, EMBEDDINGS
+from langchain.embeddings.base import Embeddings
 
 
 class Collection(NamedTuple):
@@ -38,7 +40,14 @@ class Collection(NamedTuple):
 class EmbeddingDetails(NamedTuple):
     """Details about an embedding"""
     embedding_fn_cls: str
-    model_name: str | None
+    model_name: str | None = None
+
+
+def v_non_empty_field(fname: str, v: t.Sequence[t.Any]) -> Any:
+    """Generic non empty field validator."""
+    if len(tuple(v)) == 0:
+        raise ValueError(f"{fname} cannot be empty")
+    return v
 
 
 class Index(BaseModel):
@@ -49,10 +58,11 @@ class Index(BaseModel):
 
     #TODO: make this a list of paths with its corresponding loader
     path: str
+    description: str
     embedding: str = "default"
-    description: str | None = None
     loader_type: str | None = None  # auto detected or selected
     metadata: Optional[dict[Any, Any]] = Field(default_factory=dict)
+
 
     @validator("path")
     def validate_path(cls, v: str) -> str:
@@ -64,9 +74,22 @@ class Index(BaseModel):
         v = os.path.abspath(v)
 
         if not os.path.exists(v):
-            raise ValueError(f"Path does not exist: {v}")
+            # shorten home path
+            v = "~/" + os.path.relpath(v, os.path.expanduser("~"))
+            raise ValueError(f"wrong path: {v}")
 
         return v
+
+
+    @validator("name")
+    def validate_non_empty(cls, v: str) -> str:
+        """Ensure name is not empty"""
+        return v_non_empty_field("name", v)
+
+    @validator("description")
+    def validate_description(cls, v: str) -> str:
+        return v_non_empty_field("description", v)
+        
 
     @validator("loader_type")
     def validate_loader_type(cls, v: str) -> str:
@@ -92,4 +115,9 @@ class Index(BaseModel):
         if v == "openai":
             raise ValueError("requires OpenAI API key")
         return v
+
+    def get_embedding_fn(self) -> Embeddings:
+        """Get the embedding function"""
+        embedding = EMBEDDINGS[self.embedding]
+        return embedding.fn(**embedding.kwargs)
 

@@ -28,7 +28,7 @@ from chromadb.db.impl.sqlite import SqliteDB   # type: ignore
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.base import Embeddings as LcEmbeddings
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings
 from pydantic import BaseModel, Field, PrivateAttr
 import logging
 
@@ -71,8 +71,9 @@ class IndexManager(BaseModel):
             collection_name: str) -> ChromaWrapper | None:
         """Return the chroma db instance for the given collection name."""
 
-        if collection_name is None:
-            raise ValueError("Collection name must be specified")
+        if collection_name is None or collection_name == "":
+            # raise ValueError("Collection name must be specified")
+            return None
 
 
         if collection_name not in self._indexes:
@@ -82,7 +83,8 @@ class IndexManager(BaseModel):
             if collection_name in [c.name for c in self.list_collections()]:
                 embedding = self.get_embedding_fn(collection_name)
                 embedding_fn_cls = self.get_embedding_fn_cls(embedding.embedding_fn_cls)
-                if issubclass(embedding_fn_cls, HuggingFaceEmbeddings):
+                if issubclass(embedding_fn_cls, (HuggingFaceEmbeddings,
+                                                 HuggingFaceInstructEmbeddings)):
                     embedding_inst = embedding_fn_cls(model_name=embedding.model_name)
                 # use default embedding's model name (ie OpenAI ..) 
                 else:
@@ -142,8 +144,14 @@ class IndexManager(BaseModel):
 
         #NOTE: the used embedding function used is stored within the collection metadata
         # at the wrapper level.
+
+        if "embedding_function" not in self.chroma_kwargs:
+            self.chroma_kwargs['embedding_function'] = index.get_embedding_fn()
+
+
         new_index = ChromaWrapper(self._client,
                                   collection_name=index.name,
+                                  # embedding_function=index.get_embedding_fn(),
                                   collection_metadata={
                                       'description': index.description,
                                   },
@@ -159,7 +167,8 @@ class IndexManager(BaseModel):
 
         return new_index
 
-    async def remove_index(self, name: str) -> None:
+    #FIX:
+    async def delete_index(self, name: str) -> None:
         """Remove the given index."""
         if name not in self._indexes:
             raise IndexError(f"Index {name} not found")
@@ -183,6 +192,7 @@ class IndexManager(BaseModel):
         Returns:
             (embedding_fn_cls, Optional[model_name])
         """
+        log.debug(f"getting embedding fn for collection {col_name}")
         db = SqliteDB(chromadb.System(self.chroma_settings))
 
             #NOTE: using raw sql

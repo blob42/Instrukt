@@ -21,10 +21,21 @@
 """Chroma wrapper and utils."""
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Union
+from typing import (
+                    cast,
+                    TYPE_CHECKING,
+                    Any,
+                    Dict,
+                    Optional,
+                    Sequence,
+                    Union
+                )
+
 
 import chromadb
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.embeddings import ( HuggingFaceEmbeddings,
+                                    HuggingFaceInstructEmbeddings
+                                )
 from langchain.vectorstores import Chroma as ChromaVectorStore
 
 from ..config import CHROMA_INSTALLED
@@ -35,11 +46,13 @@ from .schema import Collection
 if TYPE_CHECKING:
     import chromadb  # type: ignore
     from langchain.embeddings.base import Embeddings
+
     from ..tools.base import SomeTool
 
 log = logging.getLogger(__name__)
 
-TEmbeddings = Union["Embeddings", "HuggingFaceEmbeddings"]
+TEmbeddings = Union["Embeddings", "HuggingFaceEmbeddings",
+                    "HuggingFaceInstructEmbeddings"]
 
 DEFAULT_EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 
@@ -69,11 +82,11 @@ class ChromaWrapper(ChromaVectorStore):
         #TODO!: should only stored when index is created
         embedding_fn_fqn = f"{type(embedding_function).__module__}.{type(embedding_function).__name__}"
 
-
         collection_metadata["embedding_fn"] = embedding_fn_fqn
 
-        if type(embedding_function) is HuggingFaceEmbeddings:
-            collection_metadata["model_name"] = embedding_function.model_name
+        if type(embedding_function) in (HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings):
+            collection_metadata["model_name"] = cast(
+                "HuggingFaceEmbeddings", embedding_function).model_name
 
         _kwargs = {
             **kwargs,
@@ -133,4 +146,3 @@ class ChromaWrapper(ChromaVectorStore):
                                          description,
                                          return_direct=return_direct,
                                          **kwargs)
-
