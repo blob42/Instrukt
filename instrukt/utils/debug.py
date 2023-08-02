@@ -12,11 +12,13 @@ from ..config import APP_SETTINGS
 if APP_SETTINGS.debug:
 
     def notify(msg: str) -> None:
+        pass
         # call a system command `dunstify` to send`
-        subprocess.call(['dunstify', '-u', 'critical', msg])
-
+        # subprocess.call(['dunstify', '-u', 'critical', msg])
+    import debugpy
+    debugpy.listen(5678)
+    # debugpy.wait_for_client()
 else:
-
     def notify(msg: str) -> None:
         pass
 
