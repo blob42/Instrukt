@@ -122,11 +122,10 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin):
 
     _chat_messages: reactive[list["ChatMessage"]] = reactive([])
 
-    @work
+    @work(exclusive=True)
     async def preload_messages(self, agent: "InstruktAgent") -> None:
         """Load the chat messages from memory."""
         assert self._app.active_agent is not None
-        agent: "InstruktAgent" = self._app.active_agent
         assert agent.memory is not None
 
         # for each message in the agent's memory check if the pydantic model's title
@@ -136,23 +135,28 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin):
             msg_cls = LC_TO_INSTRUKT_MESSAGES[type(msg)]
             self._chat_messages.append(msg_cls(msg.content))
 
-        for _msg in self._chat_messages:
-            await self.push_msg(_msg, scroll=False)
-        self.scroll_end(animate=False)
+        msg_bubbles = [self._make_msg(m) for m in self._chat_messages]
+        await self.mount_all(msg_bubbles)
+        self.scroll_end(animate=True, duration=0.15)
 
     async def push_msg(self,
                        message: "ChatMessage",
                        scroll: bool = True) -> None:
         """Push a message to the chat."""
+        msg = self._make_msg(message)
+
+        await self.mount(msg)
+        if scroll:
+            self.scroll_end(animate=False)
+
+    def _make_msg(self, message: "ChatMessage") -> ChatBubble:
         msg = ChatBubble(message)
         if isinstance(message, HumanChatMessage):
             msg.add_class("human")
         else:
             msg.add_class("agent")
-        # msg_box = MessageBox(message)
-        await self.mount(msg)
-        if scroll:
-            self.scroll_end(animate=False)
+        return msg
+
 
     async def clear(self):
         await self.query("*").remove()
