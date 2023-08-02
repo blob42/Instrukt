@@ -125,6 +125,7 @@ build-backend = "poetry.core.masonry.api"
 enable_assertion_pass_hook=true
 filterwarnings="ignore::DeprecationWarning"
 markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "requires: mark tests as requiring a specific library"
 ]
 
