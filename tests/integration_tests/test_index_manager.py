@@ -6,6 +6,7 @@ import os
 from instrukt.config import CHROMA_INSTALLED, ChromaSettings
 from instrukt.context import Context
 from instrukt.indexes.manager import IndexManager
+from instrukt.indexes.chroma import ChromaWrapper
 from instrukt.indexes.schema import Index
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
@@ -26,6 +27,22 @@ def index_manager(ctx, tmp_path):
     chroma_settings = ChromaSettings(persist_directory=str(tmp_path))
     return IndexManager(chroma_settings=chroma_settings,
                         chroma_kwargs=dict(embedding_function=None))
+
+
+@pytest.fixture(name="test_idx")
+async def test_index(ctx, index_manager, tmp_path, idx_params):
+    # Write small text into a temporary file
+    doc_path = tmp_path / "test.txt"
+    doc_path.write_text("This is an instrukt test document")
+    newindex=Index(path=str(doc_path), **idx_params)
+    idx = await index_manager.create(ctx, newindex)
+    doc1, score1 = idx.similarity_search_with_score("test file", k=1)[0]
+    idx.similarity_search
+    doc = idx.similarity_search("test")[0]
+    assert doc.page_content.find("instrukt test document") != -1
+    return idx
+
+
 
 class TestIndexManager:
 
@@ -69,7 +86,7 @@ class TestIndexManager:
     @pytest.mark.asyncio
     async def test_create_non_existing_file(self, index_manager, ctx, idx_params):
         path = Path(__file__).parent / "examples" / "non_existing.txt"
-        
+
         # should raise some error
         with pytest.raises(Exception):
             await index_manager.create(ctx, Index(path=str(path),
@@ -88,5 +105,10 @@ class TestIndexManager:
 
 
     @pytest.mark.asyncio
-    async def test_delete_index(self, index_manager, ctx):
-        raise NotImplementedError
+    async def test_delete_index(self, index_manager, ctx, test_idx):
+        await test_idx
+        await index_manager.delete_index("test_index")
+        print(index_manager.list_collections())
+        assert "test_index" not in [c.name for c in index_manager.list_collections()]
+        
+
