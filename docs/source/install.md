@@ -17,10 +17,10 @@ If the installation fails with the package `chromadb` it means
 your pip version is old.
 
 - Install poetry with `pip install poetry`
-- Install the dependencies with:
+- To do a comprehensive install with all features use:
 
 ```sh
-    poetry install -E tools -E loaders
+    poetry install -E tools -E local -E openai
 ```
 
 ## Extra Dependencies
