@@ -91,7 +91,7 @@ class AgentManager:
             #FIXME: should be a differnt message for switching agents
             self.ctx.post_message(AgentLoaded(agent=self.active_agent))
         else:
-            self.ctx.app.run_worker(lambda: self._load_agent(agent_mod))
+            self.ctx.app.run_worker(lambda: self._load_agent(agent_mod), thread=True)
 
 
     async def switch_agent(self, agent_name: str) -> None:
