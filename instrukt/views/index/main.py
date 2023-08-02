@@ -46,7 +46,7 @@ from textual.widgets import (Header,
 from typing import Optional, Sequence
 from .create import CreateIndex
 from ...tuilib.forms import FormGroup, FormControl, FormState
-from ...indexes.schema import Collection, Index
+from ...indexes.schema import Collection, EmbeddingDetails
 from ...indexes.chroma import ChromaWrapper
 from ...tuilib.widgets.listview import ListView
 from ...errors import IndexError
@@ -54,7 +54,6 @@ from ...types import InstruktDomNodeMixin
 
 
 if t.TYPE_CHECKING:
-    from ...indexes.schema import EmbeddingDetails
     from ...indexes.manager import IndexManager
     from ...app import InstruktApp
     from ...tuilib.widgets.header import HeaderTitle
@@ -69,22 +68,21 @@ class IndexCollectionItem(ListItem):
         super().__init__(*args, **kwargs)
         self.collection = collection
 
-class IndexList(VerticalScroll):
+class IndexList(VerticalScroll, InstruktDomNodeMixin):
 
-    collections: reactive[Sequence[Collection]] = reactive([],
-                                                           always_update=True)
+    collections: reactive[Sequence[Collection]] = reactive([], always_update=True)
 
     def fetch_collections(self) -> None:
         """Updates the collections list from the index manager.
 
         Call this method to refresh the list of collections.
         """
-        index_manager = t.cast('InstruktApp', self.app).context.index_manager
+        index_manager =  self._app.context.index_manager
         self.collections = index_manager.list_collections()
 
     def watch_collections(self) -> None:
         try:
-            lv = t.cast(ListView, self.query_one(ListView))
+            lv = self.query_one(ListView)
         except NoMatches:
             return
 
@@ -114,10 +112,16 @@ class IndexList(VerticalScroll):
                 yield IndexCollectionItem(col, Label(col.name), name=col.name)
             yield ListItem(Label("New"), id="new")
 
-    def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
+    @on(ListView.Highlighted)
+    def collection_highlighted(self, event: ListView.Highlighted) -> None:
+
         if isinstance(event.item, IndexCollectionItem):
             index_details = self.screen.query_one(IndexDetails)
             index_details.collection = event.item.collection
+        else:
+            # show the create index form
+            self.screen.query_one(CreateIndex).display = True
+            self.screen.query_one(IndexInfo).display = False
 
 
 
@@ -126,8 +130,13 @@ class IndexDetails(Static, InstruktDomNodeMixin):
     collection: reactive[Collection] = reactive(Collection("","",{}))
     collection_type = reactive("")
     count = reactive(-1)
+    test: reactive[t.Awaitable[int] | None] = reactive(None)
 
     def render(self) -> RenderResult:
+        # if no collection is selected render nothing
+        if len(self.collection.name) == 0:
+            return ""
+
         embedding = self.embedding_fn
         return f"""
     Collection Name: {self.collection.name}
@@ -138,13 +147,14 @@ class IndexDetails(Static, InstruktDomNodeMixin):
     Function : {embedding.embedding_fn_cls} 
     Model: {embedding.model_name} 
         """
+
     @property
     def idx_manager(self) -> "IndexManager":
         return self._app.context.index_manager
 
     @property
-    def embedding_fn(self) -> "EmbeddingDetails":
-        return self.idx_manager.get_embedding_fn(self.collection.name)
+    def embedding_fn(self) -> EmbeddingDetails:
+            return self.idx_manager.get_embedding_fn(self.collection.name)
 
 
     async def get_index(self) -> Optional[ChromaWrapper]:
@@ -154,7 +164,8 @@ class IndexDetails(Static, InstruktDomNodeMixin):
     async def watch_collection(self, collection: Collection) -> None:
         self.count = -1
         idx = await self.get_index()
-        assert idx is not None
+        if idx is None:
+            return
         self.count = idx.count()
         if isinstance(idx, ChromaWrapper):
             self.collection_type = "Chroma DB"
@@ -179,7 +190,7 @@ class IndexInfo(Container, InstruktDomNodeMixin):
     @on(Button.Pressed, "#delete")
     async def action_delete_collection(self, event: Button.Pressed) -> None:
         idx_name = self.query_one(IndexDetails).collection.name
-        await self._app.context.index_manager.remove_index(idx_name)
+        await self._app.context.index_manager.delete_index(idx_name)
         self.post_message(self.Deleted())
 
 
@@ -247,17 +258,15 @@ class IndexScreen(Screen[t.Any]):
             self.call_later(index_list.fetch_collections)
 
 
-
-
     @on(ListView.Selected)
     def collection_selected(self, event: ListView.Selected) -> None:
         if event.item.id != "new":
             self.query_one(CreateIndex).display = False
             self.query_one(IndexInfo).display = True
         else:
+            # show the create index form
             self.query_one(CreateIndex).display = True
             self.query_one(IndexInfo).display = False
-            self.dismiss
 
     # def action_quit_index(self):
     #     self.dismiss()

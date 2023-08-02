@@ -19,7 +19,7 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 from enum import Enum
-from typing import Any, Sequence
+from typing import Any, Sequence, TypeVar, Generic
 
 from pydantic.error_wrappers import ValidationError
 from rich.text import Text
@@ -42,11 +42,15 @@ class FormState(Enum):
     CREATED = 4
 
 
-class FormValidity:
+F = TypeVar('F')
+
+class FormValidity(Generic[F]):
 
     def __init__(self,
+                 form: F,
                  value: bool = True,
                  error: ValidationError | None = None) -> None:
+        self.form = form
         self.value = bool(value)
         self.error = error
 
@@ -62,16 +66,16 @@ class FormValidity:
         return self.value == bool(other)
 
 
-class InvalidForm(FormValidity):
+class InvalidForm(FormValidity[F]):
 
-    def __init__(self, error: ValidationError) -> None:
-        super().__init__(False, error)
+    def __init__(self, form: F, error: ValidationError) -> None:
+        super().__init__(form, False, error)
 
 
-class ValidForm(FormValidity):
+class ValidForm(FormValidity[F]):
 
-    def __init__(self) -> None:
-        super().__init__(True)
+    def __init__(self, form: F) -> None:
+        super().__init__(form, True)
 
 
 class FormGroup(Container):
@@ -122,7 +126,7 @@ class FormGroup(Container):
     def watch_state(self, state: FormState) -> None:
         if state == FormState.INVALID:
             self.add_class("error")
-            self.border_subtitle = "invalid form"
+            self.border_subtitle = "invalid"
         else:
             self.remove_class("error")
             self.border_subtitle = ""

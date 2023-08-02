@@ -24,7 +24,7 @@ from pathlib import Path
 
 from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
 from pydantic import ValidationError
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll, Container
 from textual.css.query import NoMatches
@@ -32,6 +32,8 @@ from textual.message import Message
 from textual.reactive import reactive, var
 from textual.widgets import Button, Input, Label, LoadingIndicator, Select
 from textual import events
+from textual.worker import Worker, get_current_worker, WorkerState
+from textual.timer import Timer
 
 from ...indexes.embeddings import EMBEDDINGS
 from ...indexes.loaders import LOADER_MAPPINGS
@@ -49,6 +51,23 @@ if t.TYPE_CHECKING:
 
 DEFAULT_NEW_INDEX_MSG = "Make sure the data is correct before creating the collection"
 CREATING_INDEX_MSG = "Creating index ..."
+
+#HACK: make debouncer using asyncio timer
+class Debouncer:
+    def __init__(self, target, wait: float) -> None:
+        self.target = target
+        self.wait = wait
+        self.timer: Timer | None = None
+
+    def call(self, fn, *args, **kwargs):
+        def callback():
+            # self.target.log("debounce")
+            fn(*args, **kwargs)
+        if self.timer is not None:
+            self.timer.stop()
+        else:
+            self.timer = Timer(self.target, self.wait, callback=callback, repeat=0)
+        self.timer._start()
 
 
 class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
@@ -82,7 +101,11 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     embedding: reactive[str] = reactive("default")
     state = reactive(FormState.INITIAL, always_update=True)
     _pristine = var(True)
- 
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._debouncer = Debouncer(self.app, 0.02)
+
     class Status(Message):
         def __init__(self, state: FormState) -> None:
             super().__init__()
@@ -90,18 +113,23 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
 
 
     def on_mount(self):
+        self.app.set_timer
         create_btn = self.query_one("Button#create")
         create_btn.variant = "success"   # type: ignore
 
+    
+    
     def update_state(self) -> None:
         """Compute final form state from sub FormGroup states."""
+        # self.log.debug("updating state")
         forms = self.query(FormGroup)
         if all(form.state == FormState.VALID for form in forms):
-            self.log.debug("state valid")
+            # self.log.debug("state valid")
             self.state = FormState.VALID
         else:
-            self.log.debug("state invalid")
+            # self.log.debug("state invalid")
             self.state = FormState.INVALID
+
 
     # generator for loader type tuples for the Select widget
     def get_loader_types(self):
@@ -145,6 +173,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
                 yield FormControl(
                     Input(classes="form-input", placeholder="collection name", name="name"),
                     label="Name",
+                    id="name",
                     required=True,
                 )
                 yield FormControl(
@@ -154,6 +183,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
                         name="description",
                     ),
                     label="Description",
+                    required=True,
                     id="description",
                 )
                 yield FormControl(
@@ -210,7 +240,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         return next(filter(lambda a: isinstance(a, FormGroup), elm.ancestors), None)
 
     def validate_parent_form(self, elm: "DOMNode"):
-        form_group = self.parent_form_group(elm)
+        form_group = t.cast(FormGroup, self.parent_form_group(elm))
         if form_group is not None:
             self.validate_form(form_group)
 
@@ -220,17 +250,15 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         input = event.control
 
         if input.name is not None:
-            self.log.debug(f"input changed: {input.name} -> {input.value}")
+            # self.log.debug(f"input changed: {input.name} -> {input.value}")
             setattr(self.new_index, input.name, input.value.strip())
 
-        # when the form is pristine we done show form errors related to empty input 
+        # when the form is pristine we done show form errors related to empty input
         if input.name == "path":
             self._pristine = False
             self.path = input.value
             if len(input.value) == 0:
                 self.validate_parent_form(input)
-
-
 
         if input.name == "description":
             t.cast(dict[str, t.Any], self.new_index.metadata)[
@@ -241,8 +269,6 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     @on(Input.Submitted)
     def input_submitted(self, e: Input.Submitted) -> None:
         e.stop()
-        # WARN: this is redundant it already happens in input changed
-        # here we should just call the form validation logic
         input = e.input
         if len(input.value) > 0 and input.name is not None:
             setattr(self.new_index, input.name, input.value.strip())
@@ -250,6 +276,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         if input.name == "path":
             self.path = input.value
             self.validate_parent_form(input)
+
         self.update_state()
 
     @on(Select.Changed)
@@ -265,7 +292,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     @on(FormGroup.Blur)
     def form_group_blur(self, event: FormGroup.Blur) -> None:
         self.validate_form(event.form)
-        self.update_state()
+
 
     def clear_formgroup_state(self, form: FormGroup):
         form.state = FormState.VALID
@@ -313,7 +340,7 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
 
     def validate_form(self, form: FormGroup) -> None:
         """Validates the new index form"""
-        self.log.debug("validating form")
+        # self.log.debug("validating form")
         self.log.debug(self.new_index)
         self.clear_formgroup_state(form)
         form_controls = form.query(FormControl)
@@ -337,47 +364,12 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
                 return
 
 
-        valid_form = self.__validate_new_index()
-
-        if not valid_form:
-            self.log.debug("form is not valid")
-            # form.state = FormState.INVALID
-            # add error class to form group
-            # form.add_class("error")
-            # form.border_subtitle = "invalid form"
-
-            # validate all form controls under this FormGroup
-            for control in form_controls:
-                assert isinstance(control, FormControl)
-                try:
-                    if control.id is None:
-                        raise AttributeError
-
-                    attr = getattr(self, control.id)
-
-                    if attr is None or (control.id != "path" and attr == ""):
-                        continue
-
-                    # check if attr is reactive
-                    if control.id not in self._reactives.keys():
-                        raise AttributeError
-
-                    # try to get validator for attr from Index
-                    # attr_validators: t.Any = Index.__validators__[control.id]
-                    # for v in attr_validators:
-                    #     v.func(Index, attr)
-
-                    # if control.id is in the `loc` key of the list valid.error.errrors
-                    # set error class on control
-                    self.handle_form_errors(control, form, valid_form)
-                except (AttributeError, KeyError):
-                    continue
-
+        self.__validate_new_index(form)
 
 
     # TODO!: loading progress indicator
     def watch_state(self, state: FormState) -> None:
-        self.log.warning(f"Full form state is {state}")
+        # self.log.warning(f"Full form state is {state}")
         self.set_classes(state.name.lower())
         if state == FormState.VALID:
             create_btn = self.screen.query_one("Button#create")
@@ -413,16 +405,61 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         for input in inputs:
             input.value = ""
 
-    def __validate_new_index(self) -> "FormValidity":
+    @work(exclusive=True, thread=True, name="validate_new_index")
+    def __validate_new_index(self, form: FormGroup ) -> "FormValidity":
         """Validates the new_index form data"""
         try:
             valid_index = Index(**self.new_index.dict())
             self.new_index = valid_index
         except ValidationError as e:
             self.log.error(f"Invalid form data: {e}")
-            return InvalidForm(e)
+            return InvalidForm(form, e)
 
-        return ValidForm()
+        return ValidForm(form)
+
+    @on(Worker.StateChanged)
+    def on_new_index_validation(self, event: Worker.StateChanged) -> None:
+        if event.worker.name == "validate_new_index" and \
+                event.state == WorkerState.SUCCESS:
+
+            assert event.worker.result is not None, \
+                    "error while validating new index, result expected"
+
+            valid: FormValidity[FormGroup] = event.worker.result
+            if not valid:
+                # self.log.debug("form is not valid")
+
+                # validate all form controls under this FormGroup
+                form_controls = valid.form.query(FormControl)
+                for control in form_controls:
+                    assert isinstance(control, FormControl)
+                    try:
+                        if control.id is None:
+                            raise AttributeError
+
+                        # attr = getattr(self, control.id)
+                        #
+                        # if attr is None:
+                        #     continue
+
+                        # # check if attr is reactive
+                        # if control.id not in self._reactives.keys():
+                        #     raise AttributeError
+
+                        # try to get validator for attr from Index
+                        # attr_validators: t.Any = Index.__validators__[control.id]
+                        # for v in attr_validators:
+                        #     v.func(Index, attr)
+
+                        # if control.id is in the `loc` key of the list valid.error.errrors
+                        # set error class on control
+                        self.handle_form_errors(control, valid.form, valid)
+                    except (AttributeError, KeyError):
+                        continue
+            self._debouncer.call(self.update_state)
+
+
+
 
     async def create_index(self) -> None:
         new_index = Index(**self.new_index.dict())
