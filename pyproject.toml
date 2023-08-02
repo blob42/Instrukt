@@ -36,7 +36,7 @@ instrukt = 'instrukt.app:run'
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-textual = "^0.30.0"
+textual = "^0.31.0"
 #textual = { path = "/home/spike/dev/instrukt-project/reference_libs/textual", develop=true}
 langchain = "^0.0.240"
 pyxdg = "^0.28"
@@ -54,21 +54,29 @@ rich = "^13.4.1" #NOTE: frozen until fix https://github.com/Textualize/rich/issu
 unstructured = { version = "^0.6.11", extras = ["local-inference"], optional=true}
 pyperclip = "^1.8.2"
 wikipedia = { version = "^1.4.0", optional = true }
-openai = {version = "^0.27.8"}
+openai = {version = "^0.27.8", optional = true}
 tiktoken = {version = "^0.4.0"}
 sentence-transformers = {version = "^2.2.2", optional = true}
+instructorembedding = {version = "^1.0.1", optional = true}
 
 [tool.poetry.extras]
 tools = ["wikipedia"]
 #loaders = ["unstructured"]
 #vectorstores = ["chromadb"]
-openai = ["openai", "tiktoken"]
-local = ["sentence-transformers"]
+openai = ["openai"]
+local = ["sentence-transformers", "instructorembedding"]
+
+all = [
+    "openai",
+    "sentence-transformers",
+    "instructorembedding"
+]
 
 [tool.poetry.group.dev.dependencies]
 textual-dev = "^1.0.1"
 jupyter = "^1.0.0"
 mypy = "^1.0.1"
+debugpy = "^1.6.7"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.3.1"
@@ -126,6 +134,7 @@ markers = [
 # ]
 
 follow_imports = "silent"
+ignore_missing_imports = "True"
 warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
