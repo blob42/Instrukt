@@ -70,7 +70,7 @@ class Debouncer:
         self.timer._start()
 
 
-class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
+class CreateIndex(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
     """Index creation form.
 
     Creating a form using form control IDs as lookup keys for the
@@ -152,7 +152,8 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
     def compose(self) -> ComposeResult:
         # embeddings form group
         # TODO!: index embeddings form
-        with VerticalScroll(classes="--container"):
+        with VerticalScroll(classes="--container")as vs:
+            vs.can_focus = False
             with FormGroup(border_title="embeddings",
                             name="embeddings",
                            state=FormState.VALID):
@@ -345,6 +346,8 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         self.clear_formgroup_state(form)
         form_controls = form.query(FormControl)
 
+        # if all formcontrols are empty return
+
         if len(form_controls) == 0:
             return
 
@@ -362,6 +365,13 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
         if self._pristine:
             if any([len(i.value) == 0 for i in r_inputs]):
                 return
+
+        def is_empty(i):
+            return len(i.value) == 0
+
+        if all(map(lambda i: len(i.value) == 0,
+                   chain(*[fc.query(Input) for fc in form_controls]))):
+            return
 
 
         self.__validate_new_index(form)
@@ -459,16 +469,17 @@ class CreateIndex(VerticalScroll, InstruktDomNodeMixin):
             self._debouncer.call(self.update_state)
 
 
-
-
     async def create_index(self) -> None:
         new_index = Index(**self.new_index.dict())
         self.log.info(f"Creating index\n{new_index}")
         self.state = FormState.PROCESSING
         idx_mg = self._app.context.index_manager
+        _notif = self.notify("creating index ...", timeout=3600)
         await idx_mg.create(self._app.context, new_index)
         self.post_message(self.Status(FormState.CREATED))
-        self.state = FormState.CREATED
+        self.app.unnotify(_notif)
+        self.state = FormState.INITIAL
+
 
     @on(Button.Pressed, "#browse-path")
     async def browse_path(self, event: Button.Pressed) -> None:

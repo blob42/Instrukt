@@ -28,11 +28,14 @@ from chromadb.db.impl.sqlite import SqliteDB   # type: ignore
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.base import Embeddings as LcEmbeddings
-from langchain.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings
+from langchain.embeddings import ( OpenAIEmbeddings,
+                                  HuggingFaceEmbeddings,
+                                  HuggingFaceInstructEmbeddings
+                                  )
 from pydantic import BaseModel, Field, PrivateAttr
 import logging
 
-from ..config import ChromaSettings
+from ..config import ChromaSettings, APP_SETTINGS
 from ..context import Context
 from ..indexes.chroma import ChromaWrapper
 from ..indexes.schema import Collection, Index, EmbeddingDetails
@@ -87,8 +90,19 @@ class IndexManager(BaseModel):
                                                  HuggingFaceInstructEmbeddings)):
                     embedding_inst = embedding_fn_cls(model_name=embedding.model_name)
                 # use default embedding's model name (ie OpenAI ..) 
+
+                # handle openai
+                elif issubclass(embedding_fn_cls, OpenAIEmbeddings):
+                    #ensure openai api key is available
+                    if APP_SETTINGS.openai_api_key is None or len(APP_SETTINGS.openai_api_key) == 0:
+                        return None
+                    else:
+                        embedding_inst = embedding_fn_cls()  # type: ignore
+
                 else:
-                    embedding_inst = embedding_fn_cls()
+                    raise ValueError("Unknown embedding function used with locally "
+                                     f"stored index {collection_name}.")
+
 
                 self.chroma_kwargs['embedding_function'] = embedding_inst
 
@@ -167,7 +181,6 @@ class IndexManager(BaseModel):
 
         return new_index
 
-    #FIX:
     async def delete_index(self, name: str) -> None:
         """Remove the given index."""
         if name not in self._indexes:
@@ -211,8 +224,16 @@ class IndexManager(BaseModel):
         try:
             metadata = cols[0]["metadata"]
             embedding_fn = metadata.get("embedding_fn")
+
+            extra_info=  {}
+            # handle openai missing api key
+            if embedding_fn.find("OpenAIEmbeddings") != -1:
+                if APP_SETTINGS.openai_api_key is None or \
+                        len(APP_SETTINGS.openai_api_key) == 0:
+                    extra_info = dict(error="[b yellow]missing openai api key ![/]")
+
             model_name = metadata.get("model_name")
-            return EmbeddingDetails(embedding_fn, model_name)
+            return EmbeddingDetails(embedding_fn, model_name, extra_info)
         except IndexError:
             raise IndexError(f"No metadata found for collection {col_name}")
 

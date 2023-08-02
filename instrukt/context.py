@@ -48,11 +48,12 @@ class Context():
         # if openai key is not available use default embedding function
         chroma_kwargs = {}
 
+        # if user exported openai api key, use openai embeddings by default
         if self.config_manager.C.openai_api_key is not None and len(
                 self.config_manager.C.openai_api_key) != 0:
             try:
                 from langchain.embeddings.openai import OpenAIEmbeddings
-                chroma_kwargs['embedding_function'] = OpenAIEmbeddings()   # type: ignore
+                chroma_kwargs['embedding_function'] = OpenAIEmbeddings() # type: ignore
             except ImportError:
                 self.error(
                     "OpenAIEmbeddings not available, using default embedding function"

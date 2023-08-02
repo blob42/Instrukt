@@ -100,7 +100,12 @@ class IndexList(VerticalScroll, InstruktDomNodeMixin):
             if col.name not in [item.name for item in col_items]:
                 col_item = IndexCollectionItem(col, Label(col.name), name=col.name)
                 lv.mount(col_item, before=-1)
-                lv.index = len(lv) - 1
+
+        if len(lv) > 1:
+            # unhighlight the New button
+            lv.query_one("ListItem#new").highlighted = False   # type: ignore
+            lv.index = len(lv) - 2
+            lv.action_select_cursor()
 
 
 
@@ -130,7 +135,6 @@ class IndexDetails(Static, InstruktDomNodeMixin):
     collection: reactive[Collection] = reactive(Collection("","",{}))
     collection_type = reactive("")
     count = reactive(-1)
-    test: reactive[t.Awaitable[int] | None] = reactive(None)
 
     def render(self) -> RenderResult:
         # if no collection is selected render nothing
@@ -140,10 +144,10 @@ class IndexDetails(Static, InstruktDomNodeMixin):
         embedding = self.embedding_fn
         return f"""
     Collection Name: {self.collection.name}
-    Document Count: [r]{'?' if self.count < 0 else self.count}[/]
-    Type: {self.collection_type}
+    Document Count: {"[dim]loading ..." if self.count < 0 else "[r]" + str(self.count)}[/]
+    Type: {self.collection_type or "[dim]loading ...[/]"}
 
-    [b]Embeddings:[/b]
+    [b]Embeddings:[/b]  {embedding.extra.get("error", "")}
     Function : {embedding.embedding_fn_cls} 
     Model: {embedding.model_name} 
         """
@@ -155,6 +159,11 @@ class IndexDetails(Static, InstruktDomNodeMixin):
     @property
     def embedding_fn(self) -> EmbeddingDetails:
             return self.idx_manager.get_embedding_fn(self.collection.name)
+
+    def clear(self) -> None:
+        self.collection = Collection("", "", {})
+        self.collection_type = ""
+        self.count = -1
 
 
     async def get_index(self) -> Optional[ChromaWrapper]:
@@ -247,15 +256,27 @@ class IndexScreen(Screen[t.Any]):
 
     @on(IndexInfo.Deleted)
     @on(CreateIndex.Status)
-    def index_deleted(self, e: Message) -> None:
+    def msg_handler(self, e: Message) -> None:
         e.stop()
+
         def is_status_created(m: Message) -> bool:
+            """Handle index created"""
             return isinstance(
                 m, CreateIndex.Status) and m.state == FormState.CREATED
 
         if isinstance(e, IndexInfo.Deleted) or is_status_created(e):
             index_list = self.query_one(IndexList)
             self.call_later(index_list.fetch_collections)
+            details = self.query_one(IndexDetails)
+            details.clear()
+
+        # if is_status_created(e):
+        #     # select last entry in list
+        #     lv = self.query_one(ListView)
+        #     lv.index = len(lv) - 1
+        #     lv.action_select_cursor()
+
+
 
 
     @on(ListView.Selected)

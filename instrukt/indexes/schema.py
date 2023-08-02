@@ -41,6 +41,8 @@ class EmbeddingDetails(NamedTuple):
     """Details about an embedding"""
     embedding_fn_cls: str
     model_name: str | None = None
+    extra: dict[str, t.Any] = {}
+    """extra information about this embedding"""
 
 
 def v_non_empty_field(fname: str, v: t.Sequence[t.Any]) -> Any:
