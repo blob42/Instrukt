@@ -318,14 +318,18 @@ class InstruktApp(App[None]):
 
         stdout_orig = sys.stdout
         stderr_orig = sys.stderr
+
         driver = t.cast('LinuxDriver', self._driver)
+
         sys.stdout = sys.stderr = driver._file
 
-        self._embed_ipython()
+        with self.batch_update():
+            self._embed_ipython()
 
         sys.stdout = stdout_orig
         sys.stderr = stderr_orig
         driver.start_application_mode()
+
 
     def action_quit(self):
         if self.active_agent is not None:
