@@ -21,7 +21,6 @@
 """Instrukt TUI App."""
 
 import asyncio as _asyncio
-import logging
 import os
 import platform
 import sys
@@ -35,11 +34,11 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.css.query import NoMatches
-from textual.logging import TextualHandler
 from textual.message import Message
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
+from ._logging import setup_logging
 from .agent import AgentEvents
 from .agent.base import InstruktAgent
 from .agent.manager import AgentManager
@@ -60,10 +59,6 @@ from .views.man import ManualScreen
 _loop = _asyncio.get_event_loop()
 _nest_asyncio.apply(_loop)
 
-logging.basicConfig(
-    level="DEBUG",
-    handlers=[TextualHandler()],
-)
 
 if t.TYPE_CHECKING:
     from textual.drivers.linux_driver import LinuxDriver
@@ -72,6 +67,8 @@ if t.TYPE_CHECKING:
 
 PLATFORM = platform.system()
 WINDOWS = PLATFORM == "Windows"
+
+setup_logging()
 
 class SettingsScreen(Screen[None]):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
