@@ -51,6 +51,7 @@ EMBEDDINGS: dict[str, Embedding] = {
                   model_name="hkunlp/instructor-base", 
                   embed_instruction='Represent the document for retrieval: ',
                   query_instruction='Represent the question for retrieving supporting documents: ',
+                  encode_kwargs = dict(show_progress_bar=True)
                   )),
               }
 
