@@ -115,7 +115,7 @@ class Index(BaseModel):
                     f" Should be one of {list(EMBEDDINGS.keys())}\n"
                     )
         if v == "openai":
-            raise ValueError("requires OpenAI API key")
+            raise ValueError("OpenAI API key not set")
         return v
 
     def get_embedding_fn(self) -> Embeddings:
