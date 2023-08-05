@@ -20,6 +20,7 @@
 ##
 import typing as t
 from typing import TYPE_CHECKING
+from contextvars import ContextVar
 
 if TYPE_CHECKING:
 
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
     from .messages.log import MsgType
     from .types import AnyMessage
 
+context: ContextVar['Context'] = ContextVar('context')
 
 #WARN: make sure context is concurrency/thread safe
 class Context():
@@ -46,18 +48,22 @@ class Context():
         self.config_manager = ConfigManager(self)
 
         # if openai key is not available use default embedding function
-        chroma_kwargs = {}
+        chroma_kwargs: dict [str, t.Any] = {}
 
         # if user exported openai api key, use openai embeddings by default
-        if self.config_manager.C.openai_api_key is not None and len(
-                self.config_manager.C.openai_api_key) != 0:
-            try:
-                from langchain.embeddings.openai import OpenAIEmbeddings
-                chroma_kwargs['embedding_function'] = OpenAIEmbeddings() # type: ignore
-            except ImportError:
-                self.error(
-                    "OpenAIEmbeddings not available, using default embedding function"
-                )
+
+        #REVIEW: the user always chooses the default embedding function, 
+        # automatic assignment should be used as absolute last resort
+        #
+        # if self.config_manager.C.openai_api_key is not None and len(
+        #         self.config_manager.C.openai_api_key) != 0:
+        #     try:
+        #         from langchain.embeddings.openai import OpenAIEmbeddings
+        #         chroma_kwargs['embedding_function'] = OpenAIEmbeddings() # type: ignore
+        #     except ImportError:
+        #         self.error(
+        #             "OpenAIEmbeddings not available, using default embedding function"
+        #         )
         self.index_manager = IndexManager(
             chroma_settings=self.config_manager.config.chroma,
             ctx=self,
