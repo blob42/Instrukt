@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Capture and redirect logging/output to Instrukt console widget.
 - Generate sphinx doc for online and offline reading from within the app. 
 - wip: offline doc reader: jump to anchors (https://github.com/Textualize/textual/pull/2941)
 - Help screen for common keybindings with `?`
@@ -16,19 +17,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### index management: 
 - added a local file system path selection UI
-- ChromaDB: save used embedding function details and restore them when loading the collection.
+- chromadb: save/restore used embedding function. You can have multiple indexes using
+  different embedding functions.
+- Choose to use local embeddings when creating index.
+- TODO: detect local embeddings when loading an index.
 
 ### Changed
 
-- upgrade `textual` to `v0.30.0`
-- upgrade `langchain` to `v0.0.235`
-- upgrade `chromadb` to `v0.4.0`
+- Improved form validation
+- Upgraded dependencies
 - ChromaDB: no more manual call to `persist`
 
 ### Fixed
 
+- improved iPython dev console: avoid term repaints until end of session.
+- Fast preloading of messages when switching agent tab. 
 - Chroma: share a single client for all indexes
 - Explicit dependency on `sentence-transofmers` library for local embeddings.
+- Many fixes related to dependency updates
 
 ## [0.5.0] - 2023-07-18
 
