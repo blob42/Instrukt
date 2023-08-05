@@ -20,6 +20,7 @@
 ##
 """ActionBar for quick actions."""
 
+import typing as t
 from collections import defaultdict
 
 from textual import on
@@ -27,6 +28,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Button
 
+from ...binding import ActionBinding, is_binding_action
 
 
 class ActionBar(Horizontal):
@@ -39,21 +41,25 @@ class ActionBar(Horizontal):
         self._button_actions: dict[str, str] = dict()
         self._buttons: list[Button] = list()
 
+
+#TODO: handle typle bindings
+
     def _build_bar(self) -> ComposeResult:
         """Generate a button for each action defined in parent screen."""
 
         # get all bindings for current screen
-        bindings = [
-            binding
-            for (ns, binding) in self.app.namespace_bindings.values()
-            if ns == self.screen and binding.show
-        ]
-
+        # bindings = [
+        #     binding for (ns, binding) in self.app.namespace_bindings.values()
+        #     if ns == self.screen and binding.show
+        # ]
+        bindings: list[ActionBinding] = []
+        for b in self.screen.BINDINGS:
+            if is_binding_action(b):
+                bindings.append(t.cast(ActionBinding, b))
 
         action_to_bindings = defaultdict(list)
         for binding in bindings:
             action_to_bindings[binding.action].append(binding)
-
 
         for _, bindings in action_to_bindings.items():
             binding = bindings[0]
@@ -64,8 +70,12 @@ class ActionBar(Horizontal):
             else:
                 key_display = binding.key_display
 
+            btn_id = binding.btn_id
+            if btn_id is None:
+                btn_id = binding.description.replace(" ", "-")
+
             key_text = f"\[{key_display}]{binding.description}"
-            btn = Button(key_text, id=binding.description.replace(" ", "-"))
+            btn = Button(key_text, id=btn_id, variant=binding.variant)
             assert btn.id is not None, "Button id is None"
             self._button_actions[btn.id] = binding.action
             self._buttons.append(btn)
