@@ -6794,4 +6794,4 @@ tools = ["wikipedia"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "7041d463d51717a33b3f004f0b369fce00f00a6db611d9e969f4a78066faae9d"
+content-hash = "024f200387a6af06caa00ce777c113e237e4beab509ea4b1d3931d9ce086f9fd"
