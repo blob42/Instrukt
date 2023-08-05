@@ -26,7 +26,7 @@ from textual import on
 from textual.reactive import var
 from textual.screen import ModalScreen
 from textual.app import ComposeResult
-from textual.widgets import DirectoryTree, Tree, Label, Button, Footer
+from textual.widgets import Tree, Label, Button, Footer
 from textual.containers import Container, Horizontal
 from textual import events
 from textual.css.query import NoMatches
@@ -35,6 +35,7 @@ from pathlib import Path
 
 from ...types import InstruktDomNodeMixin
 from ..widgets.actionbar import ActionBar, ActionBinding
+from ..widgets.dirtree import DirectoryTree, not_hidden
 
 
 class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
@@ -59,7 +60,7 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.dirtree = DirectoryTree(Path.home())
+        self.dirtree = DirectoryTree(Path.home(), not_hidden)
         self.dirtree.border_title = "Select any file or directory to index:"
 
     def on_mount(self) -> None:
