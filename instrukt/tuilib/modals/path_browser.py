@@ -34,7 +34,7 @@ from textual.binding import Binding, BindingType
 from pathlib import Path
 
 from ...types import InstruktDomNodeMixin
-from ..widgets import ActionBar
+from ..widgets.actionbar import ActionBar, ActionBinding
 
 
 class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
@@ -43,13 +43,13 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
     #NOTE: custom tree bindings 
     TREE_BINDINGS = [
-                ("enter", "select", "select"),
-                ("space", "toggle_node", "toggle node"),
+                ActionBinding("enter", "select", "select"),
+                ActionBinding("space", "toggle_node", "toggle node"),
             ]
 
     BINDINGS = [
             *TREE_BINDINGS,
-            ("escape", "dismiss(None)", "dismiss"),
+            ActionBinding("escape", "cancel", "dismiss"),
             ]
 
 
@@ -64,7 +64,9 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
     def on_mount(self) -> None:
         for binding in self.TREE_BINDINGS:
-            self.dirtree._bindings.bind(*binding)
+            self.dirtree._bindings.bind(binding.key,
+                                        binding.action,
+                                        binding.description)
 
 
     def compose(self) -> ComposeResult:
@@ -82,6 +84,9 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
     def action_select(self) -> None:
         self.dismiss(self.path)
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)
 
     def watch_path(self, path: Path) -> None:
         try:

@@ -23,6 +23,7 @@ from typing import Any, Sequence, TypeVar, Generic
 
 from pydantic.error_wrappers import ValidationError
 from rich.text import Text
+from rich.columns import Columns
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.message import Message
@@ -82,7 +83,7 @@ class FormGroup(Container):
 
     DEFAULT_CSS = """
     FormGroup {
-        border: wide $foreground 40%;
+        border-top: wide $foreground 20%;
         border-title-color: $text;
         padding: 0 2;
         height: auto;
@@ -92,6 +93,11 @@ class FormGroup(Container):
     FormGroup Input {
         width: auto;
         min-width: 30%;
+        margin-top: 0;
+    }
+
+    FormGroup.error {
+        border-top: wide $error;
     }
     """
 
@@ -142,17 +148,19 @@ class FormControl(Container):
 
     FormControl Label {
         margin: 0 1;
+        color: $text-muted;
     }
 
     FormControl Input {
         width: auto;
         min-width: 30%;
-        border: tall transparent;
+        border: none;
     }
 
     FormControl Input:focus {
-        border: tall transparent;
-        border-bottom: tall $secondary;
+        border: none;
+        border-right: inner $warning;
+        border-left: inner $warning;
     }
     """
 
@@ -165,16 +173,30 @@ class FormControl(Container):
         self.label = label
         self.required = required
         self.__children = children
+        self.lbl = Label(self._build_label())
+
+
+    def _build_label(self, err: str | None = None) -> str:
+        label = f"{self.label}"
+        if self.required and err is None:
+            label += " [b light_coral]*[/]required"
+        elif self.required and err:
+            label += f" [yellow] {err}[/]"
+        return label
 
     def compose(self) -> ComposeResult:
-        label = f"{self.label}"
-        if self.required:
-            label += " [b red]*[/]required"
-        yield Label(label)
+        yield self.lbl
         yield from self.__children
+
+    def set_error(self, msg: str) -> None:
+        self.lbl.update(self._build_label(err=msg))
+
+    def unset_error(self) -> None:
+        self.lbl.update(self._build_label())
 
     @property
     def inner_controls(self) -> list[Widget]:
+        """Return inner controls of the form control"""
         assert self.parent is not None
         _controls = self.parent.query("FormControl *")
         def wanted(c):

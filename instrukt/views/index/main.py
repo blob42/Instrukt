@@ -1,83 +1,80 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
+import re
 import typing as t
 from itertools import chain
-
-
-from textual import on
-from textual import events
-from textual import work
-from textual.reactive import reactive, var
-from textual.app import ComposeResult, RenderResult
-from textual.containers import Container, Grid, VerticalScroll, Horizontal
-from textual.screen import Screen
-from textual.css.query import NoMatches
-from textual.message import Message
-from textual.binding import Binding
-from textual.widgets import (Header,
-                             Footer,
-                             Button,
-                             Label,
-                             ListItem,
-                             Placeholder,
-                             Static,
-                             Label,
-                             Input,
-                             Select
-                             )
 from typing import Optional, Sequence
-from .create import CreateIndex
-from ...tuilib.forms import FormGroup, FormControl, FormState
-from ...indexes.schema import Collection, EmbeddingDetails
-from ...indexes.chroma import ChromaWrapper
-from ...tuilib.widgets.listview import ListView
-from ...errors import IndexError
-from ...types import InstruktDomNodeMixin
 
+from textual import events, on
+from textual.app import ComposeResult, RenderResult
+from textual.containers import Container, Grid, VerticalScroll
+from textual.css.query import NoMatches
+from textual.binding import Binding
+from textual.message import Message
+from textual.reactive import reactive, var
+from textual.screen import Screen
+from textual.widgets import (
+    Header,
+    Label,
+    ListItem,
+    Static,
+    TextLog,
+)
+
+from ...indexes.chroma import ChromaWrapper
+from ...indexes.schema import Collection, EmbeddingDetails
+from ...tuilib.forms import FormState
+from ...tuilib.widgets.actionbar import ActionBar, ActionBinding
+from ...tuilib.widgets.listview import ListView
+from ...types import InstruktDomNodeMixin
+from .create import CreateIndex
 
 if t.TYPE_CHECKING:
-    from ...indexes.manager import IndexManager
+    from typing_extensions import Self
+
     from ...app import InstruktApp
+    from ...indexes.manager import IndexManager
     from ...tuilib.widgets.header import HeaderTitle
 
 
 class IndexCollectionItem(ListItem):
-    def __init__(self,
-                 collection: Collection,
-                 *args: t.Any,
+
+    def __init__(self, collection: Collection, *args: t.Any,
                  **kwargs: t.Any) -> None:
 
         super().__init__(*args, **kwargs)
         self.collection = collection
 
-class IndexList(VerticalScroll, InstruktDomNodeMixin):
 
-    collections: reactive[Sequence[Collection]] = reactive([], always_update=True)
+class IndexList(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
+
+    collections: reactive[Sequence[Collection]] = reactive([],
+                                                           always_update=True)
 
     def fetch_collections(self) -> None:
         """Updates the collections list from the index manager.
 
         Call this method to refresh the list of collections.
         """
-        index_manager =  self._app.context.index_manager
+        index_manager = self._app.context.index_manager
         self.collections = index_manager.list_collections()
 
     def watch_collections(self) -> None:
@@ -98,16 +95,18 @@ class IndexList(VerticalScroll, InstruktDomNodeMixin):
         ]
         for col in self.collections:
             if col.name not in [item.name for item in col_items]:
-                col_item = IndexCollectionItem(col, Label(col.name), name=col.name)
+                col_item = IndexCollectionItem(col,
+                                               Label(col.name),
+                                               name=col.name)
                 lv.mount(col_item, before=-1)
 
         if len(lv) > 1:
             # unhighlight the New button
-            lv.query_one("ListItem#new").highlighted = False   # type: ignore
+            lv.query_one("ListItem#new").highlighted = False  # type: ignore
             lv.index = len(lv) - 2
             lv.action_select_cursor()
-
-
+        elif lv.index == 0:
+            lv.action_select_cursor()
 
     def compose(self) -> ComposeResult:
         self.fetch_collections()
@@ -121,20 +120,22 @@ class IndexList(VerticalScroll, InstruktDomNodeMixin):
     def collection_highlighted(self, event: ListView.Highlighted) -> None:
 
         if isinstance(event.item, IndexCollectionItem):
+            self.screen.remove_class("--create-form")
             index_details = self.screen.query_one(IndexDetails)
             index_details.collection = event.item.collection
         else:
             # show the create index form
-            self.screen.query_one(CreateIndex).display = True
-            self.screen.query_one(IndexInfo).display = False
-
+            self.screen.add_class("--create-form")
 
 
 class IndexDetails(Static, InstruktDomNodeMixin):
 
-    collection: reactive[Collection] = reactive(Collection("","",{}))
+    collection: reactive[Collection] = reactive(Collection("", "", {}))
     collection_type = reactive("")
     count = reactive(-1)
+
+    def on_mount(self) -> None:
+        self.border_title = "index details:"
 
     def render(self) -> RenderResult:
         # if no collection is selected render nothing
@@ -158,17 +159,19 @@ class IndexDetails(Static, InstruktDomNodeMixin):
 
     @property
     def embedding_fn(self) -> EmbeddingDetails:
-            return self.idx_manager.get_embedding_fn(self.collection.name)
+        return self.idx_manager.get_embedding_fn(self.collection.name)
 
     def clear(self) -> None:
         self.collection = Collection("", "", {})
         self.collection_type = ""
         self.count = -1
 
-
     async def get_index(self) -> Optional[ChromaWrapper]:
-        return await t.cast('InstruktApp', self.app).context.index_manager.aget_index(
-            self.collection.name)
+        idx = await t.cast('InstruktApp',
+                           self.app).context.index_manager.aget_index(
+                               self.collection.name)
+        # self.screen.query_one(IndexConsole).end_capture_print()
+        return idx
 
     async def watch_collection(self, collection: Collection) -> None:
         self.count = -1
@@ -182,6 +185,54 @@ class IndexDetails(Static, InstruktDomNodeMixin):
             self.collection_type = type(idx).__name__
 
 
+class IndexConsole(TextLog):
+
+    minimized = var[bool](False)
+    has_log = var[bool](False)
+
+    def on_mount(self) -> None:
+        self.begin_capture_print()
+        self.border_title = "\[c]onsole"
+
+    # def watch_has_log(self, v: bool) -> None:
+    #     if v and self.minimized:
+    #         self.border_title = "console [b yellow][/]"
+    #     else:
+    #         self.border_title = "console"
+
+    def watch_minimized(self, m: bool) -> None:
+        if m and self.has_log:
+            self.border_title = "\[c]onsole [b yellow][/]"
+        else:
+            self.border_title = "\[c]onsole"
+
+    def on_print(self, event: events.Print) -> None:
+        text = event.text
+        text = text.strip()
+        # clean up ansi escape sequences
+        text = re.sub(r"\x1b\[[AB]", "", text, flags=re.MULTILINE)
+
+        if len(text) > 0:
+            self.write(text, expand=True)
+            self.has_log = True
+
+    def clear(self) -> "Self":
+        self.has_log = False
+        return super().clear()
+
+    def on_click(self, event: events.Click) -> None:
+        self.toggle_console()
+
+    def toggle_console(self) -> None:
+        self.open() if self.minimized else self.minimize()
+
+    def minimize(self) -> None:
+        self.add_class("--minimize")
+        self.minimized = True
+
+    def open(self) -> None:
+        self.remove_class("--minimize")
+        self.minimized = False
 
 
 class IndexInfo(Container, InstruktDomNodeMixin):
@@ -191,39 +242,44 @@ class IndexInfo(Container, InstruktDomNodeMixin):
 
     def compose(self) -> ComposeResult:
         yield IndexDetails()
-        with Container(classes="action-bar"):
-            yield Label("index actions:", classes="header")
-            with Horizontal():
-                yield Button("delete", id="delete", variant="warning")
 
-    @on(Button.Pressed, "#delete")
-    async def action_delete_collection(self, event: Button.Pressed) -> None:
+    async def action_delete_collection(self) -> None:
         idx_name = self.query_one(IndexDetails).collection.name
         await self._app.context.index_manager.delete_index(idx_name)
         self.post_message(self.Deleted())
 
 
-
-class IndexScreen(Screen[t.Any]):
+class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
 
     BINDINGS = [
-            #NOTE: the name (3rd arg) is used in the ActionBar for looking up the button
-            # changing it requires updating the code in the IndexCreate view
-            Binding("C", "create_index", "create"),
-            Binding("escape", "dismiss", "dismiss", key_display="esc"),
-            ]
+        ActionBinding("C", "create_index", "create", variant="success"),
+        ActionBinding("D", "delete_collection", "delete"),
+        ActionBinding(
+            "escape",
+            "dismiss",
+            "dismiss",
+            key_display="esc",
+        ),
+        Binding("c", "toggle_console", "console", key_display="c")
+    ]
 
     AUTO_FOCUS = "IndexList ListView"
 
     reset_form = reactive(True)
 
     def on_mount(self) -> None:
-        t.cast('HeaderTitle', self.query_one("HeaderTitle")).text = "Index Management"
-        t.cast(Header, self.query_one("Header")).tall = True
+        t.cast('HeaderTitle',
+               self.query_one("HeaderTitle")).text = "Index Management"
 
-    async def action_create_index(self) -> None:
-        await self.query_one(CreateIndex).create_index()
+    def action_create_index(self) -> None:
+        self.query_one(CreateIndex).create_index()
 
+    def action_toggle_console(self) -> None:
+        self.query_one(IndexConsole).toggle_console()
+
+    def action_delete_collection(self) -> None:
+        idx_info = self.query_one(IndexInfo)
+        self.call_next(idx_info.action_delete_collection)
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -233,21 +289,34 @@ class IndexScreen(Screen[t.Any]):
             with Grid(id="main"):
                 yield IndexInfo()
                 yield CreateIndex(id="add-index-form")
+                yield IndexConsole(id="idx-console", wrap=True, highlight=True)
+                yield ActionBar()
         # with Grid(id="content"):
         #     yield Placeholder("indexes", id="list")
         #     yield Placeholder("index info", id="details")
         # yield Footer()
 
-    def on_screen_resume(self) -> None:
-        # refresh the index list
-        self.query_one(IndexList).fetch_collections()
+    @on(events.ScreenResume)
+    def resume_screen(self) -> None:
 
         #only reset the form when not returning from modal
         if self.reset_form:
+            # refresh the index list
+            self.query_one(IndexList).fetch_collections()
             self.query_one(CreateIndex).reset_form()
-        else:
+
+        else:  # screen was resumed from an other modal
             self.reset_form = True
 
+        # begin console capture
+        idx_console = self.query_one(IndexConsole)
+        idx_console.begin_capture_print()
+
+    @on(events.ScreenSuspend)
+    def suspend_screen(self) -> None:
+        idx_console = self.query_one(IndexConsole)
+        idx_console.end_capture_print()
+        idx_console.clear()
 
     # def on_index_info_deleted(self, e: Message) -> None:
     #     e.stop()
@@ -267,17 +336,17 @@ class IndexScreen(Screen[t.Any]):
         if isinstance(e, IndexInfo.Deleted) or is_status_created(e):
             index_list = self.query_one(IndexList)
             self.call_later(index_list.fetch_collections)
+
             details = self.query_one(IndexDetails)
             details.clear()
+
+            self.query_one(IndexConsole).minimize()
 
         # if is_status_created(e):
         #     # select last entry in list
         #     lv = self.query_one(ListView)
         #     lv.index = len(lv) - 1
         #     lv.action_select_cursor()
-
-
-
 
     @on(ListView.Selected)
     def collection_selected(self, event: ListView.Selected) -> None:

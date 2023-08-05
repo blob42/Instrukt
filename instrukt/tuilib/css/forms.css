@@ -6,18 +6,37 @@ FormControl Button {
     border: none;
 }
 
-FormControl Input.error {
-    border-subtitle-color: $warning;
+FormControl.error Input {
+    /* border-subtitle-color: $warning; */
 }
 
 FormControl Select {
     border: solid transparent;
 }
 
-FormControl Select.error {
-    border-subtitle-color: $warning;
+FormControl.error Select {
+    /* border-subtitle-color: $warning; */
 }
 
-FormGroup.error {
-    border: wide $error;
+
+
+FormControl SelectCurrent { 
+    border: none;
 }
+
+FormControl SelectCurrent .arrow {
+}
+
+FormControl SelectOverlay {
+    border: none;
+    padding: 0;
+}
+
+FormControl Select.-expanded > SelectCurrent {
+    background: $foreground 50%;
+}
+
+FormControl Select:focus > SelectCurrent {
+    background: $success-darken-3 80%;
+}
+

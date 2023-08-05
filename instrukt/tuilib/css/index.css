@@ -1,3 +1,6 @@
+IndexScreen {
+    layers: below above;
+}
 IndexScreen #content {
     /* background: pink 70%; */
 }
@@ -11,34 +14,61 @@ IndexScreen #main {
 }
 
 IndexScreen IndexInfo {
-    /* background: blue 30%; */
+    padding-top: 1;
+    padding-right: 1;
+    padding-left: 1;
 }
 
-IndexScreen IndexInfo .action-bar {
-    height: auto;
+IndexScreen Button#create {
+    display: none;
+}
+
+
+
+IndexScreen.--create-form Button#create {
+    display: block;
+}
+IndexScreen.--create-form CreateIndex {
+    display: block;
+}
+IndexScreen.--create-form  IndexInfo {
+    display: none;
+}
+
+IndexScreen IndexDetails {
+    border: solid $success 70%;
+}
+IndexScreen IndexConsole {
+    layer: above;
     dock: bottom;
-}
-
-IndexInfo .action-bar .header {
-    padding: 0 1;
-}
-
-IndexInfo .action-bar Horizontal {
+    offset: -1 0;
+    margin-left: 1;
+    border-top: panel $success 70%;
+    border-title-color: $foreground;
+    margin-top: 1;
+    margin-bottom: 1;
+    background: $panel 80%;
+    color: $foreground 70%;
+    padding: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
     height: auto;
-    background: $foreground 10%;
+    max-height: 30vh;
+    scrollbar-size: 1 1;
+    scrollbar-color: $success 70%;
 }
 
-IndexInfo .action-bar Button {
-    border: none;
+IndexConsole.--minimize {
     height: 1;
+    padding: 0;
+}
 
+IndexScreen Button#console {
+    dock: right;
 }
 
 
-/* IndexScreen #console { */
-/*     width: 100%; */
-/*     height: 100%; */
-/* } */
+
 
 /* index list  */
 
@@ -61,10 +91,13 @@ IndexList ListItem {
 }
 
 
+
 /* Add Index Form */
 #add-index-form {
     /* background: cyan 30%; */
     display: none;
+    layer: below;
+    padding-bottom: 2;
 }
 
 
@@ -79,8 +112,13 @@ IndexList ListItem {
     margin-right: 1;
 }
 
+
 #add-index-form Input:focus {
     background: $success-darken-3 80%;
+    /* border-right: inner $warning; */
+    /* border-left: inner $warning; */
+    border: none;
+    border-left: none;
 }
 
 #add-index-form #path Input {
@@ -93,6 +131,12 @@ IndexList ListItem {
 
 #add-index-form Button#scan {
     margin-top: 1;
+    height: 1;
+}
+
+#add-index-form Button#browse-path {
+    margin-left: 1;
+    height: 1;
 }
  
 /* #add-index-form #submit { */
@@ -141,4 +185,5 @@ IndexList ListItem {
 #add-index-form.processing FormGroup {
     display: none;
 }
+
 
