@@ -14,7 +14,6 @@ IndexScreen #main {
 }
 
 IndexScreen IndexInfo {
-    padding-top: 1;
     padding-right: 1;
     padding-left: 1;
 }
@@ -22,7 +21,6 @@ IndexScreen IndexInfo {
 IndexScreen Button#create {
     display: none;
 }
-
 
 
 IndexScreen.--create-form Button#create {
@@ -35,8 +33,9 @@ IndexScreen.--create-form  IndexInfo {
     display: none;
 }
 
-IndexScreen IndexDetails {
+IndexScreen .--details.--container {
     border: solid $success 70%;
+    padding: 1;
 }
 IndexScreen IndexConsole {
     layer: above;

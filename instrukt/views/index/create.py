@@ -21,67 +21,65 @@
 import typing as t
 from itertools import chain
 from pathlib import Path
-from functools import lru_cache
 
 from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
 from pydantic import ValidationError
 from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Horizontal, VerticalScroll, Container
-from textual.css.query import NoMatches
+from textual.containers import Horizontal, VerticalScroll
 from textual.message import Message
 from textual.reactive import reactive, var
-from textual.widgets import Button, Input, Label, LoadingIndicator, Select
-from textual import events
-from textual.worker import Worker, get_current_worker, WorkerState
 from textual.timer import Timer
+from textual.widgets import Button, Input, Select
+from textual.worker import Worker
 
 from ...indexes.embeddings import EMBEDDINGS
 from ...indexes.loaders import LOADER_MAPPINGS
 from ...indexes.schema import Index
 from ...tuilib.forms import (
-                        FormControl,
-                        FormGroup,
-                        FormState,
-                        InvalidForm,
-                        ValidForm,
-                        FormValidity
-                    )
+    FormControl,
+    FormGroup,
+    FormState,
+    FormValidity,
+    InvalidForm,
+    ValidForm,
+)
 from ...tuilib.modals.path_browser import PathBrowserModal
-from ...tuilib.widgets import ActionBar
 from ...types import InstruktDomNodeMixin
 from ...workers import WorkResultMixin
 
 if t.TYPE_CHECKING:
     from textual.dom import DOMNode
-    from textual.notifications import Notification
 
     from .main import IndexScreen
 
-DEFAULT_NEW_INDEX_MSG = "Make sure the data is correct before creating the collection"
-CREATING_INDEX_MSG = "Creating index ..."
-
 class Debouncer:
+
     def __init__(self, target, wait: float) -> None:
         self.target = target
         self.wait = wait
         self.timer: Timer | None = None
 
     def call(self, fn, *args, **kwargs):
+
         def callback():
             # self.target.log("debounce")
             fn(*args, **kwargs)
+
         if self.timer is not None:
             self.timer.stop()
         else:
-            self.timer = Timer(self.target, self.wait, callback=callback, repeat=0)
+            self.timer = Timer(self.target,
+                               self.wait,
+                               callback=callback,
+                               repeat=0)
         self.timer._start()
 
 
 class CreateIndex(VerticalScroll,
-                    InstruktDomNodeMixin,
-                    WorkResultMixin,
-                    can_focus=False):
+                  InstruktDomNodeMixin,
+                  WorkResultMixin,
+                  can_focus=False):
     """Index creation form.
 
     Creating a form using form control IDs as lookup keys for the
@@ -118,10 +116,10 @@ class CreateIndex(VerticalScroll,
         self._debouncer = Debouncer(self.app, 0.1)
 
     class Status(Message):
+
         def __init__(self, state: FormState) -> None:
             super().__init__()
             self.state = state
-
 
     def update_state(self) -> None:
         """Compute final form state from sub FormGroup states."""
@@ -133,7 +131,6 @@ class CreateIndex(VerticalScroll,
         else:
             # self.log.debug("state invalid")
             self.state = FormState.INVALID
-
 
     # generator for loader type tuples for the Select widget
     def get_loader_types(self):
@@ -155,10 +152,10 @@ class CreateIndex(VerticalScroll,
 
     def compose(self) -> ComposeResult:
         embedding_choices = self.get_embeddings()
-        with VerticalScroll(classes="--container")as vs:
+        with VerticalScroll(classes="--container") as vs:
             vs.can_focus = False
             with FormGroup(border_title="embeddings",
-                            name="embeddings",
+                           name="embeddings",
                            state=FormState.VALID):
                 yield FormControl(
                     Select(
@@ -173,9 +170,12 @@ class CreateIndex(VerticalScroll,
                 )
 
             # collction creation form group
-            with FormGroup(border_title="new collection details:", name="collection"):
+            with FormGroup(border_title="new collection details:",
+                           name="collection"):
                 yield FormControl(
-                    Input(classes="form-input", placeholder="collection name", name="name"),
+                    Input(classes="form-input",
+                          placeholder="collection name",
+                          name="name"),
                     label="name",
                     id="name",
                     required=True,
@@ -183,7 +183,8 @@ class CreateIndex(VerticalScroll,
                 yield FormControl(
                     Input(
                         classes="form-input",
-                        placeholder="A short description of the collection. Helpful for agents.",
+                        placeholder=
+                        "A short description of the collection. Helpful for agents.",
                         name="description",
                     ),
                     label="description",
@@ -194,7 +195,8 @@ class CreateIndex(VerticalScroll,
                     Horizontal(
                         Input(
                             classes="form-input",
-                            placeholder="path to the data source (file or directory)",
+                            placeholder=
+                            "path to the data source (file or directory)",
                             id="path-input",
                             name="path",
                         ),
@@ -209,39 +211,20 @@ class CreateIndex(VerticalScroll,
             with FormGroup(border_title="data loader",
                            name="data-loader",
                            state=FormState.VALID):
-                # yield FormControl(
-                #         Container(
-                #             Label("Loader type:"),
-                #
-                #             classes="control-row"
-                #             ),
-                #             Button("Scan"),
-                #         )
                 yield FormControl(
                     Horizontal(
                         Select(self.get_loader_types(), id="loader"),
-                        Button("Scan", id="scan", disabled=True, variant="primary"),
+                        Button("Scan",
+                               id="scan",
+                               disabled=True,
+                               variant="primary"),
                     ),
                     label="loader type:",
                 )
 
-            # with Horizontal(id="submit"):
-            #     # message for the user to make sure the data is correct before starting
-            #     # the embedding process which will consume API tokens
-            #     yield Label(
-            #         "Make sure the data is correct before creating the collection",
-            #         classes="status-message",
-            #     )
-            #     # yield Button("Create",
-            #     #              id="create-index",
-            #     #              variant="warning",
-            #     #              disabled=True)
-            #     yield LoadingIndicator()
-
-        # yield ActionBar()
-
     def parent_form_group(self, elm: "DOMNode") -> t.Optional["DOMNode"]:
-        return next(filter(lambda a: isinstance(a, FormGroup), elm.ancestors), None)
+        return next(filter(lambda a: isinstance(a, FormGroup), elm.ancestors),
+                    None)
 
     def validate_parent_form(self, elm: "DOMNode"):
         form_group = t.cast(FormGroup, self.parent_form_group(elm))
@@ -265,9 +248,8 @@ class CreateIndex(VerticalScroll,
                 self.validate_parent_form(input)
 
         if input.name == "description":
-            t.cast(dict[str, t.Any], self.new_index.metadata)[
-                "description"
-            ] = input.value
+            t.cast(dict[str, t.Any],
+                   self.new_index.metadata)["description"] = input.value
 
     # handle path submission
     @on(Input.Submitted)
@@ -299,7 +281,6 @@ class CreateIndex(VerticalScroll,
         # self._debouncer.call(self.validate_form, event.form)
         self.validate_form(event.form)
 
-
     def clear_formgroup_state(self, form: FormGroup):
         form.state = FormState.VALID
 
@@ -315,12 +296,8 @@ class CreateIndex(VerticalScroll,
         #                 for c in form_controls
         #                 ])   # type: ignore
 
-
-    def handle_form_errors(self,
-                           control: FormControl,
-                           form: FormGroup,
-                           invalid: "FormValidity"
-                        ) -> None:
+    def handle_form_errors(self, control: FormControl, form: FormGroup,
+                           invalid: "FormValidity") -> None:
         assert invalid.error is not None
         errors = invalid.error.errors()
         for e in errors:
@@ -334,7 +311,7 @@ class CreateIndex(VerticalScroll,
                     # self.log.debug(f"control: {control.id} clen: {clen}")
 
                     control.set_error(e.get("msg", ""))
-                    
+
                     # if len(control.inner_controls) == 1:
                     #     control.inner_controls[0].border_subtitle = e.get(
                     #         "msg"
@@ -347,9 +324,6 @@ class CreateIndex(VerticalScroll,
                     #
                     #     for c in control.inner_controls:
                     #         set_subtitle(c)
-
-
-
 
     def validate_form(self, form: FormGroup) -> None:
         """Validates the new index form"""
@@ -385,14 +359,13 @@ class CreateIndex(VerticalScroll,
             return len(i.value) == 0
 
         # if all inputs are empty
-        empty_inputs = map(lambda i: len(i.value) == 0, chain(*[fc.query(Input) for fc in form_controls]))
+        empty_inputs = map(lambda i: len(i.value) == 0,
+                           chain(*[fc.query(Input) for fc in form_controls]))
         # if empty_inputs is not empty
         if any(empty_inputs) and all(empty_inputs):
             return
 
-
         self.__validate_new_index(form)
-
 
     # TODO!: loading progress indicator
     def watch_state(self, state: FormState) -> None:
@@ -427,15 +400,13 @@ class CreateIndex(VerticalScroll,
     def reset_form(self) -> None:
         self.new_index = Index.construct()
         self.path = ""
-        # self.state = FormState.INITIAL
         inputs = self.query(Input)
         for input in inputs:
             input.value = ""
         self.state = FormState.INITIAL
 
-
     @work(exclusive=True, thread=True, name="validate_new_index")
-    def __validate_new_index(self, form: FormGroup ) -> FormValidity[FormGroup]:
+    def __validate_new_index(self, form: FormGroup) -> FormValidity[FormGroup]:
         """Validates the new_index form data"""
         try:
             valid_index = Index(**self.new_index.dict())
@@ -479,26 +450,19 @@ class CreateIndex(VerticalScroll,
                     continue
         self._debouncer.call(self.update_state)
 
-
-
-
-
     @on(Worker.StateChanged)
     def _on_work_done(self, event: Worker.StateChanged) -> None:
 
         if self.work_success("validate_new_index", event):
             if event.worker.result is None:
-               self.log.error(f"worker {event.worker.name} result is None")
-               return
+                self.log.error(f"worker {event.worker.name} result is None")
+                return
 
             self._on_new_index_validated(event.worker.result)
 
         # if self.work_success("create_index", event):
-            # self.log.debug("index created work handler !")
-            # successs here is worker success 
-
-
-
+        # self.log.debug("index created work handler !")
+        # successs means worker success
 
     @work(exclusive=True, thread=True)
     async def create_index(self) -> None:
@@ -509,11 +473,12 @@ class CreateIndex(VerticalScroll,
         self.log.info(f"Creating index\n{new_index}")
         self.state = FormState.PROCESSING
         idx_mg = self._app.context.index_manager
-        notif = self.notify("creating index ...", timeout=9999)
+        notif = self.app.call_from_thread(self.notify,
+                                          "creating index ...",
+                                          timeout=9999)
         await idx_mg.create(self._app.context, new_index)
         self.post_message(self.Status(FormState.CREATED))
         self.app.call_from_thread(self.app.unnotify, notif)
-
 
     @on(Button.Pressed, "#browse-path")
     async def browse_path(self, event: Button.Pressed) -> None:

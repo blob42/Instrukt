@@ -18,16 +18,18 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
+import asyncio
 import re
 import typing as t
+from dataclasses import dataclass
 from itertools import chain
 from typing import Optional, Sequence
 
 from textual import events, on
 from textual.app import ComposeResult, RenderResult
+from textual.binding import Binding
 from textual.containers import Container, Grid, VerticalScroll
 from textual.css.query import NoMatches
-from textual.binding import Binding
 from textual.message import Message
 from textual.reactive import reactive, var
 from textual.screen import Screen
@@ -39,11 +41,13 @@ from textual.widgets import (
     TextLog,
 )
 
+from ..._logging import ANSI_ESCAPE_RE
 from ...indexes.chroma import ChromaWrapper
 from ...indexes.schema import Collection, EmbeddingDetails
 from ...tuilib.forms import FormState
 from ...tuilib.widgets.actionbar import ActionBar, ActionBinding
 from ...tuilib.widgets.listview import ListView
+from ...tuilib.widgets.spinner import AsyncDataContainer, FutureLabel
 from ...types import InstruktDomNodeMixin
 from .create import CreateIndex
 
@@ -121,14 +125,23 @@ class IndexList(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
 
         if isinstance(event.item, IndexCollectionItem):
             self.screen.remove_class("--create-form")
-            index_details = self.screen.query_one(IndexDetails)
-            index_details.collection = event.item.collection
+            info = self.screen.query_one(IndexInfo)
+            info.collection = event.item.collection
         else:
             # show the create index form
             self.screen.add_class("--create-form")
 
 
-class IndexDetails(Static, InstruktDomNodeMixin):
+class IndexDetails(AsyncDataContainer):
+
+    def on_mount(self) -> None:
+        self.border_title = "index details:"
+
+    def clear(self) -> None:
+        self.log.warning("Not Implemented")
+
+
+class BackupIndexDetails(Static, InstruktDomNodeMixin):
 
     collection: reactive[Collection] = reactive(Collection("", "", {}))
     collection_type = reactive("")
@@ -170,10 +183,9 @@ class IndexDetails(Static, InstruktDomNodeMixin):
         idx = await t.cast('InstruktApp',
                            self.app).context.index_manager.aget_index(
                                self.collection.name)
-        # self.screen.query_one(IndexConsole).end_capture_print()
         return idx
 
-    async def watch_collection(self, collection: Collection) -> None:
+    async def wwatch_collection(self, collection: Collection) -> None:
         self.count = -1
         idx = await self.get_index()
         if idx is None:
@@ -194,12 +206,6 @@ class IndexConsole(TextLog):
         self.begin_capture_print()
         self.border_title = "\[c]onsole"
 
-    # def watch_has_log(self, v: bool) -> None:
-    #     if v and self.minimized:
-    #         self.border_title = "console [b yellow][/]"
-    #     else:
-    #         self.border_title = "console"
-
     def watch_minimized(self, m: bool) -> None:
         if m and self.has_log:
             self.border_title = "\[c]onsole [b yellow][/]"
@@ -210,7 +216,7 @@ class IndexConsole(TextLog):
         text = event.text
         text = text.strip()
         # clean up ansi escape sequences
-        text = re.sub(r"\x1b\[[AB]", "", text, flags=re.MULTILINE)
+        text = re.sub(ANSI_ESCAPE_RE, "", text, flags=re.MULTILINE)
 
         if len(text) > 0:
             self.write(text, expand=True)
@@ -235,13 +241,51 @@ class IndexConsole(TextLog):
         self.minimized = False
 
 
+@dataclass(frozen=True)
+class _IndexDetails:
+    idx: ChromaWrapper
+
+    @property
+    def name(self) -> str:
+        return self.idx.name
+
+    @property
+    def count(self) -> int:
+        return self.idx.count
+
+    @property
+    def type(self) -> str:
+        if isinstance(self.idx, ChromaWrapper):
+            return "Chroma DB"
+        else:
+            return type(self.idx).__name__
+
+
 class IndexInfo(Container, InstruktDomNodeMixin):
+
+    collection: reactive[Collection] = reactive(Collection("", "", {}))
 
     class Deleted(Message):
         pass
 
     def compose(self) -> ComposeResult:
-        yield IndexDetails()
+        # yield IndexDetails()
+        with IndexDetails(classes="--details --container"):
+            yield FutureLabel(label="name:", bind="{X.name}")
+            yield FutureLabel(label="document count: ", bind="{X.count}")
+            yield FutureLabel(label="vectorstore: ", bind="{X.type}")
+
+    async def watch_collection(self, collection: Collection) -> None:
+        self.count = -1
+
+        async def get_idx_details():
+            idx = await self._app.context.index_manager.aget_index(
+                self.collection.name)
+            assert idx is not None
+            return _IndexDetails(idx)
+
+        self.query_one(AsyncDataContainer).future = asyncio.create_task(
+            get_idx_details())
 
     async def action_delete_collection(self) -> None:
         idx_name = self.query_one(IndexDetails).collection.name

@@ -54,3 +54,6 @@ def setup_logging():
     # silence chromadb
     chromadb = logging.getLogger("chromadb")
     chromadb.setLevel("INFO")
+
+
+ANSI_ESCAPE_RE = r"\x1b\[[AB]"
