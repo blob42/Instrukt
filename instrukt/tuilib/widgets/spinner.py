@@ -105,22 +105,21 @@ class _Spinner(SpinningMixin, Static):
     def render(self) -> RenderResult:
         return self.get_spin_frame() or ""
 
-class FutureLabel(Label, SpinningMixin):
 
+class FutureLabel(Label, SpinningMixin):
 
     _label: RenderableType
     markup = True
 
     def __init__(
-        self,
-        renderable: RenderableType = "",
-        bind: str = "", # fstring
-        label: RenderableType = "",
-        *,
-        spinner: str = "aesthetic",
-        future: Awaitable[Any] | None = None,
-        **kwargs
-        ) -> None:
+            self,
+            renderable: RenderableType = "",
+            bind: str = "",  # fstring
+            label: RenderableType = "",
+            *,
+            spinner: str = "aesthetic",
+            future: Awaitable[Any] | None = None,
+            **kwargs) -> None:
         """
 
         Params:
@@ -144,7 +143,8 @@ class FutureLabel(Label, SpinningMixin):
             self.track_future(future)
 
     @staticmethod
-    def concat_renderable(r1: RenderableType, r2: RenderableType) -> RenderableType:
+    def concat_renderable(r1: RenderableType,
+                          r2: RenderableType) -> RenderableType:
         return Text.from_markup(str(r1) + str(r2))
 
     @property
@@ -160,8 +160,6 @@ class FutureLabel(Label, SpinningMixin):
                 self._label = Text(renderable, no_wrap=True)
         else:
             self._label = renderable
-
-
 
     def spin(self) -> None:
         self.spinner = self._spinner
@@ -188,7 +186,6 @@ class FutureLabel(Label, SpinningMixin):
                 self.update(fut.result())
 
         return future
-    
 
     def render(self):
         if (frame := self.get_spin_frame()) is None:
@@ -202,13 +199,12 @@ class FutureLabel(Label, SpinningMixin):
     def update(self, renderable: RenderableType = "") -> None:
         if isinstance(renderable, str):
             text = Text.assemble(t.cast(Text, self.label),
-                                            Text.from_markup(renderable))
+                                 Text.from_markup(renderable))
             text.expand_tabs(tab_size=4)
             self.renderable = text
         else:
             self.renderable = self.concat_renderable(self.label, renderable)
         self.refresh(layout=True)
-
 
 
 class AsyncDataContainer(Static):
@@ -280,8 +276,9 @@ class AsyncDataContainer(Static):
             fut (Any): The Future object to be tracked.
 
         Returns:
-            asyncio.Future | None: The future after being added to the asyncio event loop. 
-                                   Returns None if no future was initially set.
+            asyncio.Future | None: The future after being added to the asyncio event
+            loop. 
+            Returns None if no future was initially set.
         """
         if self.future is None:
             return None
