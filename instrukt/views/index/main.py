@@ -28,7 +28,7 @@ from typing import Optional, Sequence
 from textual import events, on
 from textual.app import ComposeResult, RenderResult
 from textual.binding import Binding
-from textual.containers import Container, Grid, VerticalScroll
+from textual.containers import Container, Grid, VerticalScroll, Horizontal
 from textual.css.query import NoMatches
 from textual.message import Message
 from textual.reactive import reactive, var
@@ -190,7 +190,7 @@ class BackupIndexDetails(Static, InstruktDomNodeMixin):
         idx = await self.get_index()
         if idx is None:
             return
-        self.count = idx.count()
+        self.count = idx.count
         if isinstance(idx, ChromaWrapper):
             self.collection_type = "Chroma DB"
         else:
@@ -260,6 +260,15 @@ class _IndexDetails:
         else:
             return type(self.idx).__name__
 
+    @property
+    def embedding(self) -> EmbeddingDetails:
+        raise NotImplementedError
+
+
+class IndexEntry(Horizontal):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.classes = "entry"
 
 class IndexInfo(Container, InstruktDomNodeMixin):
 
@@ -271,9 +280,18 @@ class IndexInfo(Container, InstruktDomNodeMixin):
     def compose(self) -> ComposeResult:
         # yield IndexDetails()
         with IndexDetails(classes="--details --container"):
-            yield FutureLabel(label="name:", bind="{X.name}")
-            yield FutureLabel(label="document count: ", bind="{X.count}")
-            yield FutureLabel(label="vectorstore: ", bind="{X.type}")
+            yield IndexEntry(
+                    Label("Name:", classes="--label"),
+                    FutureLabel(bind="{X.name}")
+                )
+            yield IndexEntry(
+                    Label("Count:", classes="--label"),
+                    FutureLabel(bind="{X.count}")
+                    )
+            with Horizontal(classes="entry"):
+                yield Label("Type:", classes="--label")
+                yield FutureLabel(bind="{X.type}")
+            # with Horizontal(classes="entry"):
 
     async def watch_collection(self, collection: Collection) -> None:
         self.count = -1

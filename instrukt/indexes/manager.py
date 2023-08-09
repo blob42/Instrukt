@@ -159,7 +159,7 @@ class IndexManager(BaseModel):
         #NOTE: the used embedding function used is stored within the collection metadata
         # at the wrapper level.
 
-        self.chroma_kwargs['embedding_function'] = index.get_embedding_fn()
+        self.chroma_kwargs['embedding_function'] = index.embedding_fn
 
 
         new_index = ChromaWrapper(self._client,

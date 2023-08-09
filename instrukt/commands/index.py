@@ -52,7 +52,7 @@ class IndexCommands(CmdGroup):
             def get_col_count(col: 'Collection') -> Tuple['Collection', int]:
                 idx = idx_mg.get_index(col.name)
                 if idx is not None:
-                    return (col, idx.count())
+                    return (col, idx.count)
                 return (col, -1)
             collections = list(map(get_col_count, _collections))
             # turn collections into tuple of (name, count) where count

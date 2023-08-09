@@ -115,8 +115,13 @@ class ChromaWrapper(ChromaVectorStore):
     async def acount(self) -> int:
         return await run_async(self._collection.count)
 
+    @property
     def count(self) -> int:
         return self._collection.count()
+
+    @property
+    def name(self) -> str:
+        return self._collection.name
 
     def list_collections(self) -> Sequence[Collection]:
         """Bypass default chroma listing method that does not rely on

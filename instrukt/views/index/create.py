@@ -473,6 +473,7 @@ class CreateIndex(VerticalScroll,
         self.log.info(f"Creating index\n{new_index}")
         self.state = FormState.PROCESSING
         idx_mg = self._app.context.index_manager
+        #TODO!: better notification ux
         notif = self.app.call_from_thread(self.notify,
                                           "creating index ...",
                                           timeout=9999)

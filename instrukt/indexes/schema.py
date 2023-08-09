@@ -118,7 +118,8 @@ class Index(BaseModel):
             raise ValueError("OpenAI API key not set")
         return v
 
-    def get_embedding_fn(self) -> Embeddings:
+    @property
+    def embedding_fn(self) -> Embeddings:
         """Get the embedding function"""
         embedding = EMBEDDINGS[self.embedding]
         return embedding.fn(**embedding.kwargs)

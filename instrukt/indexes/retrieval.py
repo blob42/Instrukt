@@ -81,7 +81,7 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
                          model="gpt-3.5-turbo-0613",
                          temperature=0.6)
 
-    if index.count() == 0:
+    if index.count == 0:
         raise ToolError("index is empty")
     name = index._collection.name
 
