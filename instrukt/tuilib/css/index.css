@@ -18,18 +18,41 @@ IndexScreen IndexInfo {
     padding-left: 1;
 }
 
+IndexInfo .entry{
+    height: auto;
+    width: 100%;
+    /* background: blue; */
+}
+
+IndexInfo .entry .--label {
+    margin-right: 2;
+    width: 1fr;
+    color: $foreground 60%;
+}
+
+IndexInfo .entry FutureLabel {
+    width: 5fr;
+    padding-left: 1;
+}
+
 IndexScreen Button#create {
     display: none;
 }
 
 
+IndexScreen CreateIndex {
+    display: none;
+}
+
 IndexScreen.--create-form Button#create {
     display: block;
 }
-IndexScreen.--create-form CreateIndex {
-    display: block;
+
+
+IndexScreen.--create-form Button#delete {
+    display: none;
 }
-IndexScreen.--create-form  IndexInfo {
+IndexScreen.--create-form Button#new_index {
     display: none;
 }
 
@@ -37,6 +60,15 @@ IndexScreen .--details.--container {
     border: solid $success 70%;
     padding: 1;
 }
+
+IndexScreen.--create-form CreateIndex {
+    display: block;
+}
+
+IndexScreen.--create-form  IndexInfo {
+    display: none;
+}
+
 IndexScreen IndexConsole {
     layer: above;
     dock: bottom;
@@ -94,7 +126,6 @@ IndexList ListItem {
 /* Add Index Form */
 #add-index-form {
     /* background: cyan 30%; */
-    display: none;
     layer: below;
     padding-bottom: 2;
 }
@@ -184,5 +215,3 @@ IndexList ListItem {
 #add-index-form.processing FormGroup {
     display: none;
 }
-
-

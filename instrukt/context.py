@@ -21,6 +21,7 @@
 import typing as t
 from typing import TYPE_CHECKING
 from contextvars import ContextVar
+import logging
 
 if TYPE_CHECKING:
 
@@ -31,58 +32,81 @@ if TYPE_CHECKING:
     from .types import AnyMessage
 
 context: ContextVar['Context'] = ContextVar('context')
+index_manager_var: ContextVar['IndexManager | None'] = ContextVar(
+    "index_manager", default=None)
+config_manager_var: ContextVar['ConfigManager | None'] = ContextVar(
+    "config_manager", default=None)
+
+context_var: ContextVar['Context | None'] = ContextVar("context", default=None)
+
+log = logging.getLogger(__name__)
+
 
 #WARN: make sure context is concurrency/thread safe
 class Context():
     """Stores a reference to textual App context"""
 
-    # app: 'InstruktApp'
-    # config_manager: 'ConfigManager'
-    # index_manager: 'IndexManager'
-
-    def __init__(self,
-                 app: t.Optional['InstruktApp'] = None) -> None:
+    def __init__(self) -> None:
         from .config import ConfigManager
         from .indexes.manager import IndexManager
-        self.app = app
-        self.config_manager = ConfigManager(self)
 
-        # if openai key is not available use default embedding function
-        chroma_kwargs: dict [str, t.Any] = {}
-
-        # if user exported openai api key, use openai embeddings by default
-
-        #REVIEW: the user always chooses the default embedding function, 
-        # automatic assignment should be used as absolute last resort
-        #
-        # if self.config_manager.C.openai_api_key is not None and len(
-        #         self.config_manager.C.openai_api_key) != 0:
-        #     try:
-        #         from langchain.embeddings.openai import OpenAIEmbeddings
-        #         chroma_kwargs['embedding_function'] = OpenAIEmbeddings() # type: ignore
-        #     except ImportError:
-        #         self.error(
-        #             "OpenAIEmbeddings not available, using default embedding function"
-        #         )
+        self.config_manager = ConfigManager()
         self.index_manager = IndexManager(
-            chroma_settings=self.config_manager.config.chroma,
-            ctx=self,
-            chroma_kwargs=chroma_kwargs)
-
-    class Config:
-        arbitrary_types_allowed = True
+            chroma_settings=self.config_manager.config.chroma, )
 
     def __repr__(self):
         return f"Context(app={self.app})"
 
-    #FIXME: messages called through here come after `self.info()` !
+    @property
+    def app(self) -> t.Optional['InstruktApp']:
+        """The app property."""
+        if hasattr(self, "_app"):
+            return self._app
+        return None
+
+    @app.setter
+    def app(self, value):
+        self._app = value
+
+    @property
+    def index_manager(self) -> 'IndexManager':
+        """The index_manager property."""
+        im = index_manager_var.get()
+        assert im is not None, "index_manager is None"
+        return im
+
+    @index_manager.setter
+    def index_manager(self, value):
+        index_manager_var.set(value)
+
+    @property
+    def im(self) -> 'IndexManager':
+        """The index_manager property."""
+        return self.index_manager
+
+    @property
+    def config_manager(self) -> 'ConfigManager':
+        """The config_manager property."""
+        cm = config_manager_var.get()
+        assert cm is not None, "config_manager is None"
+        return cm
+
+    @config_manager.setter
+    def config_manager(self, value):
+        config_manager_var.set(value)
+
+    @property
+    def cm(self) -> 'ConfigManager':
+        """The config_manager property."""
+        return self.config_manager
+
     def post_message(self, message: 'AnyMessage') -> None:
         """Post a message to the app."""
         self.app.post_message(message)
 
-    async def write_chat_buffer(self, message: 'AnyMessage') -> None:
+    async def write_console_window(self, message: 'AnyMessage') -> None:
         """Write a message to the chat buffer."""
-        self.app.notify_chat_buffer(message)
+        self.app.notify_console_window(message)
 
     def notify(self, message: 'AnyMessage') -> None:
         """Send a notification to the UI."""
@@ -97,3 +121,6 @@ class Context():
         """Send an info notification to the UI."""
         from .messages.log import LogMessage
         self.app.post_message(LogMessage.info(message))
+
+
+context_var.set(Context())

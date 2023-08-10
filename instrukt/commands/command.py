@@ -358,6 +358,7 @@ class CmdGroup:
             return decorator(_cls)
 
 
+    #TODO!: use contextvars to pass context to commands
     async def execute(self, ctx: Context, command_string: Optional[str] = None, **kwargs) -> AnyOrAwaitable:
         """Execute a command given a string.
 

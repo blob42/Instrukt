@@ -75,7 +75,7 @@ class IndexCommands(CmdGroup):
 
         async def create_index(ctx: Context, name: str, path: str):
             im = ctx.index_manager
-            await im.create(ctx, Index(name=name, path=path))
+            await im.create(Index(name=name, path=path))
             ctx.post_message(CmdLog('Index created'))
 
         create_ctx_task(create_index(ctx, name, path), ctx)

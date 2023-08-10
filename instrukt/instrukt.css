@@ -222,3 +222,25 @@ AgentTabs Tabs Underline {
 AgentTabs Tab.-active {
     /* color: $success; */
 }
+
+/* ToastRack { */
+    /* background: blue; */
+    /* align: right bottom; */
+/* } */
+
+/* ToastHolder { */
+/*     align-horizontal: right; */
+/*     offset: 1 -1; */
+/* } */
+
+/* Toast { */
+    /* padding: 0; */
+    /* margin: 0; */
+/*     width: 30; */
+/* } */
+
+
+
+.--padding-top-1 {
+    padding-top: 1;
+}

@@ -44,7 +44,7 @@ from .agent.base import InstruktAgent
 from .agent.manager import AgentManager
 from .commands.command import CmdLog
 from .commands.root_cmd import ROOT as root_cmd
-from .context import Context
+from .context import context_var
 from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
 from .tuilib.modals.index_menu import IndexMenuScreen
@@ -122,8 +122,6 @@ class InstruktApp(App[None]):
     AUTO_FOCUS = "StartupMenu ListView"
 
 
-    context: Context = Context()
-
     class Ready(Message):
         pass
 
@@ -137,6 +135,8 @@ class InstruktApp(App[None]):
         super().__init__(*args, **kwargs)
         self.cmd_handler = root_cmd
         #HACK: is this the right way to store a global context ?
+        self.context = context_var.get()
+        assert self.context is not None
         self.context.app = self
         self.agent_manager: AgentManager = AgentManager(self.context)
         self._ishell: InteractiveShellEmbed = None

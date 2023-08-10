@@ -27,6 +27,7 @@ from typing import Any, NamedTuple, Optional
 from pydantic import BaseModel, Field, validator
 
 from .loaders import LOADER_MAPPINGS
+from ..config import APP_SETTINGS
 from .embeddings import Embedding, EMBEDDINGS
 from langchain.embeddings.base import Embeddings
 
@@ -43,6 +44,11 @@ class EmbeddingDetails(NamedTuple):
     model_name: str | None = None
     extra: dict[str, t.Any] = {}
     """extra information about this embedding"""
+
+    @property
+    def fn_short(self) -> str:
+        """Shortened functipn name."""
+        return self.embedding_fn_cls.split(".")[-1]
 
 
 def v_non_empty_field(fname: str, v: t.Sequence[t.Any]) -> Any:
@@ -114,7 +120,7 @@ class Index(BaseModel):
                     f"Invalid Embedding type: {v}\n "
                     f" Should be one of {list(EMBEDDINGS.keys())}\n"
                     )
-        if v == "openai":
+        if v == "openai" and not APP_SETTINGS.has_openai:
             raise ValueError("OpenAI API key not set")
         return v
 

@@ -18,13 +18,16 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
+import asyncio
 import typing as t
+from contextvars import copy_context
+from functools import partial
 from itertools import chain
 from pathlib import Path
 
 from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
 from pydantic import ValidationError
-from textual import on, work
+from textual import events, on, work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, VerticalScroll
 from textual.message import Message
@@ -33,6 +36,7 @@ from textual.timer import Timer
 from textual.widgets import Button, Input, Select
 from textual.worker import Worker
 
+from ...context import context_var, index_manager_var
 from ...indexes.embeddings import EMBEDDINGS
 from ...indexes.loaders import LOADER_MAPPINGS
 from ...indexes.schema import Index
@@ -49,9 +53,12 @@ from ...types import InstruktDomNodeMixin
 from ...workers import WorkResultMixin
 
 if t.TYPE_CHECKING:
+    import contextvars
+
     from textual.dom import DOMNode
 
     from .main import IndexScreen
+
 
 class Debouncer:
 
@@ -297,7 +304,7 @@ class CreateIndex(VerticalScroll,
         #                 ])   # type: ignore
 
     def handle_form_errors(self, control: FormControl, form: FormGroup,
-                           invalid: "FormValidity") -> None:
+                           invalid: "FormValidity[FormGroup]") -> None:
         assert invalid.error is not None
         errors = invalid.error.errors()
         for e in errors:
@@ -376,25 +383,11 @@ class CreateIndex(VerticalScroll,
             create_btn.disabled = False
 
         elif state == FormState.PROCESSING:
-            self.log.warning(f"total state is {state}")
-            # submit_label = t.cast(Label, self.query_one("#submit Label"))
-            # submit_label.renderable = CREATING_INDEX_MSG
-            # submit_label.refresh()
-
-            # create_btn = self.query_one("#create-index")
-            # create_btn.display = False
-            # self.query_one(LoadingIndicator).display = True
-            # for form in self.query(FormGroup):
-            #     form.display = False
+            self.log.debug(f"total state is {state}")
         elif state == FormState.CREATED:
-            self.log.warning(f"total state is {state}")
+            self.log.debug(f"total state is {state}")
             self.reset_form()
         else:
-            # self.log.warning(f"total state is {state}")
-            # submit_label = t.cast(Label, self.query_one("#submit Label"))
-            # submit_label.renderable = DEFAULT_NEW_INDEX_MSG
-            # submit_label.refresh()
-
             self.screen.query_one("Button#create").disabled = True
 
     def reset_form(self) -> None:
@@ -460,11 +453,10 @@ class CreateIndex(VerticalScroll,
 
             self._on_new_index_validated(event.worker.result)
 
-        # if self.work_success("create_index", event):
-        # self.log.debug("index created work handler !")
-        # successs means worker success
+        if self.work_success("create_index", event):
+            self.log.debug("index created work handler !")
+            # successs means worker success
 
-    @work(exclusive=True, thread=True)
     async def create_index(self) -> None:
         """Create the index, this is a slow operation"""
         if self.state != FormState.VALID:
@@ -472,14 +464,23 @@ class CreateIndex(VerticalScroll,
         new_index = Index(**self.new_index.dict())
         self.log.info(f"Creating index\n{new_index}")
         self.state = FormState.PROCESSING
-        idx_mg = self._app.context.index_manager
         #TODO!: better notification ux
-        notif = self.app.call_from_thread(self.notify,
-                                          "creating index ...",
-                                          timeout=9999)
-        await idx_mg.create(self._app.context, new_index)
-        self.post_message(self.Status(FormState.CREATED))
-        self.app.call_from_thread(self.app.unnotify, notif)
+        notif = self.notify("creating index ...", timeout=9999)
+        ctx = copy_context()
+
+        async def _create_index_worker(ctx: 'contextvars.Context', new_index):
+            im = ctx.run(index_manager_var.get)
+            assert im is not None
+            await im.create(ctx, new_index)
+            self.post_message(self.Status(FormState.CREATED))
+            self.app.log("TODO: FormState.CREATED")
+            self.app.call_from_thread(self.app.unnotify, notif)
+
+        worker = partial(_create_index_worker, ctx, new_index)
+        self.app.run_worker(worker,
+                            thread=True,
+                            name="create_index",
+                            description="create vectorstore index")
 
     @on(Button.Pressed, "#browse-path")
     async def browse_path(self, event: Button.Pressed) -> None:

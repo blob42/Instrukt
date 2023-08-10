@@ -19,19 +19,19 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 from enum import Enum
-from typing import Any, Sequence, TypeVar, Generic
+from typing import Any, Generic, Sequence, TypeVar
 
 from pydantic.error_wrappers import ValidationError
-from rich.text import Text
 from rich.columns import Columns
+from rich.text import Text
+from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import Container
+from textual.css.query import DOMQuery
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Label, Input, Select
-from textual.css.query import DOMQuery
-from textual import events, on
+from textual.widgets import Input, Label, Select
 
 
 class FormState(Enum):
@@ -45,6 +45,7 @@ class FormState(Enum):
 
 F = TypeVar('F')
 
+
 class FormValidity(Generic[F]):
 
     def __init__(self,
@@ -55,7 +56,7 @@ class FormValidity(Generic[F]):
         self.value = bool(value)
         self.error = error
 
-    def __call__(self) -> "FormValidity":
+    def __call__(self) -> "FormValidity[F]":
         return self
 
     def __bool__(self) -> bool:
@@ -144,6 +145,7 @@ class FormControl(Container):
     FormControl {
         height: auto;
         margin: 1 0;
+        border-bottom: solid $panel;
     }
 
     FormControl Label {
@@ -175,7 +177,6 @@ class FormControl(Container):
         self.__children = children
         self.lbl = Label(self._build_label())
 
-
     def _build_label(self, err: str | None = None) -> str:
         label = f"{self.label}"
         if self.required and err is None:
@@ -199,7 +200,8 @@ class FormControl(Container):
         """Return inner controls of the form control"""
         assert self.parent is not None
         _controls = self.parent.query("FormControl *")
+
         def wanted(c):
             return type(c) in (Input, Select)
-        return list(filter(wanted, _controls))
 
+        return list(filter(wanted, _controls))

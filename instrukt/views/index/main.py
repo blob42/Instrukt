@@ -50,6 +50,7 @@ from ...tuilib.widgets.listview import ListView
 from ...tuilib.widgets.spinner import AsyncDataContainer, FutureLabel
 from ...types import InstruktDomNodeMixin
 from .create import CreateIndex
+from ...context import index_manager_var
 
 if t.TYPE_CHECKING:
     from typing_extensions import Self
@@ -112,6 +113,12 @@ class IndexList(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
         elif lv.index == 0:
             lv.action_select_cursor()
 
+    def new_index(self) -> None:
+        """Activates the New entry"""
+        lv = self.query_one(ListView)
+        lv.index = len(lv) - 1
+        lv.action_select_cursor()
+
     def compose(self) -> ComposeResult:
         self.fetch_collections()
         yield Label("Collections", classes="header")
@@ -127,18 +134,25 @@ class IndexList(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
             self.screen.remove_class("--create-form")
             info = self.screen.query_one(IndexInfo)
             info.collection = event.item.collection
+            lv = self.query_one(ListView)
+            lv.action_select_cursor()
         else:
-            # show the create index form
+            self.screen.query_one(IndexConsole).minimize()
             self.screen.add_class("--create-form")
+            # show the create index form
+
+    @on(ListView.Selected)
+    def collection_selected(self, event: ListView.Selected) -> None:
+        if event.item.id == "new":
+            self.screen.add_class("--create-form")
+        else:
+            self.screen.remove_class("--create-form")
 
 
 class IndexDetails(AsyncDataContainer):
 
     def on_mount(self) -> None:
         self.border_title = "index details:"
-
-    def clear(self) -> None:
-        self.log.warning("Not Implemented")
 
 
 class BackupIndexDetails(Static, InstruktDomNodeMixin):
@@ -203,7 +217,7 @@ class IndexConsole(TextLog):
     has_log = var[bool](False)
 
     def on_mount(self) -> None:
-        self.begin_capture_print()
+        self.call_later(self.begin_capture_print)
         self.border_title = "\[c]onsole"
 
     def watch_minimized(self, m: bool) -> None:
@@ -262,13 +276,20 @@ class _IndexDetails:
 
     @property
     def embedding(self) -> EmbeddingDetails:
-        raise NotImplementedError
+        im = index_manager_var.get()
+        return im.get_embedding_fn(self.name)
+
+    @property
+    def error(self) -> str:
+        return self.embedding.extra.get("error", "")
 
 
 class IndexEntry(Horizontal):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.classes = "entry"
+
 
 class IndexInfo(Container, InstruktDomNodeMixin):
 
@@ -280,18 +301,23 @@ class IndexInfo(Container, InstruktDomNodeMixin):
     def compose(self) -> ComposeResult:
         # yield IndexDetails()
         with IndexDetails(classes="--details --container"):
-            yield IndexEntry(
-                    Label("Name:", classes="--label"),
-                    FutureLabel(bind="{X.name}")
-                )
-            yield IndexEntry(
-                    Label("Count:", classes="--label"),
-                    FutureLabel(bind="{X.count}")
-                    )
+            yield IndexEntry(Label("Name:", classes="--label"),
+                             FutureLabel(bind="{X.name}"))
+            yield IndexEntry(Label("Count:", classes="--label"),
+                             FutureLabel(bind="{X.count}"))
             with Horizontal(classes="entry"):
                 yield Label("Type:", classes="--label")
                 yield FutureLabel(bind="{X.type}")
-            # with Horizontal(classes="entry"):
+            yield FutureLabel(label="Embeddings: ",
+                              nospin=True,
+                              bind="{X.error}",
+                              classes="--padding-top-1")
+            with Horizontal(classes="entry"):
+                yield Label("Class:", classes="--label")
+                yield FutureLabel(bind="{X.embedding.fn_short}")
+            with Horizontal(classes="entry"):
+                yield Label("Model:", classes="--label")
+                yield FutureLabel(bind="{X.embedding.model_name}")
 
     async def watch_collection(self, collection: Collection) -> None:
         self.count = -1
@@ -306,22 +332,31 @@ class IndexInfo(Container, InstruktDomNodeMixin):
             get_idx_details())
 
     async def action_delete_collection(self) -> None:
-        idx_name = self.query_one(IndexDetails).collection.name
+        idx_name = self.collection.name
         await self._app.context.index_manager.delete_index(idx_name)
         self.post_message(self.Deleted())
+
+    def clear(self) -> None:
+        self.collection = Collection("", "", {})
 
 
 class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
 
     BINDINGS = [
-        ActionBinding("C", "create_index", "create", variant="success"),
-        ActionBinding("D", "delete_collection", "delete"),
+        ActionBinding("C", "create_index", "reate", btn_id="create",
+                      variant="success"),
+        ActionBinding("D", "delete_collection", "elete", btn_id="delete"),
         ActionBinding(
             "escape",
             "dismiss",
             "dismiss",
             key_display="esc",
         ),
+        ActionBinding("n",
+                      "new_index",
+                      "ew_index",
+                      btn_id="new_index",
+                      key_display="n"),
         Binding("c", "toggle_console", "console", key_display="c")
     ]
 
@@ -333,8 +368,8 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         t.cast('HeaderTitle',
                self.query_one("HeaderTitle")).text = "Index Management"
 
-    def action_create_index(self) -> None:
-        self.query_one(CreateIndex).create_index()
+    async def action_create_index(self) -> None:
+        await self.query_one(CreateIndex).create_index()
 
     def action_toggle_console(self) -> None:
         self.query_one(IndexConsole).toggle_console()
@@ -343,20 +378,18 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         idx_info = self.query_one(IndexInfo)
         self.call_next(idx_info.action_delete_collection)
 
+    def action_new_index(self) -> None:
+        self.query_one(IndexList).new_index()
+
     def compose(self) -> ComposeResult:
         yield Header()
         with Container():
             yield IndexList()
-            # yield Placeholer("progress bar")
             with Grid(id="main"):
                 yield IndexInfo()
                 yield CreateIndex(id="add-index-form")
                 yield IndexConsole(id="idx-console", wrap=True, highlight=True)
                 yield ActionBar()
-        # with Grid(id="content"):
-        #     yield Placeholder("indexes", id="list")
-        #     yield Placeholder("index info", id="details")
-        # yield Footer()
 
     @on(events.ScreenResume)
     def resume_screen(self) -> None:
@@ -380,11 +413,6 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         idx_console.end_capture_print()
         idx_console.clear()
 
-    # def on_index_info_deleted(self, e: Message) -> None:
-    #     e.stop()
-    #     index_list = self.query_one(IndexList)
-    #     index_list.fetch_collections()
-
     @on(IndexInfo.Deleted)
     @on(CreateIndex.Status)
     def msg_handler(self, e: Message) -> None:
@@ -398,10 +426,6 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         if isinstance(e, IndexInfo.Deleted) or is_status_created(e):
             index_list = self.query_one(IndexList)
             self.call_later(index_list.fetch_collections)
-
-            details = self.query_one(IndexDetails)
-            details.clear()
-
             self.query_one(IndexConsole).minimize()
 
         # if is_status_created(e):
@@ -410,15 +434,6 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         #     lv.index = len(lv) - 1
         #     lv.action_select_cursor()
 
-    @on(ListView.Selected)
-    def collection_selected(self, event: ListView.Selected) -> None:
-        if event.item.id != "new":
-            self.query_one(CreateIndex).display = False
-            self.query_one(IndexInfo).display = True
-        else:
-            # show the create index form
-            self.query_one(CreateIndex).display = True
-            self.query_one(IndexInfo).display = False
 
     # def action_quit_index(self):
     #     self.dismiss()

@@ -118,6 +118,7 @@ class FutureLabel(Label, SpinningMixin):
             label: RenderableType = "",
             *,
             spinner: str = "aesthetic",
+            nospin: bool = False,
             future: Awaitable[Any] | None = None,
             **kwargs) -> None:
         """
@@ -129,6 +130,7 @@ class FutureLabel(Label, SpinningMixin):
         """
         self.label = label
         self.bind = bind
+        self.nospin = nospin
         content = self.concat_renderable(self.label, renderable)
         super().__init__(content, **kwargs)
 
@@ -162,7 +164,8 @@ class FutureLabel(Label, SpinningMixin):
             self._label = renderable
 
     def spin(self) -> None:
-        self.spinner = self._spinner
+        if not self.nospin:
+            self.spinner = self._spinner
 
     def track_future(self, fut: Any, update: bool = True):
         """
@@ -257,6 +260,7 @@ class AsyncDataContainer(Static):
         self.resolved = fut.result()
         self.log.debug(f"{self} resolved to data: {self.resolved}")
         children = self.query(FutureLabel)
+        #FIX: glitch momentarly shows wrong model data
         for c in children:
             fstring = f"f'{c.bind}'"
             res = eval(fstring, {}, {'X': self.resolved})

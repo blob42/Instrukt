@@ -22,15 +22,16 @@ class LogCaptureHandler(Handler):
 
     def emit(self, record: LogRecord) -> None:
         """Invoked by logging."""
-        message = self.format(record)
-        try:
-            app = active_app.get()
-            app._print(message)
-        except LookupError:
-            if self._stderr:
-                print(message, file=sys.stderr)
-            elif self._stdout:
-                print(message, file=sys.stdout)
+        if record.levelno >= self.level:
+            message = self.format(record)
+            try:
+                app = active_app.get()
+                app._print(message)
+            except LookupError:
+                if self._stderr:
+                    print(message, file=sys.stderr)
+                elif self._stdout:
+                    print(message, file=sys.stdout)
 
 
 
@@ -40,11 +41,14 @@ def setup_logging():
 
     log_ch.setFormatter(st_filter.formatter)
     log_ch.addFilter(st_filter)
+    log_ch.setLevel(logging.INFO)
+    textual_hdl = TextualHandler()
+    textual_hdl.setLevel(logging.DEBUG)
     # add Textual dev console handler
     logging.basicConfig(
         level="DEBUG",
         # handlers=[TextualHandler(), log_capture_handler],
-        handlers=[log_ch, TextualHandler()],
+        handlers=[log_ch, textual_hdl],
     )
 
     # silence markdown-it

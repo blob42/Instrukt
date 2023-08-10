@@ -1,23 +1,23 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 """Config manager for instrukt"""
 
 import os
@@ -37,6 +37,7 @@ from xdg import BaseDirectory  # type: ignore
 
 from instrukt.context import Context
 from .errors import ConfigError
+from .context import context_var
 
 try:
     import chromadb
@@ -72,6 +73,7 @@ class TUISettings(BaseSettings):
     nerd_fonts: bool = True
     code_block_theme: str = "dracula"
 
+
 class OpenAISettings(BaseSettings):
     """Settings for OpenAI model."""
 
@@ -90,6 +92,7 @@ class OpenAISettings(BaseSettings):
     request_timeout: Optional[Union[float, Tuple[float, float]]] = None
     """Timeout for requests to OpenAI completion API."""
 
+
 class Settings(YamlModelMixin, BaseSettings):  # type: ignore
     """Settings model for Instrukt."""
 
@@ -101,20 +104,14 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
         validate_assignment = True
 
         @classmethod
-        def customise_sources(
-                cls,
-                init_settings,
-                env_settings,
-                file_secret_settings):
+        def customise_sources(cls, init_settings, env_settings,
+                              file_secret_settings):
             """Customise the sources for settings."""
             return (
                 env_settings,
                 init_settings,
                 file_secret_settings,
             )
-
-    #FIXME: Find a way to pass context to the class
-    _ctx: Context = PrivateAttr()
 
     #TODO: move to openai settings class
     openai_api_key: Optional[SecretStr] = Field(
@@ -136,11 +133,10 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
         BaseDirectory.save_cache_path("instrukt"), "cache.sqlite")
 
     llm_errors_logdir: str = os.path.join(
-            BaseDirectory.save_cache_path("instrukt", "llm_errors"))
+        BaseDirectory.save_cache_path("instrukt", "llm_errors"))
 
     # TUI SETTINGS
     interface: TUISettings = Field(default_factory=TUISettings)
-
 
     @root_validator(skip_on_failure=True)
     def validate_config(cls, values):
@@ -159,6 +155,11 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
 
         return values
 
+    @property
+    def has_openai(self) -> bool:
+        """Check if an OpenAI API key is set."""
+        return bool(self.openai_api_key)
+
     @validator("openai_api_key")
     def validate_api_key(cls, v, field):
         """Warning for missing API key."""
@@ -168,32 +169,26 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
                 f"[yellow]`{field.name}`[/] is not set. Some features may not work."
             )
 
-            # avoid duplicate warnings
-            if isinstance(cls._ctx, Context):
-                cls._ctx.notify(warning)
+            ctx = context_var.get()
+
+            if ctx is not None and ctx.app is not None:
+                ctx.app.post_message(warning)
             else:
-                print("[WARNING] `openai_api_key` is not set. Some features may not work.")
+                print(
+                    "[WARNING] `openai_api_key` is not set. Some features may not work."
+                )
 
-            cls._openai_api_key_warning = True   # type: ignore
+            cls._openai_api_key_warning = True  # type: ignore
         return v
-
-    @classmethod
-    def from_context(cls, context: Context, **kwargs) -> 'Settings':
-        cls._ctx = context
-        return cls(**kwargs)
 
 
 class ConfigManager():
 
-    def __init__(self, ctx: Optional[Context] = None, config_file: str = "instrukt.yml"):
+    def __init__(self, config_file: str = "instrukt.yml"):
 
-        self.ctx = ctx
-        if self.ctx is not None:
-            self.config: Settings = Settings.from_context(self.ctx)
-        else:
-            self.config = Settings()   # type: ignore
+        self.config = Settings()  # type: ignore
 
-        if len(self.config.openai_api_key) > 0:
+        if bool(self.config.openai_api_key):
             Settings._openai_api_key_warning = True
 
         self.config_path = os.path.join(
@@ -212,23 +207,21 @@ class ConfigManager():
         if os.path.getsize(self.config_path) == 0:
             raise ConfigError("Config file is empty.")
 
-
         parsed = self.config.parse_file(self.config_path)
         if len(parsed.openai_api_key) == 0:
             parsed = Settings(**parsed.dict())
         self.config = parsed
-        if self.ctx is not None:
-            self.config._ctx = self.ctx
 
     def save_config(self) -> None:
         with open(self.config_path, "w") as f:
-            f.write(self.config.yaml(exclude={'openai_api_key', '_ctx'}))
+            f.write(self.config.yaml(exclude={'openai_api_key'}))
 
     def set(self, key: Any, value: Any):
         setattr(self.config, key, value)
 
     def get(self, key, default=None):
         return getattr(self.config, key, default)
+
 
 # contextless config manager
 CONF_MANAGER = ConfigManager()
@@ -237,4 +230,5 @@ APP_SETTINGS = CONF_MANAGER.config
 if APP_SETTINGS.use_llm_cache:
     import langchain
     from langchain.cache import SQLiteCache
-    langchain.llm_cache = SQLiteCache(database_path=APP_SETTINGS.sqlite_cache_path)
+    langchain.llm_cache = SQLiteCache(
+        database_path=APP_SETTINGS.sqlite_cache_path)

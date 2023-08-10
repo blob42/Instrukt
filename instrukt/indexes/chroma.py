@@ -34,7 +34,8 @@ from typing import (
 
 import chromadb
 from langchain.embeddings import ( HuggingFaceEmbeddings,
-                                    HuggingFaceInstructEmbeddings
+                                    HuggingFaceInstructEmbeddings,
+                                   OpenAIEmbeddings
                                 )
 from langchain.vectorstores import Chroma as ChromaVectorStore
 
@@ -79,7 +80,7 @@ class ChromaWrapper(ChromaVectorStore):
                 model_name=DEFAULT_EMBEDDINGS_MODEL)
 
         #HACK: embedding_fn details are always saved again in the collection metadata
-        #TODO!: should only stored when index is created
+        #TODO: should only stored when index is created
         embedding_fn_fqn = f"{type(embedding_function).__module__}.{type(embedding_function).__name__}"
 
         collection_metadata["embedding_fn"] = embedding_fn_fqn
@@ -87,6 +88,8 @@ class ChromaWrapper(ChromaVectorStore):
         if type(embedding_function) in (HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings):
             collection_metadata["model_name"] = cast(
                 "HuggingFaceEmbeddings", embedding_function).model_name
+        elif type(embedding_function) in (OpenAIEmbeddings,):
+            collection_metadata["model_name"] = cast(OpenAIEmbeddings, embedding_function).model
 
         _kwargs = {
             **kwargs,

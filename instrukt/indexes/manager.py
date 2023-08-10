@@ -20,33 +20,33 @@
 ##
 """Manage underlying indexes."""
 
+import contextvars
+import importlib
+import logging
 import typing as t
 
-import importlib
-import chromadb   # type: ignore
-from chromadb.db.impl.sqlite import SqliteDB   # type: ignore
-
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+import chromadb  # type: ignore
+from chromadb.db.impl.sqlite import SqliteDB  # type: ignore
+from langchain.embeddings import (
+    HuggingFaceEmbeddings,
+    HuggingFaceInstructEmbeddings,
+    OpenAIEmbeddings,
+)
 from langchain.embeddings.base import Embeddings as LcEmbeddings
-from langchain.embeddings import ( OpenAIEmbeddings,
-                                  HuggingFaceEmbeddings,
-                                  HuggingFaceInstructEmbeddings
-                                  )
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pydantic import BaseModel, Field, PrivateAttr
-import logging
 
-from ..config import ChromaSettings, APP_SETTINGS
-from ..context import Context
-from ..indexes.chroma import ChromaWrapper
-from ..indexes.schema import Collection, Index, EmbeddingDetails
-from ..indexes.loaders import get_loader
+from ..config import APP_SETTINGS, ChromaSettings
+from ..context import Context, context_var
 from ..errors import IndexError
+from ..indexes.chroma import ChromaWrapper
+from ..indexes.loaders import get_loader
+from ..indexes.schema import Collection, EmbeddingDetails, Index
 from ..utils.asynctools import run_async
 from .loaders import LOADER_MAPPINGS
 
 if t.TYPE_CHECKING:
     from ..indexes.chroma import TEmbeddings
-
 
 log = logging.getLogger(__name__)
 
@@ -69,15 +69,12 @@ class IndexManager(BaseModel):
         self._indexes: dict[str, ChromaWrapper] = {}
         self._client = chromadb.Client(settings=self.chroma_settings)
 
-    def get_index(
-            self,
-            collection_name: str) -> ChromaWrapper | None:
+    def get_index(self, collection_name: str) -> ChromaWrapper | None:
         """Return the chroma db instance for the given collection name."""
 
         if collection_name is None or collection_name == "":
             # raise ValueError("Collection name must be specified")
             return None
-
 
         if collection_name not in self._indexes:
 
@@ -85,24 +82,31 @@ class IndexManager(BaseModel):
             embedding_inst: TEmbeddings | None = None
             if collection_name in [c.name for c in self.list_collections()]:
                 embedding = self.get_embedding_fn(collection_name)
-                embedding_fn_cls = self.get_embedding_fn_cls(embedding.embedding_fn_cls)
-                if issubclass(embedding_fn_cls, (HuggingFaceEmbeddings,
-                                                 HuggingFaceInstructEmbeddings)):
-                    embedding_inst = embedding_fn_cls(model_name=embedding.model_name)
-                # use default embedding's model name (ie OpenAI ..) 
+                embedding_fn_cls = self.get_embedding_fn_cls(
+                    embedding.embedding_fn_cls)
+                if issubclass(
+                        embedding_fn_cls,
+                    (HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings)):
+                    embedding_inst = embedding_fn_cls(
+                        model_name=embedding.model_name)
+                # use default embedding's model name (ie OpenAI ..)
 
                 # handle openai
                 elif issubclass(embedding_fn_cls, OpenAIEmbeddings):
                     #ensure openai api key is available
-                    if APP_SETTINGS.openai_api_key is None or len(APP_SETTINGS.openai_api_key) == 0:
+                    if APP_SETTINGS.openai_api_key is None or len(
+                            APP_SETTINGS.openai_api_key) == 0:
+                        log.warning(
+                            "This index was created with OpenAIEmbeddings, "
+                            "OpenAI API key required.")
                         return None
                     else:
                         embedding_inst = embedding_fn_cls()  # type: ignore
 
                 else:
-                    raise ValueError("Unknown embedding function used with locally "
-                                     f"stored index {collection_name}.")
-
+                    raise ValueError(
+                        "Unknown embedding function used with locally "
+                        f"stored index {collection_name}.")
 
                 self.chroma_kwargs['embedding_function'] = embedding_inst
 
@@ -113,9 +117,7 @@ class IndexManager(BaseModel):
 
         return self._indexes[collection_name]
 
-    async def aget_index(
-            self,
-            collection_name: str) -> ChromaWrapper | None:
+    async def aget_index(self, collection_name: str) -> ChromaWrapper | None:
         """Async version of get_index."""
         from ..utils.asynctools import run_async
         return await run_async(self.get_index, collection_name)
@@ -125,12 +127,12 @@ class IndexManager(BaseModel):
         """Return the list of loaded indexes."""
         return list(self._indexes.keys())
 
-    async def create(
-            self,
-            ctx: Context,
-            index: Index) -> ChromaWrapper | None:
+    async def create(self, _ctx: contextvars.Context,
+                     index: Index) -> ChromaWrapper | None:
         """Create a new index from the given file or directory path."""
 
+        ctx = _ctx.get(context_var)
+        assert ctx is not None
         ctx.info(f"creating index {index.name} from {index.path}")
 
         #WIP:
@@ -139,7 +141,8 @@ class IndexManager(BaseModel):
             _loader = LOADER_MAPPINGS.get(index.loader_type)
             if _loader is not None:
                 loader_cls, loader_kwargs = _loader
-                loader = loader_cls(index.path, **loader_kwargs)   # type: ignore
+                loader = loader_cls(index.path,
+                                    **loader_kwargs)  # type: ignore
             else:
                 loader = None
         else:
@@ -155,20 +158,21 @@ class IndexManager(BaseModel):
 
         ctx.info(f"loaded {len(docs)} documents")
 
-
         #NOTE: the used embedding function used is stored within the collection metadata
         # at the wrapper level.
 
         self.chroma_kwargs['embedding_function'] = index.embedding_fn
 
+        log.debug(f"chroma kwargs: {self.chroma_kwargs})")
 
-        new_index = ChromaWrapper(self._client,
-                                  collection_name=index.name,
-                                  # embedding_function=index.get_embedding_fn(),
-                                  collection_metadata={
-                                      'description': index.description,
-                                  },
-                                  **self.chroma_kwargs)
+        new_index = ChromaWrapper(
+            self._client,
+            collection_name=index.name,
+            # embedding_function=index.get_embedding_fn(),
+            collection_metadata={
+                'description': index.description,
+            },
+            **self.chroma_kwargs)
 
         ctx.info(f"adding {len(docs)} documents to index")
 
@@ -188,13 +192,12 @@ class IndexManager(BaseModel):
         await index.adelete_collection()
         del self._indexes[name]
 
-
     def list_collections(self) -> t.Sequence[Collection]:
         """List the available index collections."""
         client = chromadb.Client(self.chroma_settings)
 
         #NOTE: this is the offcial API. It's slow because it checks embedding fn
-        return  client.list_collections()
+        return client.list_collections()
 
     def get_embedding_fn(self, col_name: str) -> EmbeddingDetails:
         """Get embedding function as fully qualified class name for the collection.
@@ -207,15 +210,22 @@ class IndexManager(BaseModel):
         log.debug(f"getting embedding fn for collection {col_name}")
         db = SqliteDB(chromadb.System(self.chroma_settings))
 
-            #NOTE: using raw sql
-            # with db.tx() as cur:
-            #     res = cur.execute("""
-            #             SELECT collection_metadata.collection_id, collections.name AS collection_name, collection_metadata.str_value AS embedding_fn FROM collection_metadata INNER JOIN collections ON collection_metadata.collection_id = collections.id WHERE collection_metadata.key = 'embedding_fn'
-            #             """).fetchall()
+        #NOTE: using raw sql
+        # with db.tx() as cur:
+        #     res = cur.execute("""
+        #             SELECT collection_metadata.collection_id,
+        #                       collections.name AS collection_name,
+        #                       collection_metadata.str_value AS embedding_fn
+        #                       FROM collection_metadata 
+        #                       INNER JOIN collections
+        #                       ON collection_metadata.collection_id = collections.id
+        #                       WHERE collection_metadata.key = 'embedding_fn'
+        #             """).fetchall()
 
         cols = db.get_collections(name=col_name)
         if len(cols) == 0:
-            raise ValueError(f"No embedding function found for collection {col_name}")
+            raise ValueError(
+                f"No embedding function found for collection {col_name}")
 
         if len(cols) > 1:
             raise ValueError(f"Multiple collections named {col_name}")
@@ -224,22 +234,23 @@ class IndexManager(BaseModel):
             metadata = cols[0]["metadata"]
             embedding_fn = metadata.get("embedding_fn")
 
-            extra_info=  {}
+            extra_info = {}
             # handle openai missing api key
             if embedding_fn.find("OpenAIEmbeddings") != -1:
                 if APP_SETTINGS.openai_api_key is None or \
                         len(APP_SETTINGS.openai_api_key) == 0:
-                    extra_info = dict(error="[b yellow]missing openai api key ![/]")
+                    extra_info = dict(
+                        error="[b yellow]missing openai api key ![/]")
 
             model_name = metadata.get("model_name")
             return EmbeddingDetails(embedding_fn, model_name, extra_info)
         except IndexError:
             raise IndexError(f"No metadata found for collection {col_name}")
 
-
-    def get_embedding_fn_cls(self, embedding_fqn: str) -> t.Type["TEmbeddings"]:
+    def get_embedding_fn_cls(self,
+                             embedding_fqn: str) -> t.Type["TEmbeddings"]:
         """Get embedding function class for the collection."""
-        embedding_cls =  get_class(embedding_fqn)
+        embedding_cls = get_class(embedding_fqn)
         assert issubclass(embedding_cls, LcEmbeddings)
         return embedding_cls
 
@@ -254,6 +265,7 @@ def get_class(fqn: str) -> t.Type:
         return getattr(module, cls_name)
     except (ImportError, AttributeError) as e:
         raise ImportError(f"Failed to import class {fqn}: {e}")
+
 
 def get_fqn(cls: t.Type[object]) -> str:
     """ Get the fully qualified class name of a given class."""
