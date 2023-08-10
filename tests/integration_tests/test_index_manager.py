@@ -107,7 +107,7 @@ class TestIndexManager:
     @pytest.mark.asyncio
     async def test_delete_index(self, index_manager, ctx, test_idx):
         await test_idx
-        await index_manager.delete_index("test_index")
+        await index_manager.adelete_index("test_index")
         print(index_manager.list_collections())
         assert "test_index" not in [c.name for c in index_manager.list_collections()]
         

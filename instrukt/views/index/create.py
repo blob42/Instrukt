@@ -240,6 +240,7 @@ class CreateIndex(VerticalScroll,
 
     @on(Input.Changed)
     def input_changed(self, event: Input.Changed) -> None:
+        self.log.debug("input changed !")
         event.stop()
         input = event.control
 
@@ -491,7 +492,8 @@ class CreateIndex(VerticalScroll,
             self.log.debug(f"selected path: {path}")
             if path is not None:
                 input = t.cast(Input, self.query_one("Input#path-input"))
-                input.value = str(path)
+                input.value = self.new_index.path = str(path)
+                self.call_later(self.validate_parent_form, input)
             t.cast("IndexScreen", self.screen).reset_form = False
 
         self.app.push_screen(PathBrowserModal(), handle_path)

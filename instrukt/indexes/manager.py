@@ -184,7 +184,7 @@ class IndexManager(BaseModel):
 
         return new_index
 
-    async def delete_index(self, name: str) -> None:
+    async def adelete_index(self, name: str) -> None:
         """Remove the given index."""
         if name not in self._indexes:
             raise IndexError(f"Index {name} not found")

@@ -50,7 +50,7 @@ from ...tuilib.widgets.listview import ListView
 from ...tuilib.widgets.spinner import AsyncDataContainer, FutureLabel
 from ...types import InstruktDomNodeMixin
 from .create import CreateIndex
-from ...context import index_manager_var
+from ...context import index_manager
 
 if t.TYPE_CHECKING:
     from typing_extensions import Self
@@ -276,8 +276,8 @@ class _IndexDetails:
 
     @property
     def embedding(self) -> EmbeddingDetails:
-        im = index_manager_var.get()
-        return im.get_embedding_fn(self.name)
+        with index_manager() as im:
+            return im.get_embedding_fn(self.name)
 
     @property
     def error(self) -> str:
@@ -323,18 +323,19 @@ class IndexInfo(Container, InstruktDomNodeMixin):
         self.count = -1
 
         async def get_idx_details():
-            idx = await self._app.context.index_manager.aget_index(
-                self.collection.name)
-            assert idx is not None
-            return _IndexDetails(idx)
+            with index_manager() as im:
+                idx = await im.aget_index(self.collection.name)
+                assert idx is not None
+                return _IndexDetails(idx)
 
         self.query_one(AsyncDataContainer).future = asyncio.create_task(
             get_idx_details())
 
     async def action_delete_collection(self) -> None:
         idx_name = self.collection.name
-        await self._app.context.index_manager.delete_index(idx_name)
-        self.post_message(self.Deleted())
+        with index_manager() as im:
+            await im.adelete_index(idx_name)
+            self.post_message(self.Deleted())
 
     def clear(self) -> None:
         self.collection = Collection("", "", {})
@@ -369,6 +370,7 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
                self.query_one("HeaderTitle")).text = "Index Management"
 
     async def action_create_index(self) -> None:
+        self.query_one(IndexConsole).open()
         await self.query_one(CreateIndex).create_index()
 
     def action_toggle_console(self) -> None:
@@ -426,13 +428,13 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         if isinstance(e, IndexInfo.Deleted) or is_status_created(e):
             index_list = self.query_one(IndexList)
             self.call_later(index_list.fetch_collections)
-            self.query_one(IndexConsole).minimize()
+
+            #NOTE: auto close index console when switching to it ?
+            # ic = self.query_one(IndexConsole)
+            # self.set_timer(2, ic.minimize)
 
         # if is_status_created(e):
-        #     # select last entry in list
-        #     lv = self.query_one(ListView)
-        #     lv.index = len(lv) - 1
-        #     lv.action_select_cursor()
+        #   ...
 
 
     # def action_quit_index(self):

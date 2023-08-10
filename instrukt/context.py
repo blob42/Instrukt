@@ -22,6 +22,7 @@ import typing as t
 from typing import TYPE_CHECKING
 from contextvars import ContextVar
 import logging
+from contextlib import contextmanager
 
 if TYPE_CHECKING:
 
@@ -41,6 +42,13 @@ context_var: ContextVar['Context | None'] = ContextVar("context", default=None)
 
 log = logging.getLogger(__name__)
 
+
+@contextmanager
+def index_manager() -> t.Generator['IndexManager', None, None]:
+    """Get the index manager."""
+    im =  index_manager_var.get()
+    assert im is not None
+    yield im
 
 #WARN: make sure context is concurrency/thread safe
 class Context():
