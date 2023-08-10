@@ -3,10 +3,16 @@
 import logging
 import os
 import subprocess
+from typing import TYPE_CHECKING
 
 from xdg import BaseDirectory
-
 from ..config import APP_SETTINGS
+
+if TYPE_CHECKING:
+    from debugpy import Endpoint
+
+dap_conn = None
+DAP_PORT = 5678
 
 #DEBUG: used for debugging purposes only
 if APP_SETTINGS.debug:
@@ -16,7 +22,7 @@ if APP_SETTINGS.debug:
         # call a system command `dunstify` to send`
         # subprocess.call(['dunstify', '-u', 'critical', msg])
     import debugpy
-    debugpy.listen(5678)
+    dap_conn  = debugpy.listen(DAP_PORT)
     # debugpy.wait_for_client()
 else:
     def notify(msg: str) -> None:
