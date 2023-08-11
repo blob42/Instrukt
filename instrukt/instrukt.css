@@ -7,6 +7,10 @@
  *
  */
 
+VerticalScroll {
+    scrollbar-size-vertical: 1;
+}
+
 SettingsScreen {
     /* background: red; */
 }
