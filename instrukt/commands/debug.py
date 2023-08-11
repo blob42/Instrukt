@@ -45,6 +45,17 @@ async def stderr(ctx) -> CallbackOutput:
     # return sys.stdin.fileno(), sys.stdout.fileno()
     return sys.stderr
 
+@root.command
+async def toggle_dbg(ctx) -> CallbackOutput:
+    """Deactivate debug mode."""
+    from instrukt.config import APP_SETTINGS
+    if APP_SETTINGS.debug:
+        APP_SETTINGS.debug = False
+        return CmdLog("debug mode deactivated")
+
+    APP_SETTINGS.debug = True
+    return CmdLog("debug mode activated")
+
 
 @root.command
 async def dap(ctx) -> CallbackOutput:
