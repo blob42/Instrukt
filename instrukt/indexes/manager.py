@@ -33,7 +33,6 @@ from langchain.embeddings import (
     OpenAIEmbeddings,
 )
 from langchain.embeddings.base import Embeddings as LcEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pydantic import BaseModel, Field, PrivateAttr
 
 from ..config import APP_SETTINGS, ChromaSettings
@@ -110,6 +109,7 @@ class IndexManager(BaseModel):
 
                 self.chroma_kwargs['embedding_function'] = embedding_inst
 
+            log.debug(f"loading index <{collection_name}>")
             self._indexes[collection_name] = ChromaWrapper(
                 self._client,
                 collection_name=collection_name,
@@ -154,6 +154,7 @@ class IndexManager(BaseModel):
         # naive implementation of doc loading
         #TODO!: cutomize splitting/chunking heuristics per loader/data type
         #TODO!: implement custom parallel directory loader
+
         docs = await run_async(loader.load_and_split)
 
         ctx.info(f"loaded {len(docs)} documents")
@@ -207,7 +208,6 @@ class IndexManager(BaseModel):
         Returns:
             (embedding_fn_cls, Optional[model_name])
         """
-        log.debug(f"getting embedding fn for collection {col_name}")
         db = SqliteDB(chromadb.System(self.chroma_settings))
 
         #NOTE: using raw sql

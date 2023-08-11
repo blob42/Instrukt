@@ -3,6 +3,9 @@
 ##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
 ##
+##  Adapted from the work of AstraLuma: 
+##  https://github.com/AstraLuma/nat20/blob/trunk/pixelize/junk_drawer.py
+##
 ##  This file is part of Instrukt.
 ##
 ##  This program is free software: you can redistribute it and/or modify it under
@@ -87,23 +90,6 @@ class SpinningMixin(Widget):
             cur_frame = int(
                 (time.monotonic() / self.auto_refresh) % len(self._frames))
             return self._frames[cur_frame]
-
-
-class _Spinner(SpinningMixin, Static):
-    """
-    Alternate impl of spinner
-    """
-
-    def __init__(self, /, spinner: str = 'point', **kwargs):
-        super().__init__(**kwargs)
-        self.spinner = spinner
-
-    def __rich_repr__(self) -> rich.repr.Result:
-        yield from super().__rich_repr__()
-        yield "spinner", self.spinner
-
-    def render(self) -> RenderResult:
-        return self.get_spin_frame() or ""
 
 
 class FutureLabel(Label, SpinningMixin):
