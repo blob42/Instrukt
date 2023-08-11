@@ -402,7 +402,7 @@ class CreateIndex(VerticalScroll,
             input.value = ""
         self.state = FormState.INITIAL
 
-    @work(exclusive=True, thread=True, name="validate_new_index")
+    @work(exclusive=True, thread=True, name="validate_new_index", exit_on_error=False)
     def __validate_new_index(self, form: FormGroup) -> FormValidity[FormGroup]:
         """Validates the new_index form data"""
         try:
@@ -448,7 +448,11 @@ class CreateIndex(VerticalScroll,
         self._debouncer.call(self.update_state)
 
     @on(Worker.StateChanged)
-    def _on_work_done(self, event: Worker.StateChanged) -> None:
+    def _on_work_change(self, event: Worker.StateChanged) -> None:
+        #TODO!: handle error state at app level
+        # from textual.worker import WorkerState
+        # if event.worker.state == WorkerState.ERROR:
+        # ...
 
         if self.work_success("validate_new_index", event):
             if event.worker.result is None:
@@ -460,6 +464,7 @@ class CreateIndex(VerticalScroll,
         if self.work_success("create_index", event):
             self.log.debug("index created work handler !")
             # successs means worker success
+
 
     async def create_index(self) -> None:
         """Create the index, this is a slow operation"""
