@@ -19,12 +19,14 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 import asyncio
+from asyncio.locks import Lock
 import re
 import typing as t
 from dataclasses import dataclass
 from itertools import chain
 from typing import Optional, Sequence
 
+from rich.console import RenderableType
 from textual import events, on
 from textual.app import ComposeResult, RenderResult
 from textual.binding import Binding
@@ -210,6 +212,22 @@ class BackupIndexDetails(Static, InstruktDomNodeMixin):
         else:
             self.collection_type = type(idx).__name__
 
+class ConsoleHeader(Horizontal):
+    
+    minimized = var[bool](False)
+
+    def compose(self) -> ComposeResult:
+        self.label =  Label("\[c]onsole", classes="console--label")
+        self.message =  Label(classes="console--msg")
+        yield self.label
+        yield self.message
+
+    def update_label(self, content: RenderableType) -> None:
+        self.label.update(content)
+
+    def update_msg(self, content: RenderableType) -> None:
+        self.message.update(content)
+
 
 class IndexConsole(TextLog):
 
@@ -217,14 +235,27 @@ class IndexConsole(TextLog):
     has_log = var[bool](False)
 
     def on_mount(self) -> None:
+        self.minimize()
         self.call_later(self.begin_capture_print)
-        self.border_title = "\[c]onsole"
+
+    def compose(self) -> ComposeResult:
+        self.header = ConsoleHeader()
+        yield self.header
+        self.tl = TextLog(wrap=True, highlight=True)
+        yield self.tl
 
     def watch_minimized(self, m: bool) -> None:
         if m and self.has_log:
-            self.border_title = "\[c]onsole [b yellow][/]"
+            # self.border_title = "\[c]onsole [b yellow][/]"
+            self.query_one(ConsoleHeader).update_label("\[c]onsole [b yellow][/]")
         else:
-            self.border_title = "\[c]onsole"
+            self.query_one(ConsoleHeader).update_label("\[c]onsole")
+
+    def watch_has_log(self, m: bool) -> None:
+        if m:
+            self.query_one(ConsoleHeader).update_label("\[c]onsole [b yellow][/]")
+        else:
+            self.query_one(ConsoleHeader).update_label("\[c]onsole")
 
     def on_print(self, event: events.Print) -> None:
         text = event.text
@@ -233,12 +264,14 @@ class IndexConsole(TextLog):
         text = re.sub(ANSI_ESCAPE_RE, "", text, flags=re.MULTILINE)
 
         if len(text) > 0:
-            self.write(text, expand=True)
+            self.tl.write(text, expand=True)
             self.has_log = True
+            if self.minimized:
+                self.open()
 
-    def clear(self) -> "Self":
+    def clear(self):
         self.has_log = False
-        return super().clear()
+        return self.tl.clear()
 
     def on_click(self, event: events.Click) -> None:
         self.toggle_console()
@@ -253,6 +286,25 @@ class IndexConsole(TextLog):
     def open(self) -> None:
         self.remove_class("--minimize")
         self.minimized = False
+
+    def is_empty(self) -> bool:
+        return len(self.tl.lines) == 0
+
+    def update_msg(self, content: RenderableType) -> None:
+        self.header.update_msg(content)
+
+    def clear_msg(self) -> None:
+        self.header.update_msg("")
+
+    @on(events.ScreenResume)
+    def on_resume(self, event: events.ScreenResume) -> None:
+        self.begin_capture_print()
+
+    @on(events.ScreenSuspend)
+    def on_suspend(self, event: events.ScreenSuspend) -> None:
+        self.end_capture_print()
+        self.clear()
+        self.minimize()
 
 
 @dataclass(frozen=True)
@@ -293,6 +345,8 @@ class IndexEntry(Horizontal):
 
 class IndexInfo(Container, InstruktDomNodeMixin):
 
+    _lock: asyncio.Lock = Lock()
+
     collection: reactive[Collection] = reactive(Collection("", "", {}))
 
     class Deleted(Message):
@@ -323,10 +377,11 @@ class IndexInfo(Container, InstruktDomNodeMixin):
         self.count = -1
 
         async def get_idx_details():
-            with index_manager() as im:
-                idx = await im.aget_index(self.collection.name)
-                assert idx is not None
-                return _IndexDetails(idx)
+            async with self._lock:
+                with index_manager() as im:
+                    idx = await im.aget_index(self.collection.name)
+                    assert idx is not None
+                    return _IndexDetails(idx)
 
         self.query_one(AsyncDataContainer).future = asyncio.create_task(
             get_idx_details())
@@ -390,7 +445,7 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
             with Grid(id="main"):
                 yield IndexInfo()
                 yield CreateIndex(id="add-index-form")
-                yield IndexConsole(id="idx-console", wrap=True, highlight=True)
+                yield IndexConsole(id="idx-console")
                 yield ActionBar()
 
     @on(events.ScreenResume)
@@ -407,13 +462,12 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
 
         # begin console capture
         idx_console = self.query_one(IndexConsole)
-        idx_console.begin_capture_print()
+        idx_console.post_message(events.ScreenResume())
 
     @on(events.ScreenSuspend)
     def suspend_screen(self) -> None:
         idx_console = self.query_one(IndexConsole)
-        idx_console.end_capture_print()
-        idx_console.clear()
+        idx_console.post_message(events.ScreenSuspend())
 
     @on(IndexInfo.Deleted)
     @on(CreateIndex.Status)
@@ -433,8 +487,13 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
             # ic = self.query_one(IndexConsole)
             # self.set_timer(2, ic.minimize)
 
-        # if is_status_created(e):
+        if is_status_created(e):
+            self.query_one(IndexConsole).clear_msg()
         #   ...
+
+    @on(CreateIndex.Creating)
+    def _creating_index(self) -> None:
+        self.query_one(IndexConsole).update_msg("creating index ...")
 
 
     # def action_quit_index(self):

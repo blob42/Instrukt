@@ -74,24 +74,48 @@ IndexScreen IndexConsole {
     dock: bottom;
     offset: -1 0;
     margin-left: 1;
-    border-top: panel $success 70%;
-    border-title-color: $foreground;
     margin-top: 1;
     margin-bottom: 1;
     background: $panel 80%;
-    color: $foreground 70%;
-    padding: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
     height: auto;
     max-height: 30vh;
-    scrollbar-size: 1 1;
+    overflow-y: hidden;
+}
+
+IndexConsole TextLog {
     scrollbar-color: $success 70%;
+    scrollbar-size: 1 1;
+    color: $foreground 70%;
+    padding: 1;
+    padding-right: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+
 }
 
 IndexConsole.--minimize {
     height: 1;
     padding: 0;
+}
+
+IndexConsole ConsoleHeader {
+    background: $success 70%;
+    height: 1;
+}
+
+ConsoleHeader .console--label {
+    /* background: blue; */
+    color: $foreground;
+    padding-left: 1;
+    padding-right: 1;
+}
+ConsoleHeader .console--msg {
+    /* background: pink; */
+    padding-right: 1;
+    background: $panel;
+    color: $warning;
+    width: 4fr;
+    text-align: right;
 }
 
 IndexScreen Button#console {
@@ -215,3 +239,4 @@ IndexList ListItem {
 #add-index-form.processing FormGroup {
     display: none;
 }
+

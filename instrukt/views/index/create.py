@@ -128,6 +128,9 @@ class CreateIndex(VerticalScroll,
             super().__init__()
             self.state = state
 
+    class Creating(Message):
+        pass
+
     def update_state(self) -> None:
         """Compute final form state from sub FormGroup states."""
         # self.log.debug("updating state")
@@ -464,9 +467,8 @@ class CreateIndex(VerticalScroll,
             return
         new_index = Index(**self.new_index.dict())
         self.log.info(f"Creating index\n{new_index}")
+        self.post_message(self.Creating())
         self.state = FormState.PROCESSING
-        #TODO!: better notification ux
-        notif = self.notify("creating index ...", timeout=9999)
         ctx = copy_context()
 
         async def _create_index_worker(ctx: 'contextvars.Context', new_index):
@@ -475,13 +477,13 @@ class CreateIndex(VerticalScroll,
             await im.create(ctx, new_index)
             self.post_message(self.Status(FormState.CREATED))
             self.app.log("TODO: FormState.CREATED")
-            self.app.call_from_thread(self.app.unnotify, notif)
 
         worker = partial(_create_index_worker, ctx, new_index)
         self.app.run_worker(worker,
                             thread=True,
                             name="create_index",
-                            description="create vectorstore index")
+                            description="create vectorstore index",
+                            exit_on_error=False)
 
     @on(Button.Pressed, "#browse-path")
     async def browse_path(self, event: Button.Pressed) -> None:
