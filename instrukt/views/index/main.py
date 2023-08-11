@@ -233,6 +233,7 @@ class IndexConsole(TextLog):
 
     minimized = var[bool](False)
     has_log = var[bool](False)
+    user_minimzed = var[bool](False)
 
     def on_mount(self) -> None:
         self.minimize()
@@ -266,7 +267,7 @@ class IndexConsole(TextLog):
         if len(text) > 0:
             self.tl.write(text, expand=True)
             self.has_log = True
-            if self.minimized:
+            if self.minimized and not self.user_minimzed:
                 self.open()
 
     def clear(self):
@@ -274,10 +275,12 @@ class IndexConsole(TextLog):
         return self.tl.clear()
 
     def on_click(self, event: events.Click) -> None:
-        self.toggle_console()
+        self.toggle_console(True)
 
-    def toggle_console(self) -> None:
+    def toggle_console(self, user: bool = False) -> None:
         self.open() if self.minimized else self.minimize()
+        if user:
+            self.user_minimzed = True
 
     def minimize(self) -> None:
         self.add_class("--minimize")
@@ -299,6 +302,7 @@ class IndexConsole(TextLog):
     @on(events.ScreenResume)
     def on_resume(self, event: events.ScreenResume) -> None:
         self.begin_capture_print()
+        self.user_minimzed = False
 
     @on(events.ScreenSuspend)
     def on_suspend(self, event: events.ScreenSuspend) -> None:
@@ -413,7 +417,7 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
                       "ew_index",
                       btn_id="new_index",
                       key_display="n"),
-        Binding("c", "toggle_console", "console", key_display="c")
+        Binding("c", "toggle_console(user=True)", "console", key_display="c")
     ]
 
     AUTO_FOCUS = "IndexList ListView"
