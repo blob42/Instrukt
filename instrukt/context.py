@@ -32,16 +32,8 @@ if TYPE_CHECKING:
     from .messages.log import MsgType
     from .types import AnyMessage
 
-context: ContextVar['Context'] = ContextVar('context')
 index_manager_var: ContextVar['IndexManager | None'] = ContextVar(
     "index_manager", default=None)
-config_manager_var: ContextVar['ConfigManager | None'] = ContextVar(
-    "config_manager", default=None)
-
-context_var: ContextVar['Context | None'] = ContextVar("context", default=None)
-
-log = logging.getLogger(__name__)
-
 
 @contextmanager
 def index_manager() -> t.Generator['IndexManager', None, None]:
@@ -50,17 +42,31 @@ def index_manager() -> t.Generator['IndexManager', None, None]:
     assert im is not None
     yield im
 
+
+# global context
+context_var: ContextVar['Context | None'] = ContextVar("context", default=None)
+
+@contextmanager
+def global_context() -> t.Generator['Context', None, None]:
+    """Get the context."""
+    ctx = context_var.get()
+    assert ctx is not None
+    yield ctx
+
+log = logging.getLogger(__name__)
+
+
 #WARN: make sure context is concurrency/thread safe
 class Context():
     """Stores a reference to textual App context"""
 
-    def __init__(self) -> None:
-        from .config import ConfigManager
-        from .indexes.manager import IndexManager
+    # def __init__(self) -> None:
+        # from .config import ConfigManager
+        # from .indexes.manager import IndexManager
 
-        self.config_manager = ConfigManager()
-        self.index_manager = IndexManager(
-            chroma_settings=self.config_manager.config.chroma, )
+        # self.config_manager = ConfigManager()
+        # self.index_manager = IndexManager(
+        #     chroma_settings=self.config_manager.config.chroma, )
 
     def __repr__(self):
         return f"Context(app={self.app})"
@@ -95,13 +101,25 @@ class Context():
     @property
     def config_manager(self) -> 'ConfigManager':
         """The config_manager property."""
-        cm = config_manager_var.get()
-        assert cm is not None, "config_manager is None"
-        return cm
+        assert self._config_manager is not None
+        return self._config_manager
 
     @config_manager.setter
     def config_manager(self, value):
-        config_manager_var.set(value)
+        self._config_manager = value
+
+    # @property
+    # def config_manager(self) -> 'ConfigManager':
+    #     """The config_manager property."""
+    #     cm = config_manager_var.get()
+    #     assert cm is not None, "config_manager is None"
+    #     return cm
+
+    # @config_manager.setter
+    # def config_manager(self, value):
+    #     config_manager_var.set(value)
+
+
 
     @property
     def cm(self) -> 'ConfigManager':
@@ -131,4 +149,12 @@ class Context():
         self.app.post_message(LogMessage.info(message))
 
 
-context_var.set(Context())
+def init_context() -> None:
+    """Initialize the context."""
+    from .config import CONF_MANAGER
+    from .indexes.manager import IndexManager
+    ctx = Context()
+    ctx.config_manager = CONF_MANAGER
+    ctx.index_manager = IndexManager(
+        chroma_settings=CONF_MANAGER.config.chroma, )
+    context_var.set(ctx)

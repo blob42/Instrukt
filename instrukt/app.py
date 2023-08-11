@@ -44,7 +44,6 @@ from .agent.base import InstruktAgent
 from .agent.manager import AgentManager
 from .commands.command import CmdLog
 from .commands.root_cmd import ROOT as root_cmd
-from .context import context_var
 from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
 from .tuilib.modals.index_menu import IndexMenuScreen
@@ -55,6 +54,8 @@ from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
 from .views.index import IndexScreen
 from .views.keybindings import KeyBindingsScreen
 from .views.man import ManualScreen
+from .context import context_var, init_context
+
 
 _loop = _asyncio.get_event_loop()
 _nest_asyncio.apply(_loop)
@@ -352,3 +353,5 @@ def run():
 
 if __name__ == "__main__":
     run()
+
+init_context()

@@ -35,9 +35,7 @@ from pydantic import (
 from pydantic_yaml import YamlModelMixin
 from xdg import BaseDirectory  # type: ignore
 
-from instrukt.context import Context
 from .errors import ConfigError
-from .context import context_var
 
 try:
     import chromadb
@@ -165,6 +163,7 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
         """Warning for missing API key."""
         from instrukt.messages.log import LogMessage
         if not v and not cls._openai_api_key_warning:
+            from .context import context_var
             warning = LogMessage.warning(
                 f"[yellow]`{field.name}`[/] is not set. Some features may not work."
             )
@@ -223,7 +222,6 @@ class ConfigManager():
         return getattr(self.config, key, default)
 
 
-# contextless config manager
 CONF_MANAGER = ConfigManager()
 APP_SETTINGS = CONF_MANAGER.config
 
