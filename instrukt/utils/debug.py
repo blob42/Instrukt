@@ -21,8 +21,8 @@ if APP_SETTINGS.debug:
         pass
         # call a system command `dunstify` to send`
         # subprocess.call(['dunstify', '-u', 'critical', msg])
-    import debugpy
-    dap_conn  = debugpy.listen(DAP_PORT)
+    # import debugpy
+    # dap_conn  = debugpy.listen(DAP_PORT)
     # debugpy.wait_for_client()
 else:
     def notify(msg: str) -> None:

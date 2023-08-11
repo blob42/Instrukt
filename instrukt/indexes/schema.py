@@ -129,4 +129,3 @@ class Index(BaseModel):
         """Get the embedding function"""
         embedding = EMBEDDINGS[self.embedding]
         return embedding.fn(**embedding.kwargs)
-
