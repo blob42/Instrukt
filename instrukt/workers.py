@@ -29,3 +29,7 @@ class WorkResultMixin:
         """Returns whether the worker named `name` has succeeded."""
         return name == e.worker.name and e.state == WorkerState.SUCCESS
 
+    def work_error(self, name: str, e: Worker.StateChanged) -> bool:
+        """Returns whether the worker named `name` has errored."""
+        return name == e.worker.name and  e.state == WorkerState.ERROR
+
