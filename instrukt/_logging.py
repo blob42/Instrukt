@@ -5,11 +5,16 @@ import sys
 from textual._context import active_app
 from textual.logging import TextualHandler
 from logging import Handler, LogRecord, Filter
-from .console_capture import ( SentenceTransformersFilter )
-
+from .console_capture import (
+                                SentenceTransformersF,
+                                LangchainF,
+                                InstruktIndexF,
+                                ConsoleFilter
+                            )
 
 # def sentence_transformers_filter(record: LogRecord) -> bool:
 #     return record.name.startswith("sentence_transformers")
+
 
 class LogCaptureHandler(Handler):
     """A Logging handler for Textual apps."""
@@ -22,33 +27,39 @@ class LogCaptureHandler(Handler):
 
     def emit(self, record: LogRecord) -> None:
         """Invoked by logging."""
-        if record.levelno >= self.level:
-            message = self.format(record)
-            try:
-                app = active_app.get()
+        message = self.format(record)
+        try:
+            app = active_app.get()
+        except LookupError:
+            if self._stderr:
+                print(message, file=sys.stderr)
+            elif self._stdout:
+                print(message, file=sys.stdout)
+        else:
+            if record.levelno >= self.level:
                 app._print(message)
-            except LookupError:
-                if self._stderr:
-                    print(message, file=sys.stderr)
-                elif self._stdout:
-                    print(message, file=sys.stdout)
-
+            else:
+                app.log.logging(message)
 
 
 def setup_logging():
     log_ch = LogCaptureHandler()
-    st_filter = SentenceTransformersFilter()
 
-    log_ch.setFormatter(st_filter.formatter)
-    log_ch.addFilter(st_filter)
-    log_ch.setLevel(logging.INFO)
-    textual_hdl = TextualHandler()
-    textual_hdl.setLevel(logging.DEBUG)
+    log_ch.setFormatter(ConsoleFilter.formatter)
+    log_ch.setLevel(logging.DEBUG)
+
+    log_ch.addFilter(
+            SentenceTransformersF() |
+            LangchainF() |
+            InstruktIndexF()
+            )
+
+
     # add Textual dev console handler
     logging.basicConfig(
-        level="DEBUG",
-        # handlers=[TextualHandler(), log_capture_handler],
-        handlers=[log_ch, textual_hdl],
+        level=logging.DEBUG,
+        # handlers=[TextualHandler()],
+        handlers=[log_ch],
     )
 
     # silence markdown-it
@@ -58,6 +69,9 @@ def setup_logging():
     # silence chromadb
     chromadb = logging.getLogger("chromadb")
     chromadb.setLevel("INFO")
+
+    openai = logging.getLogger("openai")
+    openai.setLevel("INFO")
 
 
 ANSI_ESCAPE_RE = r"\x1b\[[AB]"

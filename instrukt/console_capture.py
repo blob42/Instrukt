@@ -31,11 +31,30 @@ class ConsoleFilter(Filter, ABC):
     module: ClassVar[str]
     formatter: ClassVar[Formatter] = Formatter('%(message)s')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.module_filters = [self.module]
+
     def filter(self, record: LogRecord) -> bool:
         """Implements logging.Filter"""
-        return record.name.startswith(self.module)
+        from .config import APP_SETTINGS
+        if APP_SETTINGS.debug:
+            return True
+        return any(record.name.startswith(module) for module in self.module_filters)
+
+    def __or__(self, other):
+        new_filter = self.__class__()
+        new_filter.module_filters = self.module_filters + other.module_filters
+        return new_filter
 
 
-class SentenceTransformersFilter(ConsoleFilter):
-    """Capture sentence_transofmers output."""
+class SentenceTransformersF(ConsoleFilter):
+    """Capture SentenceTransformers output."""
     module = "sentence_transformers"
+
+class LangchainF(ConsoleFilter):
+    """Capture langchain output."""
+    module = "langchain"
+
+class InstruktIndexF(ConsoleFilter):
+    module = "instrukt.indexes"
