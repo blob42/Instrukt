@@ -99,12 +99,12 @@ IndexConsole.--minimize {
 }
 
 IndexConsole ConsoleHeader {
-    background: $success 70%;
+    /* background: $success 70%; */
     height: 1;
 }
 
 ConsoleHeader .console--label {
-    /* background: blue; */
+    background: $foreground 10%;
     color: $foreground;
     padding-left: 1;
     padding-right: 1;
@@ -114,8 +114,24 @@ ConsoleHeader .console--msg {
     padding-right: 1;
     background: $panel;
     color: $warning;
-    width: 4fr;
+    width: 5fr;
     text-align: right;
+    color: $warning;
+}
+
+ConsoleHeader ProgressBar {
+    width: 1fr;
+    padding: 0 2;
+    visibility: hidden;
+}
+
+ConsoleHeader ProgressBar .bar--indeterminate {
+    /* color: $error-lighten-1; */
+    color: $warning;
+}
+
+IndexConsole.--loading ProgressBar {
+    visibility: visible;
 }
 
 IndexScreen Button#console {

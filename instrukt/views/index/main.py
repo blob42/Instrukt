@@ -19,9 +19,9 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 import asyncio
-from asyncio.locks import Lock
 import re
 import typing as t
+from asyncio.locks import Lock
 from dataclasses import dataclass
 from itertools import chain
 from typing import Optional, Sequence
@@ -30,7 +30,7 @@ from rich.console import RenderableType
 from textual import events, on
 from textual.app import ComposeResult, RenderResult
 from textual.binding import Binding
-from textual.containers import Container, Grid, VerticalScroll, Horizontal
+from textual.containers import Container, Grid, Horizontal, VerticalScroll
 from textual.css.query import NoMatches
 from textual.message import Message
 from textual.reactive import reactive, var
@@ -41,9 +41,11 @@ from textual.widgets import (
     ListItem,
     Static,
     TextLog,
+    ProgressBar,
 )
 
 from ..._logging import ANSI_ESCAPE_RE
+from ...context import index_manager
 from ...indexes.chroma import ChromaWrapper
 from ...indexes.schema import Collection, EmbeddingDetails
 from ...tuilib.forms import FormState
@@ -52,7 +54,6 @@ from ...tuilib.widgets.listview import ListView
 from ...tuilib.widgets.spinner import AsyncDataContainer, FutureLabel
 from ...types import InstruktDomNodeMixin
 from .create import CreateIndex
-from ...context import index_manager
 
 if t.TYPE_CHECKING:
     from typing_extensions import Self
@@ -213,14 +214,16 @@ class BackupIndexDetails(Static, InstruktDomNodeMixin):
             self.collection_type = type(idx).__name__
 
 class ConsoleHeader(Horizontal):
-    
+
     minimized = var[bool](False)
 
     def compose(self) -> ComposeResult:
-        self.label =  Label("\[c]onsole", classes="console--label")
-        self.message =  Label(classes="console--msg")
+        self.label = Label("\[c]onsole", classes="console--label")
+        self.message = Label(classes="console--msg")
+        self.progress = ProgressBar(show_eta=False, show_percentage=False)
         yield self.label
         yield self.message
+        yield self.progress
 
     def update_label(self, content: RenderableType) -> None:
         self.label.update(content)
@@ -248,13 +251,15 @@ class IndexConsole(TextLog):
     def watch_minimized(self, m: bool) -> None:
         if m and self.has_log:
             # self.border_title = "\[c]onsole [b yellow][/]"
-            self.query_one(ConsoleHeader).update_label("\[c]onsole [b yellow][/]")
+            self.query_one(ConsoleHeader).update_label(
+                "\[c]onsole [b yellow][/]")
         else:
             self.query_one(ConsoleHeader).update_label("\[c]onsole")
 
     def watch_has_log(self, m: bool) -> None:
         if m:
-            self.query_one(ConsoleHeader).update_label("\[c]onsole [b yellow][/]")
+            self.query_one(ConsoleHeader).update_label(
+                "\[c]onsole [b yellow][/]")
         else:
             self.query_one(ConsoleHeader).update_label("\[c]onsole")
 
@@ -296,8 +301,9 @@ class IndexConsole(TextLog):
     def update_msg(self, content: RenderableType) -> None:
         self.header.update_msg(content)
 
-    def clear_msg(self) -> None:
+    def clear_msg(self) -> "Self":
         self.header.update_msg("")
+        return self
 
     @on(events.ScreenResume)
     def on_resume(self, event: events.ScreenResume) -> None:
@@ -403,7 +409,10 @@ class IndexInfo(Container, InstruktDomNodeMixin):
 class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
 
     BINDINGS = [
-        ActionBinding("C", "create_index", "reate", btn_id="create",
+        ActionBinding("C",
+                      "create_index",
+                      "reate",
+                      btn_id="create",
                       variant="success"),
         ActionBinding("D", "delete_collection", "elete", btn_id="delete"),
         ActionBinding(
@@ -417,7 +426,7 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
                       "ew_index",
                       btn_id="new_index",
                       key_display="n"),
-        Binding("c", "toggle_console(user=True)", "console", key_display="c")
+        Binding("c", "toggle_console(True)", "console", key_display="c")
     ]
 
     AUTO_FOCUS = "IndexList ListView"
@@ -492,13 +501,14 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
             # self.set_timer(2, ic.minimize)
 
         if is_status_created(e):
-            self.query_one(IndexConsole).clear_msg()
+            self.query_one(IndexConsole).clear_msg().remove_class("--loading")
         #   ...
 
     @on(CreateIndex.Creating)
     def _creating_index(self) -> None:
-        self.query_one(IndexConsole).update_msg("creating index ...")
-
+        cl = self.query_one(IndexConsole)
+        cl.update_msg("creating index ...")
+        cl.add_class("--loading")
 
     # def action_quit_index(self):
     #     self.dismiss()
