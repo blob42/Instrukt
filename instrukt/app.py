@@ -99,7 +99,7 @@ class InstruktApp(App[None]):
         Binding("d", "toggle_dark", "dark mode", show=False),
         ("Q", "quit", "exit"),
         Binding("i", "uniq_screen('index_mgmt')", "indexes", key_display="i"),
-        ("slash", "focus_instruct_prompt", "goto prompt"),
+        Binding("slash", "focus_instruct_prompt", "goto prompt"),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),

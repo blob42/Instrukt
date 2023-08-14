@@ -58,7 +58,9 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
     BINDINGS = [
         Binding("up", "history_prev", "previous command", show=False),
         Binding("down", "history_next", "next command", show=False),
-        Binding("ctrl+s", "stop_agent", "stop running agent", show=False)
+        Binding("ctrl+s", "stop_agent", "stop running agent", show=False),
+        Binding("ctrl+e", "external_editor", "external editor", show=True,
+                key_display="ctrl+e")
     ]
 
     class Mode(Enum):
@@ -103,6 +105,35 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
     async def action_history_prev(self) -> None:
         self.value = self.cmd_history.get_previous().entry
         self.call_next(self._update_curosr_pos)
+
+
+    # see https://github.com/Textualize/textual/discussions/165
+    def action_external_editor(self) -> None:
+        """Open an external editor for editing with an optinal starting text."""
+        import tempfile
+        import subprocess
+        import os
+        self.app._driver.stop_application_mode()
+        initial = self.value
+        try:
+            with tempfile.NamedTemporaryFile(mode="w+") as ef:
+                ef.write(initial)
+                ef.flush()
+                # Need to create a separate backup copy
+                # If we don't, the edited text will not be saved into the current file
+                # get EDITOR from env
+                editor = os.environ.get('EDITOR', 'vim')
+                subprocess.call([editor, '+set backupcopy=yes', ef.name])
+                ef.seek(0)
+                input_ = ef.read()
+                self.value = input_.strip()
+                self.call_next(self._update_curosr_pos)
+        finally:
+            self.app.refresh()
+            self.app._driver.start_application_mode()
+
+
+
 
     async def action_history_next(self) -> None:
         self.value = self.cmd_history.get_next().entry
