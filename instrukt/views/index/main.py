@@ -240,7 +240,7 @@ class ConsoleHeader(Horizontal):
         return ProgressBarWrapper(self.progress)
 
 
-class IndexConsole(TextLog):
+class IndexConsole(TextLog, can_focus=False, can_focus_children=False):
 
     minimized = var[bool](False)
     has_log = var[bool](False)
@@ -297,9 +297,12 @@ class IndexConsole(TextLog):
         if user:
             self.user_minimzed = True
 
-    def minimize(self) -> None:
+    def minimize(self, user: bool = False) -> None:
         self.add_class("--minimize")
         self.minimized = True
+        if user:
+            self.user_minimzed = True
+
 
     def open(self) -> None:
         self.remove_class("--minimize")
@@ -421,6 +424,7 @@ class IndexInfo(Container, InstruktDomNodeMixin):
                 await im.adelete_index(idx_name)
                 self.post_message(self.Deleted())
 
+
     def clear(self) -> None:
         self.collection = Collection("", "", {})
 
@@ -442,10 +446,15 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         ),
         ActionBinding("n",
                       "new_index",
-                      "ew_index",
+                      "ew",
                       btn_id="new_index",
                       key_display="n"),
-        Binding("c", "toggle_console(True)", "console", key_display="c")
+        Binding("c", "toggle_console(True)", "console", key_display="c"),
+        ActionBinding("s",
+                      "scan_data",
+                      "can_data",
+                      btn_id="scan_data_btn",
+                      key_display="s"),
     ]
 
     AUTO_FOCUS = "IndexList ListView"
@@ -459,6 +468,9 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
     async def action_create_index(self) -> None:
         self.query_one(IndexConsole).open()
         await self.query_one(CreateIndex).create_index()
+
+    async def action_scan_data(self) -> None:
+        await self.query_one(CreateIndex).scan_data()
 
     def action_toggle_console(self) -> None:
         self.query_one(IndexConsole).toggle_console()

@@ -29,16 +29,22 @@ from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
 from pydantic import ValidationError
 from textual import events, on, work
 from textual.app import ComposeResult
-from textual.containers import Horizontal, VerticalScroll
+from textual.containers import Horizontal, VerticalScroll, Container
 from textual.message import Message
 from textual.reactive import reactive, var
 from textual.timer import Timer
-from textual.widgets import Button, Input, Select
+from textual.widgets import Button, Input, Select, Pretty, Label
 from textual.worker import Worker
 
 from ...context import context_var, index_manager_var
 from ...indexes.embeddings import EMBEDDINGS
-from ...indexes.loaders import LOADER_MAPPINGS
+from ...indexes.loaders import (
+                                LOADER_MAPPINGS,
+                                SuperDirectoryLoader,
+                                src_by_lang,
+                                detect_documents,
+
+                            )
 from ...indexes.schema import Index
 from ...tuilib.forms import (
     FormControl,
@@ -144,7 +150,16 @@ class CreateIndex(VerticalScroll,
 
     # generator for loader type tuples for the Select widget
     def get_loader_types(self):
-        yield from [(v[0].__name__, k) for k, v in LOADER_MAPPINGS.items()]
+        loader_types = []
+        # loader is Tuple(cls, dict, str)
+        for ext, loader in LOADER_MAPPINGS.items():
+            name = loader[0].__name__
+            if loader[2] is not None:
+                name = loader[2]
+            loader_types.append((name, ext))
+
+        yield from loader_types
+        # yield from [(v[0].__name__, k) for k, v in LOADER_MAPPINGS.items()]
 
     def get_embeddings(self):
         for k, v in EMBEDDINGS.items():
@@ -223,7 +238,9 @@ class CreateIndex(VerticalScroll,
                            state=FormState.VALID):
                 yield FormControl(
                     Horizontal(
-                        Select(self.get_loader_types(), id="loader"),
+                        Select(self.get_loader_types(),
+                               prompt="auto detect",
+                               id="loader"),
                         Button("Scan",
                                id="scan",
                                disabled=True,
@@ -231,6 +248,10 @@ class CreateIndex(VerticalScroll,
                     ),
                     label="loader type:",
                 )
+                with VerticalScroll(id="data-loader-details") as vs:
+                    vs.can_focus = False
+                    yield Label("detected content:")
+                    yield Pretty(None)
 
     def parent_form_group(self, elm: "DOMNode") -> t.Optional["DOMNode"]:
         return next(filter(lambda a: isinstance(a, FormGroup), elm.ancestors),
@@ -278,7 +299,10 @@ class CreateIndex(VerticalScroll,
     def select_changed(self, e: Select.Changed) -> None:
         if e.control is not None:
             if e.control.id == "loader":
-                self.new_index.loader_type = str(e.value)
+                if e.value is not None:
+                    self.new_index.loader_type = str(e.value)
+                else:
+                    self.new_index.loader_type = None
 
             elif e.control.id == "embedding-fn":
                 self.embedding = str(e.value)
@@ -383,6 +407,8 @@ class CreateIndex(VerticalScroll,
         if state == FormState.VALID:
             create_btn = self.screen.query_one("Button#create")
             create_btn.disabled = False
+            self.screen.query_one("Button#scan_data_btn").disabled = False
+            self.screen.query_one("Button#scan").disabled = False
 
         elif state == FormState.PROCESSING:
             self.log.debug(f"total state is {state}")
@@ -391,6 +417,9 @@ class CreateIndex(VerticalScroll,
             self.reset_form()
         else:
             self.screen.query_one("Button#create").disabled = True
+            self.screen.query_one("Button#scan_data_btn").disabled = True
+            self.screen.query_one("Button#scan").disabled = True
+
 
     def reset_form(self) -> None:
         self.new_index = Index.construct()
@@ -502,3 +531,36 @@ class CreateIndex(VerticalScroll,
             t.cast("IndexScreen", self.screen).reset_form = False
 
         self.app.push_screen(PathBrowserModal(), handle_path)
+
+    #HACK: clean and refactor
+    @on(Button.Pressed, "#scan, #scan_data_btn")
+    async def scan_data(self, event: Button.Pressed | None = None) -> None:
+        if self.state != FormState.VALID:
+            return
+        console = self.screen.query_one("IndexConsole")
+        cheader = console.header
+        console.minimize(True)
+        console.add_class("--loading")
+        pbar = console.pbar
+        new_index = Index(**self.new_index.dict())
+        im = index_manager_var.get()
+        assert im is not None
+        loader = im.get_loader(new_index)
+        if not isinstance(loader, SuperDirectoryLoader):
+            return
+        assert isinstance(loader, SuperDirectoryLoader)
+        cheader.set_msg("loading data ...")   # type: ignore
+        docs_work = self.run_worker(lambda: loader.load_parallel(pbar), thread=True)
+        docs = await docs_work.wait()
+        cheader.set_msg("scanning data ...")   # type: ignore
+        # docs = loader.load_parallel(pbar)
+        fi = detect_documents(docs)
+        doc_stats = {k: len(v) for k,v in src_by_lang(fi).items()}
+        self.query_one(Pretty).update(doc_stats)
+        self.query_one("VerticalScroll.--container").scroll_end()
+        console.remove_class("--loading")
+        cheader.progress.update(progress=0)
+        cheader.progress.refresh()
+        cheader.set_msg("")
+
+

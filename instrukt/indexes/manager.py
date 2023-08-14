@@ -128,19 +128,11 @@ class IndexManager(BaseModel):
         """Return the list of loaded indexes."""
         return list(self._indexes.keys())
 
-    async def create(self, _ctx: contextvars.Context,
-                     index: Index) -> ChromaWrapper | None:
-        """Create a new index from the given file or directory path."""
-
-        ctx = _ctx.get(context_var)
-        assert ctx is not None
-
-        #WIP:
-        # if index.type is defined use specified loader
+    def get_loader(self, index: Index):
         if index.loader_type is not None:
             _loader = LOADER_MAPPINGS.get(index.loader_type)
             if _loader is not None:
-                loader_cls, loader_kwargs = _loader
+                loader_cls, loader_kwargs, _ = _loader
                 loader = loader_cls(index.path,
                                     **loader_kwargs)  # type: ignore
             else:
@@ -150,6 +142,20 @@ class IndexManager(BaseModel):
 
         if loader is None:
             raise IndexError("No loader found for the given path")
+        return loader
+
+
+
+    async def create(self, _ctx: contextvars.Context,
+                     index: Index) -> ChromaWrapper | None:
+        """Create a new index from the given file or directory path."""
+
+        ctx = _ctx.get(context_var)
+        assert ctx is not None
+
+        #WIP:
+        # if index.type is defined use specified loader
+        loader = self.get_loader(index)
 
         #TODO!: cutomize splitting/chunking heuristics per loader/data type
         #TODO!: implement custom parallel directory loader

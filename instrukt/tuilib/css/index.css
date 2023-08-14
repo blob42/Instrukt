@@ -176,12 +176,12 @@ IndexList ListItem {
 
 
 #add-index-form .--container {
+    padding-top: 1;
     height: 1fr;
     scrollbar-size: 1 1;
 }
 
 #add-index-form FormGroup {
-    margin-top: 1;
     margin-left: 1;
     margin-right: 1;
 }
@@ -260,3 +260,19 @@ IndexList ListItem {
     display: none;
 }
 
+#add-index-form #data-loader-details {
+    height: auto;
+    padding-bottom: 3;
+}
+
+/* TODO!: collapsible form groups */
+
+/**/
+/* #add-index-form FormGroup:focus { */
+/*     border-title-style: bold; */
+/* } */
+/**/
+/* #add-index-form FormGroup.--collapsed { */
+/*     height: 2; */
+/*     background: $foreground 10%; */
+/* } */
