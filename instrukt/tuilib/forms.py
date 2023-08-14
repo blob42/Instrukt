@@ -32,6 +32,7 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Input, Label, Select
+from textual import events
 
 
 class FormState(Enum):
@@ -80,6 +81,7 @@ class ValidForm(FormValidity[F]):
         super().__init__(form, True)
 
 
+# class FormGroup(Container, can_focus=True):
 class FormGroup(Container):
 
     DEFAULT_CSS = """
@@ -103,6 +105,7 @@ class FormGroup(Container):
     """
 
     state = reactive(FormState.INITIAL)
+    collapsed = reactive(False)
 
     class Blur(Message):
 
@@ -125,6 +128,7 @@ class FormGroup(Container):
         self.state = state
         self.border_title = border_title
         self.border_subtitle = border_subtitle
+        self._collapsed = False
 
     @on(events.DescendantBlur)
     def descendant_blur(self, event: events.DescendantBlur) -> None:
@@ -137,6 +141,29 @@ class FormGroup(Container):
         else:
             self.remove_class("error")
             self.border_subtitle = ""
+
+    # @on(events.Click)
+    # def toggle_collapse(self, e: events.Click) -> None:
+    #     if not self._collapsed:
+    #         self._collapsed = True
+    #         self.set_styles("height: 0;")
+    #     else:
+    #         self._collapsed = False
+    #         self.set_styles("height: auto;")
+
+    # def watch_collapsed(self, collapsed: bool) -> None:
+    #     if collapsed:
+    #         self.add_class("--collapsed")
+    #     else:
+    #         self.remove_class("--collapsed")
+
+    @on(events.Focus)
+    def uncollapse(self, event: events.Focus) -> None:
+        if self.collapsed:
+            self.collapsed = False
+
+        for sib in self.siblings:
+            sib.collapsed = True
 
 
 class FormControl(Container):
