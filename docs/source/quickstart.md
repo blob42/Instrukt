@@ -22,10 +22,16 @@ Take a look at the `demo` and `chat_qa` agents for examples of how to create you
 
 The interface is divided in two main parts: *The Console Panel* and the *Monitor Panel*
 
-### Console Panel
+### Console-Prompt Panel
 
 Located on the left side of the interface, this is where you interact with the AI agents. It provides a prompt where you can input queries and instructions for the agents to execute.
 Additionally, the prompt serves as a command line REPL to interact with the *Instrukt* environment.
+
+#### Using an External Editor
+
+When the prompt input is focused you can spawn an external editor to edit the input with `ctrl-e`.
+
+If the environment variable `EDITOR` is set, it will be used, otherwise a `vim` is used.
 
 ### Monitor Panel
 On the right side of the interface is the Monitor Panel where you will find the agent output alongside the user messages.
