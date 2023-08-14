@@ -12,13 +12,13 @@ Patreon supporters have access to an early preview of the **Docker Agent**. It p
 
 Instrukt encourages you to create custom workflows with a quick feedback loop while testing agents. The developer console `press D` gives you access to a live IPython console in the running namespace to introspect and debug agents and tools.
 
-### Custom Agents
+## Custom Agents
 
 Instrukt agents are simple python packages stored under the path `$HOME/.config/instrukt/agents`.
 
 You can create your own agents and share them with others. You can also set a custom path in the configuration file `~/.config/instrukt/instrukt.yml`. 
 
-#### Creating a custom agent
+### Creating a custom agent
 
 To define a custom agent you need to:
 
