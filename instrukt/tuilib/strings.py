@@ -76,7 +76,7 @@ You can also load the Instrukt manual by typing `.man`.
 #TODO!: contextual tips 
 TIPS = """
 ## TIPS:
-- You can stop a **thinking** 🤔 agent by pressing `ctrl+s` while in the prompt.
+- You can stop a **thinking** 🤔 agent by pressing `ctrl+s` in the prompt.
 """
 
 AGENT_WINDOW_INTRO = """
