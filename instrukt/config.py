@@ -133,6 +133,8 @@ class Settings(YamlModelMixin, BaseSettings):  # type: ignore
     llm_errors_logdir: str = os.path.join(
         BaseDirectory.save_cache_path("instrukt", "llm_errors"))
 
+    custom_agents_path: str = BaseDirectory.save_data_path("instrukt/agents")
+
     # TUI SETTINGS
     interface: TUISettings = Field(default_factory=TUISettings)
 
@@ -196,6 +198,10 @@ class ConfigManager():
             self.load_config()
         else:
             self.save_config()
+
+        # add custom agent path to sys.path
+        import sys
+        sys.path.append(self.config.custom_agents_path)
 
     @property
     def C(self) -> Settings:
