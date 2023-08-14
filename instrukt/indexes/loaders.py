@@ -22,6 +22,7 @@
 #TODO: website loader for url paths
 #TODO: git loader for git repo paths
 
+import pandas as pd
 import concurrent
 import fnmatch
 import logging
@@ -57,15 +58,16 @@ from langchain.document_loaders import (
 
 log = logging.getLogger(__name__)
 
-TLoaderType = t.Tuple[t.Type["BaseLoader"], t.Optional[AnyDict]]
+TLoaderType = t.Tuple[t.Type["BaseLoader"], t.Optional[AnyDict], str | None]
+
+FileInfoMap = t.Dict[str, "FileInfo"]
+
+Source = str
 
 
 def path_is_visible(p: Path) -> bool:
     return not any(part.startswith('.') for part in p.parts)
 
-
-# alias for type checkers that Source is str
-Source = str
 
 
 class FileInfo(NamedTuple):
@@ -82,7 +84,6 @@ class SuperDirectoryLoader(DirectoryLoader):
     the appropriate text splitter for it. It also saves the file type and any detection
     metadata as document metadata.
     """
-
     def __init__(self,
                  *args,
                  glob: list[str],
@@ -136,7 +137,6 @@ class SuperDirectoryLoader(DirectoryLoader):
 
         time.sleep(0.1)
         pbar.update_msg("loading documents ...")
-
         #NOTE: IO bound section (loading)
         with ExecutionTimer("load documents"):
             docs = self.load_parallel(pbar)
@@ -183,7 +183,7 @@ class SuperDirectoryLoader(DirectoryLoader):
         This will be called in a process pool executor and should be picklable and not
         rely on any global state or shared memory.
         """
-        files_info = self.detect_file_types(docs)
+        files_info = detect_documents(docs)
 
         # group documents by splitter
         splitter_to_docs: dict["TextSplitter", list["Document"]] = {}
@@ -201,33 +201,40 @@ class SuperDirectoryLoader(DirectoryLoader):
 
         return splitted_docs
 
-    def detect_file_types(self,
-                          docs: list["Document"]) -> dict[Source, FileInfo]:
-        """Detects the file types of loaded paths."""
-        fi: dict[Source, FileInfo] = {}
-        lang_to_splitter: dict[str, "TextSplitter"] = {}
-        for d in docs:
-            src = d.metadata["source"]
+def detect_documents(docs: list["Document"]) -> dict[Source, FileInfo]:
+    """Detects the file types of loaded paths."""
+    fi: dict[Source, FileInfo] = {}
+    lang_to_splitter: dict[str, "TextSplitter"] = {}
+    for d in docs:
+        src = d.metadata["source"]
 
-            assert src is not None
-            try:
-                ext = get_file_ext(src)
-            except LoaderError as e:
-                log.warning(
-                    f"Couldn't guess file type for {src}: fallback to text")
-                ext = ""
-                lang, splitter = LangSplitter("text",
-                                              RecursiveCharacterTextSplitter())
-            else:
-                lang, splitter = splitter_for_file(ext)
-            if lang in lang_to_splitter:
-                splitter = lang_to_splitter[lang]
-            else:
-                lang_to_splitter[lang] = splitter
+        assert src is not None
+        try:
+            ext = get_file_ext(src)
+        except LoaderError as e:
+            log.warning(
+                f"Couldn't guess file type for {src}: fallback to text")
+            ext = ""
+            lang, splitter = LangSplitter("text",
+                                          RecursiveCharacterTextSplitter())
+        else:
+            lang, splitter = splitter_for_file(ext)
+        if lang in lang_to_splitter:
+            splitter = lang_to_splitter[lang]
+        else:
+            lang_to_splitter[lang] = splitter
 
-            fi[src] = FileInfo(ext, lang, splitter)
+        fi[src] = FileInfo(ext, lang, splitter)
 
-        return fi
+    return fi
+
+
+
+def src_by_lang(fi: FileInfoMap, count_src: bool = False) -> dict[str, list[str]]:
+    """Aggregate file paths by language."""
+    return pd.DataFrame.from_dict(fi, orient="index").groupby(
+            "lang").apply(lambda x: x.index.tolist()).to_dict()
+
 
 
 def cpu_count():
@@ -262,13 +269,13 @@ DIRECTORY_LOADER = (
             "**/*.jpeg", "**/*.png", "**/*.gif", "**/*.mp3", "**/*.mp4",
             "**/*.avi", "**/*.mov"
         ]
-    })
+        }, "Directory")
 """Document loader tuples in the form (loader_cls, loader_kwargs)"""
 LOADER_MAPPINGS: dict[str, TLoaderType] = {
     ".txt": (TextLoader, {
         "autodetect_encoding": True
-    }),
-    ".pdf": (PDFMinerLoader, {}),
+    }, "Text"),
+    ".pdf": (PDFMinerLoader, {}, "PDF with PdfMiner"),
     "._dir": DIRECTORY_LOADER
 }
 
@@ -285,7 +292,7 @@ class FileType(t.NamedTuple):
     ext: str | None
 
 
-def detect_filetype(path: str) -> FileType:
+def detect_path_filetype(path: str) -> FileType:
     """Detects the file type and returns the mimetype and file extension.
 
     Returns:
@@ -310,7 +317,7 @@ def get_file_ext(path_str: str) -> str:
 
     if file_ext == '':
         #TODO!: handle mimetype not found
-        _, file_ext = detect_filetype(path_str)
+        _, file_ext = detect_path_filetype(path_str)
 
     if file_ext is None:
         raise LoaderError(f"Could not find filetype of {path}")
@@ -327,7 +334,7 @@ def get_loader(path: str) -> t.Optional["BaseLoader"]:
     _path = Path(path)
 
     if _path.is_dir():
-        loader_cls, dir_loader_kwargs = DIRECTORY_LOADER
+        loader_cls, dir_loader_kwargs, _ = DIRECTORY_LOADER
         assert dir_loader_kwargs is not None
 
         return loader_cls(path, **dir_loader_kwargs)  # type: ignore
@@ -335,7 +342,7 @@ def get_loader(path: str) -> t.Optional["BaseLoader"]:
     elif _path.is_file():
         file_ext = get_file_ext(path)
 
-        file_loader_cls, loader_kwargs = LOADER_MAPPINGS.get(
+        file_loader_cls, loader_kwargs, _ = LOADER_MAPPINGS.get(
             file_ext,
             LOADER_MAPPINGS['.txt']  # default is text loader
         )
