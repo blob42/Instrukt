@@ -243,12 +243,10 @@ class CreateIndex(VerticalScroll,
 
     @on(Input.Changed)
     def input_changed(self, event: Input.Changed) -> None:
-        self.log.debug("input changed !")
         event.stop()
         input = event.control
 
         if input.name is not None:
-            # self.log.debug(f"input changed: {input.name} -> {input.value}")
             setattr(self.new_index, input.name, input.value.strip())
 
         # when the form is pristine we done show form errors related to empty input

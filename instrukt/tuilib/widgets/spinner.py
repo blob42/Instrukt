@@ -222,7 +222,6 @@ class AsyncDataContainer(Static):
         if fut is not None:
             self.ready = False
             self._track_future(fut)
-            self.log.debug("notifying children about future ...")
             children = self.query(FutureLabel)
             for c in children:
                 c.track_future(fut, False)
