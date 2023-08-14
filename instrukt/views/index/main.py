@@ -52,7 +52,8 @@ from ...tuilib.forms import FormState
 from ...tuilib.widgets.actionbar import ActionBar, ActionBinding
 from ...tuilib.widgets.listview import ListView
 from ...tuilib.widgets.spinner import AsyncDataContainer, FutureLabel
-from ...types import InstruktDomNodeMixin
+from ...tuilib.widgets.progress import ProgressBarWrapper
+from ...types import InstruktDomNodeMixin, ProgressProtocol
 from .create import CreateIndex
 
 if t.TYPE_CHECKING:
@@ -213,6 +214,8 @@ class BackupIndexDetails(Static, InstruktDomNodeMixin):
         else:
             self.collection_type = type(idx).__name__
 
+
+
 class ConsoleHeader(Horizontal):
 
     minimized = var[bool](False)
@@ -228,8 +231,13 @@ class ConsoleHeader(Horizontal):
     def update_label(self, content: RenderableType) -> None:
         self.label.update(content)
 
-    def update_msg(self, content: RenderableType) -> None:
+    def set_msg(self, content: RenderableType) -> None:
         self.message.update(content)
+
+    @property
+    def pbar(self) -> ProgressProtocol:
+        """Returns wrapped progress bar with ProgressProtocol."""
+        return ProgressBarWrapper(self.progress)
 
 
 class IndexConsole(TextLog):
@@ -239,6 +247,8 @@ class IndexConsole(TextLog):
     user_minimzed = var[bool](False)
 
     def on_mount(self) -> None:
+        #DEBUG:
+        # self.set_msg("updating bar ...")
         self.minimize()
         self.call_later(self.begin_capture_print)
 
@@ -298,12 +308,17 @@ class IndexConsole(TextLog):
     def is_empty(self) -> bool:
         return len(self.tl.lines) == 0
 
-    def update_msg(self, content: RenderableType) -> None:
-        self.header.update_msg(content)
+    def set_msg(self, content: RenderableType) -> None:
+        self.header.set_msg(content)
 
     def clear_msg(self) -> "Self":
-        self.header.update_msg("")
+        self.header.set_msg("")
         return self
+
+    @property
+    def pbar(self) -> ProgressProtocol:
+        """Returns wrapped progress bar with ProgressProtocol."""
+        return self.header.pbar
 
     @on(events.ScreenResume)
     def on_resume(self, event: events.ScreenResume) -> None:
@@ -417,7 +432,7 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         ActionBinding("D", "delete_collection", "elete", btn_id="delete"),
         ActionBinding(
             "escape",
-            "dismiss",
+            "escape",
             "dismiss",
             key_display="esc",
         ),
@@ -507,8 +522,16 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
     @on(CreateIndex.Creating)
     def _creating_index(self) -> None:
         cl = self.query_one(IndexConsole)
-        cl.update_msg("creating index ...")
+        cl.set_msg("creating index ...")
         cl.add_class("--loading")
+
+    def action_escape(self) -> None:
+        cl = self.query_one(IndexConsole)
+        if cl.minimized:
+            self.dismiss()
+        else:
+            cl.toggle_console(True)
+
 
     # def action_quit_index(self):
     #     self.dismiss()

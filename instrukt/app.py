@@ -50,6 +50,7 @@ from .tuilib.modals.index_menu import IndexMenuScreen
 from .tuilib.modals.tools_menu import ToolsMenuScreen
 from .tuilib.repl_prompt import REPLPrompt
 from .tuilib.widgets.header import InstruktHeader
+from .tuilib.messages import UpdateProgress
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
 from .views.index import IndexScreen
 from .views.keybindings import KeyBindingsScreen
@@ -175,6 +176,17 @@ class InstruktApp(App[None]):
             self.screen.remove_class("-show-new-agent")
         else:
             self.post_message(LogMessage.warning("agent was not loaded !"))
+
+    #NOTE: currently used for index console
+    @on(UpdateProgress)
+    def update_progress_event(self, event: UpdateProgress) -> None:
+        """Notify index console"""
+        try:
+            ic = self.query_one("IndexConsole")
+            ic.set_msg(event.msg)
+        except NoMatches:
+            self.log.info(event.msg)
+
 
     @on(CmdLog)
     async def cmd_log(self, message: CmdLog) -> None:

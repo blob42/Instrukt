@@ -42,10 +42,11 @@ from ..indexes.chroma import ChromaWrapper
 from ..indexes.loaders import get_loader
 from ..indexes.schema import Collection, EmbeddingDetails, Index
 from ..utils.asynctools import run_async
-from .loaders import LOADER_MAPPINGS
+from .loaders import LOADER_MAPPINGS, SuperDirectoryLoader
 
 if t.TYPE_CHECKING:
     from ..indexes.chroma import TEmbeddings
+    from ..views.index.main import IndexConsole
 
 log = logging.getLogger(__name__)
 
@@ -133,7 +134,6 @@ class IndexManager(BaseModel):
 
         ctx = _ctx.get(context_var)
         assert ctx is not None
-        ctx.info(f"creating index {index.name} from {index.path}")
 
         #WIP:
         # if index.type is defined use specified loader
@@ -151,13 +151,19 @@ class IndexManager(BaseModel):
         if loader is None:
             raise IndexError("No loader found for the given path")
 
-        # naive implementation of doc loading
         #TODO!: cutomize splitting/chunking heuristics per loader/data type
         #TODO!: implement custom parallel directory loader
 
-        docs = await run_async(loader.load_and_split)
+        assert ctx.app is not None, "missing App in Context"
+        if isinstance(loader, SuperDirectoryLoader):
+            # get progress bar
+            console = t.cast("IndexConsole", ctx.app.query_one("IndexConsole"))
+            assert console is not None
+            docs = loader.load_and_split_parallel(console.pbar)
+        else:
+            docs = loader.load_and_split()
 
-        ctx.info(f"loaded {len(docs)} documents")
+        ctx.app.call_from_thread(ctx.app.refresh)
 
         #NOTE: the used embedding function used is stored within the collection metadata
         # at the wrapper level.
@@ -175,13 +181,14 @@ class IndexManager(BaseModel):
             },
             **self.chroma_kwargs)
 
-        ctx.info(f"adding {len(docs)} documents to index")
+        # add documents to index
+        console.pbar.update_pbar(progress=0)
+        console.pbar.update_msg("creating embeddings ...")
+        with console.pbar.patch_tqdm_update():
+            new_index.add_documents(docs)
 
-        # add documents to texts
-        await run_async(new_index.add_documents, docs)
-
-        ctx.info(f"index {index.name} created")
         self._indexes[index.name] = new_index
+         
 
         return new_index
 
