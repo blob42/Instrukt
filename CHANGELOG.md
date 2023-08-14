@@ -19,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: reusable action bar widget.
 
 #### index management: 
-- `SuperDirectoryLoader`: scan a full directory, detect file types and assign 
+- 
+- `SuperDirectoryLoader`: scan and load a directory, auto detects file types and assigns 
 the appropriate splitter based on the detected content type.
 - link (patch) the index console progress bar to `tqdm` updates
 - progress bar for loading, splitting and indexing files
