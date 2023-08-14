@@ -57,8 +57,10 @@ class DocQAAgent(InstruktAgent):
             # verbose=True,
         )
 
+        wiki_tool = TOOL_REGISTRY.tools["Wikipedia"]
+        wiki_tool.attached = False
         toolset = (
-            TOOL_REGISTRY.tools["Wikipedia"],
+            wiki_tool,
             # INSERT TOOLS HERE
         )
 
