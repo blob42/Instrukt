@@ -14,9 +14,29 @@ Instrukt encourages you to create custom workflows with a quick feedback loop wh
 
 ### Custom Agents
 
-Instrukt agents a simple python packages that live in the `agent_modules` folder within the package. You can create your own agents and share them with others. 
+Instrukt agents are simple python packages stored under the path `$HOME/.config/instrukt/agents`.
 
-Take a look at the `demo` and `chat_qa` agents for examples of how to create your own.
+You can create your own agents and share them with others. You can also set a custom path in the configuration file `~/.config/instrukt/instrukt.yml`. 
+
+#### Creating a custom agent
+
+To define a custom agent you need to:
+
+1. Setup a python package under the configured path. (don't forget the __init__.py file)
+
+2. Create a `manifest.json`:
+
+The manifest file must define the following:
+- name: the name of the agent without spaces. Must be same as the package name.
+- description: a description that will be displayed in the agents selection menu.
+- version
+
+3. Create an entry point named `main.py`
+
+You must create a class that implements the `InstruktAgent` base class.
+
+
+Take a look at the builtin agents `demo` and `chat_qa` found in the source code under `instrukt/agent_modules` for examples of how to create your own.
 
 ## User Interface
 
