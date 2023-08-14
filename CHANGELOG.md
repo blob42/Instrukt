@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ProgressBar` protocol and wrapper to use Textual progress bar in a thread safe way
+  and hook into tqdm update events.
+- Edit input using an external `$EDITOR` with `ctrl+e`
 - Capture and redirect logging/output to Instrukt console widget.
 - Generate sphinx doc for online and offline reading from within the app. 
 - wip: offline doc reader: jump to anchors (https://github.com/Textualize/textual/pull/2941)
@@ -16,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: reusable action bar widget.
 
 #### index management: 
+- `SuperDirectoryLoader`: scan a full directory, detect file types and assign 
+the appropriate splitter based on the detected content type.
+- link (patch) the index console progress bar to `tqdm` updates
+- progress bar for loading, splitting and indexing files
 - added a local file system path selection UI
 - chromadb: save/restore used embedding function. You can have multiple indexes using
   different embedding functions.
@@ -30,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- index: async delete indexes: ensure deletion happens after index is loaded.
 - improved iPython dev console: avoid term repaints until end of session.
 - Fast preloading of messages when switching agent tab. 
 - Chroma: share a single client for all indexes

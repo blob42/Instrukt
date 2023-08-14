@@ -101,15 +101,19 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 
 #### :wrench: Tools:
 - Use the pre-defined toolset or design your own tools.
-- Connect or disconnect tools to agents on-the-go, tailoring your AI workflows to your needs.
+- Attach or detach tools to agents on-the-go, tailoring your AI workflows to your needs.
 
-#### :books: Vectorstore Indexes:
-Create indexes over your data, attach them to agents, and use them for question-answering.
+#### :books: Chat with your code and documents:
+- Index your data and let agents retrieve it for question-answering. 
+- Create and organize your indexes with an easy UI.
+- Index creation will auto detect programming languages and optimize the splitting/chunking
+  strategy accordingly.
 
 #### :zap: Prompt Console :
 - Integrated REPL-Prompt for quick interaction with agents, and a fast feedback loop for development and testing.
 - Add your own custom commands to automate repetitive tasks.
 - Builtin prompt/chat history to quickly edit/correct messages.
+- Use an external editor for editing messages (e.g. vim). `ctrl+e`
 
 #### :bird: LangChain:
 
@@ -117,7 +121,7 @@ Create indexes over your data, attach them to agents, and use them for question-
 - Extensible API for integrating with other frameworks.
 
 #### :microscope: Developer Console:
-Debug and introspect agents using an in-built IPython console.
+Debug and introspect agents using an in-built IPython console. `ctrl+d`
 
 #### :shield: Secure Containers:
 
@@ -129,15 +133,15 @@ Debug and introspect agents using an in-built IPython console.
 
 ## Document Indexes and Question-Answering
 
-- Indexes are created using OpenAI embeddings.
+- Indexes can be  created using OpenAI or locally hosted embedding models.
 - They are stored locally using the [Chroma](https://github.com/chroma-core/chroma) embedding database.
-- You create and manage indexes using the **Index Management** UI press capital `I`
-- An index can be attached to any agent as a **retrieval** tool using the `index` menu
-  from the agent's window.
-- Once an index is attached you can do question-answering with your agent and it will
-  automatically lookup your index whenever its name is mentioned.
-
-**note**: Indexing is currently using naive document chunking/splitting heuristics without any optimizations. The quality of document retrieval and agent's answers can be greatly improved in future iterations.
+- You create and manage indexes using the **Index Management** UI (press `i`)
+- Indexing a directory will auto detect programming languages and use an appropriate
+  splitting strategy optimized for the target language.
+- Indexes can be attached to any agent as a **retrieval** tool using the `index` menu
+  in the top of the agent's window.
+- Once an index is attached you can do question-answering and the agent will
+  lookup your indexed documents whenever they are mentioned or needed.
 
 ## Supported platforms:
 
@@ -155,9 +159,15 @@ Debug and introspect agents using an in-built IPython console.
     - [ ] Use text-generation-webui API
     - [ ] Emulate [PrivateGPT](https://github.com/imartinez/privateGPT)
     - [ ] Use a self hosted [go-skynet/LocalAI](https://github.com/go-skynet/LocalAI)
-    - [ ] Local embeddings
-        - [ ] wip: HF SetenceTransformers or other embeddings models.
-        - [ ] [Instructor Embeddings](https://instructor-embedding.github.io/)
+    - [x] Local embeddings
+        - [x] HF SetenceTransformers or other embeddings models.
+        - [x] [Instructor Embeddings](https://instructor-embedding.github.io/)
+- Indexing and embeddings
+    - [x] Index directories and auto detect content. ( see `SuperDirectoryLoader`)
+    - [x] Detect programming languages and use the appropriate splitter.
+    - [ ] Load a git repository from URL
+    - [ ] Load any webpage / website.
+
 - [ ] Documentation
     - [ ] Creating agents
     - [ ] Creating tools
