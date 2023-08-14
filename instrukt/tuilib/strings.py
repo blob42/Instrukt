@@ -87,3 +87,15 @@ REALM_WINDOW_INTRO = """
 The realm window displays the virtual environment of the running agent, usually a Docker container.\
 It shows the agent's input and the container's output, allowing for seamless interaction with the environment. Additionally, it offers the ability to attach to the running container directly and interact with the environment as a user.
 """
+
+IPYTHON_SHELL_INTRO = """
+[b u]Instrukt Ipython Shell[/]
+
+[b blue]Commands[/]:
+    [b yellow]intro[/]: Print this message
+
+[b blue]Global variables[/]:
+    [b yellow]app[/]: Instrukt `Textual` app instance
+    [b yellow]agent[/]: Current agent
+    [b yellow]agent.base_agent[/]: Langchain agent instance
+"""

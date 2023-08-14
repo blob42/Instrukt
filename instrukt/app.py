@@ -26,6 +26,8 @@ import platform
 import sys
 import typing as t
 from glob import glob
+from rich.text import Text
+from rich.console import Console
 
 import nest_asyncio as _nest_asyncio  # type: ignore
 from IPython.terminal.embed import InteractiveShellEmbed
@@ -52,15 +54,14 @@ from .tuilib.repl_prompt import REPLPrompt
 from .tuilib.widgets.header import InstruktHeader
 from .tuilib.messages import UpdateProgress
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
+from .tuilib.strings import IPYTHON_SHELL_INTRO
 from .views.index import IndexScreen
 from .views.keybindings import KeyBindingsScreen
 from .views.man import ManualScreen
 from .context import context_var, init_context
 
-
 _loop = _asyncio.get_event_loop()
 _nest_asyncio.apply(_loop)
-
 
 if t.TYPE_CHECKING:
     from textual.drivers.linux_driver import LinuxDriver
@@ -71,6 +72,7 @@ PLATFORM = platform.system()
 WINDOWS = PLATFORM == "Windows"
 
 setup_logging()
+
 
 class SettingsScreen(Screen[None]):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
@@ -84,27 +86,28 @@ class SettingsScreen(Screen[None]):
         self.app.pop_screen()
 
 
-
 class InstruktApp(App[None]):
     """Textual TUI for Instrukt.
 
     The default layout is horizontal."""
 
     BINDINGS = [
-        Binding( "d", "toggle_dark", "Toggle dark mode", show=False),
-        ("Q", "quit", "Quit Application"),
-        Binding( "i", "uniq_screen('index_mgmt')", "Indexes", key_display="i"),
-        ("slash", "focus_instruct_prompt", "Focus Prompt"),
+        Binding("d", "toggle_dark", "dark mode", show=False),
+        ("Q", "quit", "exit"),
+        Binding("i", "uniq_screen('index_mgmt')", "indexes", key_display="i"),
+        ("slash", "focus_instruct_prompt", "goto prompt"),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
-        Binding( "ctrl+d", "dev_console", "Developer Console",
-                priority=True, key_display="ctrl+d"),
-
-        Binding( "h", "push_screen('manual_screen')", "Man", key_display="h"),
+        Binding("ctrl+d",
+                "dev_console",
+                "ishell",
+                priority=True,
+                key_display="ctrl+d"),
+        Binding("h", "push_screen('manual_screen')", "help", key_display="h"),
 
         #TODO: set priority binding but allow in inputs
-        Binding( "?", "uniq_screen('keybindings')", "Keys"),
+        Binding("?", "uniq_screen('keybindings')", "keys"),
     ]
 
     CSS_PATH = [
@@ -114,15 +117,14 @@ class InstruktApp(App[None]):
     TITLE = "Instrukt"
     SCREENS = {
         "settings_screen": SettingsScreen(),
-        "index_menu": IndexMenuScreen(), #modal
-        "tools_menu": ToolsMenuScreen(), #modal
+        "index_menu": IndexMenuScreen(),  #modal
+        "tools_menu": ToolsMenuScreen(),  #modal
         "index_mgmt": IndexScreen(),
-        "manual_screen": ManualScreen(), #modal
+        "manual_screen": ManualScreen(),  #modal
         "keybindings": KeyBindingsScreen(),
     }
 
     AUTO_FOCUS = "StartupMenu ListView"
-
 
     class Ready(Message):
         pass
@@ -150,7 +152,6 @@ class InstruktApp(App[None]):
         # await self.agent_manager.load_agent("demo")
         self.screen.add_class("-no-agent")
 
-
     def notify_console_window(self, message: "AnyMessage") -> None:
         self.query_one(ConsoleWindow).post_message(message)
 
@@ -161,7 +162,7 @@ class InstruktApp(App[None]):
             self.log.error("AgentConversation window not found")
 
     def notify_realm_buffer(self, message: "AnyMessage") -> None:
-        if self.active_agent.realm is not None:   # type: ignore
+        if self.active_agent.realm is not None:  # type: ignore
             return
         try:
             self.query_one(RealmWindow).post_message(message)
@@ -186,7 +187,6 @@ class InstruktApp(App[None]):
             ic.set_msg(event.msg)
         except NoMatches:
             self.log.info(event.msg)
-
 
     @on(CmdLog)
     async def cmd_log(self, message: CmdLog) -> None:
@@ -257,9 +257,6 @@ class InstruktApp(App[None]):
                 self.screen_stack[-1], type(screen)):
             self.push_screen(screen)
 
-
-
-
     def action_toggle_dark(self) -> None:
         """toggle dark mode"""
         self.dark = not self.dark
@@ -274,27 +271,35 @@ class InstruktApp(App[None]):
         # export agent to ipython namespace
         agent = self.active_agent
 
+        with self.console.capture() as c_capture:
+            self.console.print(Text.from_markup(IPYTHON_SHELL_INTRO))
+        banner1 = c_capture.get()
+
+        def print_banner():
+            return Text.from_markup(IPYTHON_SHELL_INTRO)
+
         user_ns = {
             "app": self,
             "agent": agent,
+            "intro": print_banner(),
         }
 
         frame = sys._getframe(1)
         if self._ishell is None:
             shell_kwargs = {
-                  "colors":"neutral",
-                  "loop_runner":"asyncio",
-                  "banner1" : "Instrukt IPython Shell\n",
+                "colors": "neutral",
+                "loop_runner": "asyncio",
+                "banner1": banner1,
             }
             self._ishell = InteractiveShellEmbed.instance(
-                    _init_location_id='%s:%s' % (
-                        frame.f_code.co_filename, frame.f_lineno), **shell_kwargs)
+                _init_location_id='%s:%s' %
+                (frame.f_code.co_filename, frame.f_lineno),
+                **shell_kwargs)
 
             def pre_execute():
                 self._ishell.ex("pretty.install(max_depth=2)")
 
             self._ishell.events.register("pre_execute", pre_execute)
-
 
         self._ishell.user_ns = user_ns
         self._ishell.ex("from rich import pretty")
@@ -342,7 +347,6 @@ class InstruktApp(App[None]):
         sys.stdout = stdout_orig
         sys.stderr = stderr_orig
         driver.start_application_mode()
-
 
     def action_quit(self):
         if self.active_agent is not None:
