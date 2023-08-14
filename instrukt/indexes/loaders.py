@@ -275,6 +275,8 @@ LOADER_MAPPINGS: dict[str, TLoaderType] = {
 
 class LangSplitter(t.NamedTuple):
     lang: str
+    """Langchain text splitter -> Language"""
+
     splitter: "TextSplitter"
 
 
