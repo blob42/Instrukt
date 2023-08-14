@@ -18,10 +18,11 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast, Protocol
 
 from textual.message import Message
 from textual.dom import DOMNode
+from textual.widgets import ProgressBar
 
 if TYPE_CHECKING:
     from .messages.agents import AgentMessage
@@ -40,3 +41,29 @@ class InstruktDomNodeMixin(DOMNode):
     @property
     def _app(self) -> "InstruktApp":
         return cast("InstruktApp", self.app)
+
+class ProgressProtocol(Protocol):
+    progress: ProgressBar
+
+    def update(self, progress: int) -> None:
+        ...
+
+    def update_pbar(self, *args, **kwargs) -> None:
+        ...
+
+    def update_msg(self, msg: str) -> None:
+        ...
+
+    def patch_tqdm_update(self):
+        """ContextManager for patching tqdm.update()"""
+        ...
+
+    @property
+    def total(self) -> float | None:
+        ...
+
+    @total.setter
+    def total(self, total: float | None) -> None:
+        ...
+
+

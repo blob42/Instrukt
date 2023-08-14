@@ -113,20 +113,24 @@ ConsoleHeader .console--msg {
     /* background: pink; */
     padding-right: 1;
     background: $panel;
-    color: $warning;
     width: 5fr;
     text-align: right;
     color: $warning;
 }
 
 ConsoleHeader ProgressBar {
-    width: 1fr;
     padding: 0 2;
     visibility: hidden;
 }
 
+ConsoleHeader ProgressBar  Bar {
+    width: 15;
+}
+
+
 ConsoleHeader ProgressBar .bar--indeterminate {
     /* color: $error-lighten-1; */
+    /* color: $warning; */
     color: $warning;
 }
 
