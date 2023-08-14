@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 from typing import TYPE_CHECKING
+import timeit
 
 from xdg import BaseDirectory
 from ..config import APP_SETTINGS
@@ -28,6 +29,22 @@ else:
     def notify(msg: str) -> None:
         pass
 
+class ExecutionTimer:
+    """A context manager to time code execution."""
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.start = None
+        self.end = None
+
+    def __enter__(self) -> None:
+        if APP_SETTINGS.debug:
+            self.start = timeit.default_timer()
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        if APP_SETTINGS.debug:
+            self.end = timeit.default_timer()
+            execution_time = self.end - self.start
+            print(f"Total execution time for {self.name}: {execution_time} seconds.")
 
 def get_dbg_path() -> str:
     """Returns the debug path"""
