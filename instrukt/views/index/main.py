@@ -328,6 +328,8 @@ class IndexConsole(TextLog):
     @on(events.ScreenSuspend)
     def on_suspend(self, event: events.ScreenSuspend) -> None:
         self.end_capture_print()
+
+        #WIP: should be done explicitly by the user
         self.clear()
         self.minimize()
 
