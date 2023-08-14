@@ -22,7 +22,7 @@ ChatBubble.human .left-space {
 
 ChatBubble.agent {
     width: 100%;
-    background: $foreground 15%;
+    background: $foreground 10%;
 }
 
 ChatBubble.human {
