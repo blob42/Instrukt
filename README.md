@@ -106,7 +106,7 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 #### :books: Chat with your code and documents:
 - Index your data and let agents retrieve it for question-answering. 
 - Create and organize your indexes with an easy UI.
-- Index creation will auto detect programming languages and optimize the splitting/chunking
+- Index creation will **auto detect programming languages** and optimize the splitting/chunking
   strategy accordingly.
 
 #### :zap: Prompt Console :
