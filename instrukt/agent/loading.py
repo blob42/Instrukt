@@ -35,10 +35,13 @@ from .base import InstruktAgent
 from ..schema import AgentManifest
 import pkgutil, importlib
 from pathlib import Path
+import sys
 
 log = logging.getLogger(__name__)
+from instrukt.config import APP_SETTINGS
 AGENT_MODULES_PATHS = [Path(__file__).parent.parent / "agent_modules",
-                      Path(BaseDirectory.save_data_path("instrukt/agents"))]
+                      Path(APP_SETTINGS.custom_agents_path)]
+sys.path.extend([str(p) for p in AGENT_MODULES_PATHS])
 MODULE_ENTRY_POINT = "main.py"
 MODULE_MANIFEST = "manifest.json"
 IMPL_CLS = InstruktAgent
