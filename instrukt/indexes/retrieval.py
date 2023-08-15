@@ -104,11 +104,17 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
         retriever=retriever,
         chain_type_kwargs={
             "prompt": CHAT_PROMPT,
-        }
+            # return_source_documents=True
+        },
 
         #TODO!: catch source documents
         # return_source_documents=True
     )
+
+    #TODO!: handle source documents in retrival output
+    # handle on_retriver_end callback which contains the source documents
+    # def massage_output(output: dict[str, Any]) -> str:
+    #     pass
 
     return Tool(is_retrieval=True,
                 name=name,
