@@ -322,11 +322,13 @@ class InstruktApp(App[None]):
                     return None
             return get_agent_memory()
 
+
         user_ns = {
             "app": self,
             "agent": agent,
             "intro": print_banner(),
             "memory": get_memory(),
+            "im": self.context.index_manager,
         }
 
         frame = sys._getframe(1)

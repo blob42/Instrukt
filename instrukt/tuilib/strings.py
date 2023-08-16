@@ -99,4 +99,5 @@ IPYTHON_SHELL_INTRO = """
     [b yellow]agent[/]: Current agent
     [b yellow]agent.base_agent[/]: Langchain agent instance
     [b yellow]memory[/]: Current agent's memory
+    [b yellow]im[/]: Index Manager
 """
