@@ -39,6 +39,9 @@ class Embedding(NamedTuple):
 
 
 EMBEDDINGS: dict[str, Embedding] = {
+    "mini":
+    Embedding("Setence Transormers (xs)", HuggingFaceEmbeddings,
+              dict(model_name="sentence-transformers/all-MiniLM-L6-v2", )),
     "default":
     Embedding("Setence Transormers", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-mpnet-base-v2", )),
