@@ -58,9 +58,9 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
     BINDINGS = [
         Binding("up", "history_prev", "previous command", show=False),
         Binding("down", "history_next", "next command", show=False),
-        Binding("ctrl+s", "stop_agent", "stop running agent", show=False),
-        Binding("ctrl+e", "external_editor", "external editor", show=True,
-                key_display="ctrl+e")
+        Binding("ctrl+s", "stop_agent", "stop agent", key_display="C-s"),
+        Binding("ctrl+e", "external_editor", "open editor", show=True,
+                key_display="C-e")
     ]
 
     class Mode(Enum):
@@ -127,7 +127,7 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
                 ef.seek(0)
                 input_ = ef.read()
                 self.value = input_.strip()
-                self.call_next(self._update_curosr_pos)
+                self.call_next(self.action_submit)
         finally:
             self.app.refresh()
             self.app._driver.start_application_mode()

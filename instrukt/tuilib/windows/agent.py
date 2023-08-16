@@ -26,6 +26,7 @@ from textual.app import ComposeResult, RenderResult
 from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Button, Label, Static
+from textual.binding import Binding
 
 from ...agent.events import AgentEvents
 from ...agent.state import AgentState
@@ -103,6 +104,14 @@ class AgentStatusBar(Horizontal, InstruktDomNodeMixin):
 
 class AgentWindow(Container, InstruktDomNodeMixin):
 
+    BINDINGS = [
+            Binding("G", "goto_bottom", "end"),
+            Binding("T", "goto_top", "top"),
+            Binding("ctrl+n", "focus_next", "next" , show=False),
+            Binding("ctrl+p", "focus_previous", "prev" , show=False),
+            ]
+
+
     def compose(self) -> ComposeResult:
         yield AgentWindowHeader(classes="header")
         yield AgentConversation(
@@ -114,10 +123,18 @@ class AgentWindow(Container, InstruktDomNodeMixin):
 
     def watch_state(self, state: AgentState) -> None:
         if state == AgentState.READY:
-            self.border_title = self._app.active_agent.display_name
+            self.border_title = self._app.active_agent.display_name   # type: ignore
 
 
-class AgentConversation(VerticalScroll, InstruktDomNodeMixin):
+    def action_goto_bottom(self) -> None:
+        self.query_one(AgentConversation).scroll_end()
+
+    def action_goto_top(self) -> None:
+        self.query_one(AgentConversation).scroll_home()
+
+
+
+class AgentConversation(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
     """Displays the conversation with the active agent."""
 
     _chat_messages: reactive[list["ChatMessage"]] = reactive([])

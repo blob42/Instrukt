@@ -59,10 +59,12 @@ from .tuilib.strings import IPYTHON_SHELL_INTRO
 from .tuilib.widgets.header import InstruktHeader
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
 from .tuilib.strings import IPYTHON_SHELL_INTRO
+from .tuilib.conversation import ChatBubble
 from .views.index import IndexScreen
 from .views.keybindings import KeyBindingsScreen
 from .views.man import ManualScreen
 from .context import context_var, init_context
+from .utils.misc import _version
 
 _loop = _asyncio.get_event_loop()
 _nest_asyncio.apply(_loop)
@@ -97,28 +99,31 @@ class InstruktApp(App[None]):
 
     BINDINGS = [
         Binding("d", "toggle_dark", "dark mode", show=False),
-        ("Q", "quit", "exit"),
-        Binding("i", "uniq_screen('index_mgmt')", "indexes", key_display="i"),
+        Binding("Q", "quit", "exit", show=False),
+        Binding("I", "uniq_screen('index_mgmt')", "indexes"),
         Binding("slash", "focus_instruct_prompt", "goto prompt"),
+        Binding("i", "focus_instruct_prompt", "goto prompt", show=False),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
         Binding("ctrl+d",
                 "dev_console",
-                "ishell",
+                "shell",
                 priority=True,
-                key_display="ctrl+d"),
+                key_display="C-d"),
         Binding("h", "push_screen('manual_screen')", "help", key_display="h"),
 
         #TODO: set priority binding but allow in inputs
         Binding("?", "uniq_screen('keybindings')", "keys"),
+        Binding("j", "focus_next_msg", "next msg" , show=False),
+        Binding("k", "focus_previous_msg", "prev msg" , show=False),
     ]
 
     CSS_PATH = [
         "instrukt.css",
         *glob("{}/tuilib/css/*.css".format(os.path.dirname(__file__)))
     ]
-    TITLE = "Instrukt"
+    TITLE = f"Instrukt v{_version()}"
     SCREENS = {
         "settings_screen": SettingsScreen(),
         "index_menu": IndexMenuScreen(),  #modal
@@ -255,6 +260,33 @@ class InstruktApp(App[None]):
         except NoMatches:
             pass
 
+    def action_focus_next_msg(self) -> None:
+        conv = self.query_one("AgentConversation")
+        focused = self.focused
+        if isinstance(focused, ChatBubble):
+            if conv.children[-1] != focused:
+                self.action_focus_next()
+        else:
+            try:
+                messages = self.query("ChatBubble")
+                messages.last().focus()
+            except NoMatches:
+                return
+
+    def action_focus_previous_msg(self) -> None:
+        conv = self.query_one("AgentConversation")
+        focused = self.focused
+        if isinstance(focused, ChatBubble):
+            # pos 0 is user msg normally
+            if conv.children[1] != focused:
+                self.action_focus_previous()
+        else:
+            try:
+                messages = self.query("ChatBubble")
+                messages.last().focus()
+            except NoMatches:
+                return
+        
     def action_uniq_screen(self, screen_name: str) -> None:
         screen = self.SCREENS.get(screen_name)
         if len(self.screen_stack) > 0 and not isinstance(
@@ -282,10 +314,19 @@ class InstruktApp(App[None]):
         def print_banner():
             return Text.from_markup(IPYTHON_SHELL_INTRO)
 
+        def get_memory():
+            def get_agent_memory():
+                if agent is not None:
+                    return agent.memory
+                else:
+                    return None
+            return get_agent_memory()
+
         user_ns = {
             "app": self,
             "agent": agent,
             "intro": print_banner(),
+            "memory": get_memory(),
         }
 
         frame = sys._getframe(1)
