@@ -22,7 +22,6 @@
 #TODO: website loader for url paths
 #TODO: git loader for git repo paths
 
-import pandas as pd
 import concurrent
 import fnmatch
 import logging
@@ -212,7 +211,6 @@ class AutoDirLoader(DirectoryLoader):
 
         return splitted_docs
 
-class FSBlobLoaderMixin(FileSystemBlobLoader):
 def detect_documents(docs: list["Document"]) -> dict[Source, FileInfo]:
     """Detects the file types of loaded paths."""
     fi: dict[Source, FileInfo] = {}
@@ -244,8 +242,17 @@ def detect_documents(docs: list["Document"]) -> dict[Source, FileInfo]:
 
 def src_by_lang(fi: FileInfoMap, count_src: bool = False) -> dict[str, list[str]]:
     """Aggregate file paths by language."""
-    return pd.DataFrame.from_dict(fi, orient="index").groupby(
-            "lang").apply(lambda x: x.index.tolist()).to_dict()
+    srcs_by_lang: dict[str, list[str]] = {}
+    for src, info in fi.items():
+        lang = info.lang
+        if lang in srcs_by_lang:
+            srcs_by_lang[lang].append(src)
+        else:
+            srcs_by_lang[lang] = [src]
+    if count_src:
+        srcs_by_lang = {lang: len(srcs) for lang, srcs in srcs_by_lang.items()}
+    return srcs_by_lang
+    
 
 
 

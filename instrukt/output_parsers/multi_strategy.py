@@ -51,7 +51,7 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
-class MultiStrategyParser(BaseOutputParser[T], ABC, Generic[T, S]):
+class MultiStrategyParser(BaseOutputParser[T], Generic[T, S], ABC):
     """A parser that tries multiple strategies to parse the output.
 
     Strategies are tried in order. The first one that succeeds is returned.

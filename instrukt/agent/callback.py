@@ -38,6 +38,7 @@ from ..context import Context
 if TYPE_CHECKING:
     from langchain.schema import AgentAction, AgentFinish, LLMResult
 
+#TODO!: use contextvar
 class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
 
     ctx: Context
@@ -46,7 +47,7 @@ class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
         arbitrary_types_allowed = True
 
     def _set_agent_state(self, state: str) -> None:
-        assert self.ctx.app is not None
+        assert self.ctx.app is not None, "app context error"
         if self.ctx.app.active_agent is None:
             raise ValueError("Agent is not loaded")
         self.ctx.app.active_agent.state.update_state(state)
@@ -55,8 +56,8 @@ class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> Any:
         """Run when LLM starts running."""
-        self._set_agent_state("llm_start")
         notify("llm_start")
+        self._set_agent_state("llm_start")
         # msg = AgentMessage(event=AgentEvents.LLMStart)
 
     async def on_llm_new_token(self, token: str, **kwargs: Any) -> Any:

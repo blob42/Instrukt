@@ -171,7 +171,7 @@ class InstruktApp(App[None]):
             self.log.error("AgentConversation window not found")
 
     def notify_realm_buffer(self, message: "AnyMessage") -> None:
-        if self.active_agent.realm is not None:  # type: ignore
+        if self.active_agent.realm is None:  # type: ignore
             return
         try:
             self.query_one(RealmWindow).post_message(message)
