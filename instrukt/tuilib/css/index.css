@@ -39,6 +39,13 @@ IndexScreen Button#create {
     display: none;
 }
 
+IndexScreen Button#scan_data_btn {
+    display: none;
+}
+
+IndexScreen.--create-form Button#scan_data_btn {
+    display: block;
+}
 
 IndexScreen CreateIndex {
     display: none;
@@ -156,9 +163,9 @@ IndexList {
 IndexList .header {
     padding: 1;
     width: 100%;
-    text-style: bold;
+    /* text-style: bold; */
     text-align: center;
-    background: $success 70%;
+    background: teal 70%;
 }
 
 IndexList ListItem {

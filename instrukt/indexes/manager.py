@@ -42,7 +42,7 @@ from ..indexes.chroma import ChromaWrapper
 from ..indexes.loaders import get_loader
 from ..indexes.schema import Collection, EmbeddingDetails, Index
 from ..utils.asynctools import run_async
-from .loaders import LOADER_MAPPINGS, SuperDirectoryLoader
+from .loaders import LOADER_MAPPINGS, AutoDirLoader
 
 if t.TYPE_CHECKING:
     from ..indexes.chroma import TEmbeddings
@@ -161,7 +161,7 @@ class IndexManager(BaseModel):
         #TODO!: implement custom parallel directory loader
 
         assert ctx.app is not None, "missing App in Context"
-        if isinstance(loader, SuperDirectoryLoader):
+        if isinstance(loader, AutoDirLoader):
             # get progress bar
             console = t.cast("IndexConsole", ctx.app.query_one("IndexConsole"))
             assert console is not None

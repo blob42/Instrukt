@@ -10,7 +10,7 @@ from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 
 from instrukt.indexes.loaders import (DIRECTORY_LOADER, LOADER_MAPPINGS,
                                       get_loader, splitter_for_file,
-                                      SuperDirectoryLoader)
+                                      AutoDirLoader)
 """
 Creating an index should:
     - Use the Index model to represent the new index
@@ -80,12 +80,12 @@ class TestLoader:
 
 
 #FIX:
-class TestSuperDirectoryLoader:
-    """Test SuperDirectoryLoader"""
+class TestAutoDirLoader:
+    """Test AutoDirLoader"""
 
     def test_load_directory(self):
         # get the absolute path to the package `instrukt`
         test_dir = Path(instrukt.__file__).parent.parent / 'instrukt'
-        loader = SuperDirectoryLoader(test_dir, **DIRECTORY_LOADER[1])
+        loader = AutoDirLoader(test_dir, **DIRECTORY_LOADER[1])
         docs = loader.load()
         print(docs)

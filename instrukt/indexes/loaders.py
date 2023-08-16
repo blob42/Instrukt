@@ -65,6 +65,13 @@ FileInfoMap = t.Dict[str, "FileInfo"]
 Source = str
 
 
+DEFAULT_EXCLUDES = [
+    "**/*.pyc", "**/*.pyo", "**/__pycache__", "**/.git", "**/*.jpg",
+    "**/*.jpeg", "**/*.png", "**/*.gif", "**/*.mp3", "**/*.mp4",
+    "**/*.avi", "**/*.mov"
+        ]
+
+
 def path_is_visible(p: Path) -> bool:
     return not any(part.startswith('.') for part in p.parts)
 
@@ -76,9 +83,11 @@ class FileInfo(NamedTuple):
     splitter: "TextSplitter"
 
 
-class SuperDirectoryLoader(DirectoryLoader):
+
+
+class AutoDirLoader(DirectoryLoader):
     """
-    SuperDirectoryLoader class that extends DirectoryLoader from Langchain.
+    AutoDirLoader class that extends DirectoryLoader from Langchain.
 
     On top of loading files, this class also handles detecting the file type and choosing
     the appropriate text splitter for it. It also saves the file type and any detection
@@ -102,9 +111,11 @@ class SuperDirectoryLoader(DirectoryLoader):
         p = Path(self.path)
         docs: list["Document"] = []
         items: list[Path] = []
+
         if self.recursive:
             for g in self.glob:
                 items.extend(p.rglob(g))
+
         else:
             for g in self.glob:
                 items.extend(p.glob(g))
@@ -172,7 +183,7 @@ class SuperDirectoryLoader(DirectoryLoader):
                     all_docs.extend(r)
 
         langs = list(
-            set([doc.metadata["programming_lang"] for doc in all_docs]))
+            set([doc.metadata["language"] for doc in all_docs]))
         log.debug(f"detected languages: {langs}")
 
         return all_docs
@@ -189,7 +200,7 @@ class SuperDirectoryLoader(DirectoryLoader):
         splitter_to_docs: dict["TextSplitter", list["Document"]] = {}
         for doc in docs:
             src = doc.metadata["source"]
-            doc.metadata["programming_lang"] = files_info[src].lang
+            doc.metadata["language"] = files_info[src].lang
             assert src is not None
             splitter = files_info[src].splitter
             splitter_to_docs.setdefault(splitter, []).append(doc)
@@ -201,6 +212,7 @@ class SuperDirectoryLoader(DirectoryLoader):
 
         return splitted_docs
 
+class FSBlobLoaderMixin(FileSystemBlobLoader):
 def detect_documents(docs: list["Document"]) -> dict[Source, FileInfo]:
     """Detects the file types of loaded paths."""
     fi: dict[Source, FileInfo] = {}
@@ -246,7 +258,7 @@ def cpu_count():
 
 
 DIRECTORY_LOADER = (
-    SuperDirectoryLoader,
+    AutoDirLoader,
     {
         "loader_cls":
         TextLoader,
@@ -264,11 +276,7 @@ DIRECTORY_LOADER = (
         "silent_errors":
         False,
         "glob": ["**/[!.]*"],
-        "exclude": [
-            "**/*.pyc", "**/*.pyo", "**/__pycache__", "**/.git", "**/*.jpg",
-            "**/*.jpeg", "**/*.png", "**/*.gif", "**/*.mp3", "**/*.mp4",
-            "**/*.avi", "**/*.mov"
-        ]
+        "exclude": DEFAULT_EXCLUDES, 
         }, "Directory")
 """Document loader tuples in the form (loader_cls, loader_kwargs)"""
 LOADER_MAPPINGS: dict[str, TLoaderType] = {
@@ -278,6 +286,7 @@ LOADER_MAPPINGS: dict[str, TLoaderType] = {
     ".pdf": (PDFMinerLoader, {}, "PDF with PdfMiner"),
     "._dir": DIRECTORY_LOADER
 }
+
 
 
 class LangSplitter(t.NamedTuple):

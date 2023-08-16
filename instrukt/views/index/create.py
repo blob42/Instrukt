@@ -40,7 +40,7 @@ from ...context import context_var, index_manager_var
 from ...indexes.embeddings import EMBEDDINGS
 from ...indexes.loaders import (
                                 LOADER_MAPPINGS,
-                                SuperDirectoryLoader,
+                                AutoDirLoader,
                                 src_by_lang,
                                 detect_documents,
 
@@ -546,9 +546,9 @@ class CreateIndex(VerticalScroll,
         im = index_manager_var.get()
         assert im is not None
         loader = im.get_loader(new_index)
-        if not isinstance(loader, SuperDirectoryLoader):
+        if not isinstance(loader, AutoDirLoader):
             return
-        assert isinstance(loader, SuperDirectoryLoader)
+        assert isinstance(loader, AutoDirLoader)
         cheader.set_msg("loading data ...")   # type: ignore
         docs_work = self.run_worker(lambda: loader.load_parallel(pbar), thread=True)
         docs = await docs_work.wait()

@@ -39,16 +39,14 @@ class Embedding(NamedTuple):
 
 
 EMBEDDINGS: dict[str, Embedding] = {
-    "mini":
+    "default":
     Embedding("Setence Transormers (xs)", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-MiniLM-L6-v2", )),
-    "default":
+    "mpnet-base-v2":
     Embedding("Setence Transormers", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-mpnet-base-v2", )),
-    "openai":
-    Embedding("OpenAI", OpenAIEmbeddings, dict()),
     "instructor":
-    Embedding("Instructor", HuggingFaceInstructEmbeddings,
+    Embedding("Instructor (base)", HuggingFaceInstructEmbeddings,
               dict(
                   #TODO: use instructor-large
                   model_name="hkunlp/instructor-base", 
@@ -56,5 +54,7 @@ EMBEDDINGS: dict[str, Embedding] = {
                   query_instruction='Represent the question for retrieving supporting documents: ',
                   encode_kwargs = dict(show_progress_bar=True)
                   )),
+    "openai":
+    Embedding("OpenAI", OpenAIEmbeddings, dict()),
               }
 
