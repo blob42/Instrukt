@@ -44,8 +44,9 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
     #NOTE: custom tree bindings 
     TREE_BINDINGS = [
-                ActionBinding("enter", "select", "select"),
-                ActionBinding("space", "toggle_node", "toggle node"),
+                ActionBinding("space", "select", "select"),
+                ActionBinding("enter", "toggle_node", "toggle node"),
+                ActionBinding("-", "dir_up", "dir_up"),
             ]
 
     BINDINGS = [
@@ -58,9 +59,9 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
     path: var[Path] = var(Path.cwd())
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, path: Path | None = None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.dirtree = DirectoryTree(Path.home(), not_hidden)
+        self.dirtree = DirectoryTree(path or Path.home(), not_hidden)
         self.dirtree.border_title = "Select any file or directory to index:"
 
     def on_mount(self) -> None:
@@ -79,6 +80,10 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
                             classes="path--selected",
                             id="selected-path")
             yield ActionBar()
+
+    def action_dir_up(self) -> None:
+        if self.dirtree.path != Path.home():
+            self.dirtree.path = self.dirtree.path.parent
 
     def action_toggle_node(self) -> None:
         self.dirtree.action_toggle_node()

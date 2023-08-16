@@ -530,7 +530,10 @@ class CreateIndex(VerticalScroll,
                 self.call_later(self.validate_parent_form, input)
             t.cast("IndexScreen", self.screen).reset_form = False
 
-        self.app.push_screen(PathBrowserModal(), handle_path)
+        selected_path = t.cast(Input, self.query_one("Input#path-input")).value
+        path = Path(selected_path).expanduser() if len(selected_path) > 0 else None
+        path = path if path is not None and path.exists() else None
+        self.app.push_screen(PathBrowserModal(path), handle_path)
 
     #HACK: clean and refactor
     @on(Button.Pressed, "#scan, #scan_data_btn")
