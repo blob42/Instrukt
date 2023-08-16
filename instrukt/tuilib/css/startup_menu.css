@@ -23,7 +23,7 @@ StartupMenu #agents-container {
 #agents-container .-agents-list {
     /* background: blue 50%; */
     background: $background 10%;
-    width: 1fr;
+    width: 1.5fr;
     height: 100%;
     padding: 3;
 }
@@ -33,12 +33,14 @@ StartupMenu #agents-container {
 }
 
 .-agents-list ListItem {
-    color: $secondary;
+    color: $foreground;
+    padding: 0 1;
+    margin: 1 0;
 }
 
 .-agents-list ListItem.--highlight {
-    background: $secondary;
-    color: $background;
+    background: royalblue;
+    color: $foreground;
 }
 
 #agents-container .-agent-info {
@@ -50,6 +52,6 @@ StartupMenu #agents-container {
 }
 
 StartupMenu ListView:hover, StartupMenu ListView:focus {
-    border-bottom: heavy $secondary;
+    border-bottom: heavy royalblue;
 }
 

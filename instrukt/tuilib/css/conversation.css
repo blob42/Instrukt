@@ -1,7 +1,7 @@
 AgentConversation.window {
     /* background: gray; */
     scrollbar-size-vertical: 1;
-    border: solid $panel;
+    border-left: blank;
 }
 
 ChatBubble {
@@ -51,6 +51,12 @@ MessageContainer.human MessageBody {
 MessageContainer.agent {
     border: wide $foreground 10%;
     background: transparent;
+}
+
+ChatBubble:focus-within MessageContainer.agent {
+    border: wide mediumslateblue 60%;
+    /* background: $accent-darken-3; */
+
 }
 
 MessageBody {

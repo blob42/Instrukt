@@ -83,7 +83,7 @@ IndexScreen IndexConsole {
 }
 
 IndexConsole TextLog {
-    scrollbar-color: $success 70%;
+    scrollbar-color: $success 50%;
     scrollbar-size: 1 1;
     color: $foreground 70%;
     padding: 1;
