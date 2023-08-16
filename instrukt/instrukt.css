@@ -7,8 +7,10 @@
  *
  */
 
+
 VerticalScroll {
     scrollbar-size-vertical: 1;
+    scrollbar-color: royalblue 70%;
 }
 
 SettingsScreen {
@@ -44,11 +46,16 @@ SettingsScreen {
 
 #instrukt-prompt Input {
     background: $background-lighten-2;
-    /* background: $primary-background; */
-    /* background: transparent; */
-    border: $accent;
+    outline: solid $foreground 20%;
     dock: bottom;
     /* margin-bottom: 1; */
+}
+
+#instrukt-prompt Input:focus>.input--cursor {
+}
+
+#instrukt-prompt Input:focus {
+    outline: hkey royalblue 80%;
 }
 
 
@@ -64,6 +71,7 @@ SettingsScreen {
     overflow-x: hidden;
     scrollbar-size-vertical: 1;
     scrollbar-gutter: stable;
+    scrollbar-color: $foreground  20%;
 }
 
 #monitor-panel {
@@ -172,7 +180,7 @@ AgentStatusBar Label {
 
 AgentStatus.ready {
     /* background: pink; */
-    color: $success-lighten-1;
+    color: $success-lighten-2;
     padding-left: 1;
 }
 
@@ -203,6 +211,8 @@ MonitorPanel {
 
 AgentTabs {
     background: $foreground 10%;
+    /* background: royalblue 60%; */
+    color: white;
     /* background: pink; */
 }
 
@@ -213,18 +223,23 @@ AgentTabs Tabs {
 AgentTabs Tab {
     height: 1;
     padding: 0 1;
+    color: $foreground;
 }
 
-AgentTabs #tabs-list-bar {
-    height: 1;
-}
 
 
 AgentTabs Tabs Underline {
     display: none;
 }
+
 AgentTabs Tab.-active {
     /* color: $success; */
+    text-style: none;
+    background: royalblue;
+}
+
+AgentTabs Tab:hover {
+    background: teal;
 }
 
 /* ToastRack { */
@@ -247,4 +262,22 @@ AgentTabs Tab.-active {
 
 .--padding-top-1 {
     padding-top: 1;
+}
+
+
+/* Foooter */
+Footer {
+    background: $panel;
+}
+
+Footer > .footer--key {
+    background: $foreground 20%;
+}
+
+Footer > .footer--highlight-key {
+    background: teal;
+}
+
+Footer > .footer--highlight {
+    background: royalblue 80%;
 }
