@@ -86,5 +86,13 @@
       "additional_kwargs": {},
       "example": false
     }
+  },
+  {
+    "type": "ai",
+    "data": {
+      "content": "Dependency Injection (DI) is a design pattern that helps to reduce the dependency between high-level and low-level modules in an application. It's a way to achieve Inversion of Control (IoC) where you outsource the responsibility of object instantiation to a container or factory, and not the class itself. It makes testing and maintenance of code easier.\n\n Here's a step-by-step tutorial on how to implement Dependency Injection in Python:\n\n 1. **Create the Services**\n\n These are the classes that your application depends on. For example, let's say we have a `DataService` that fetches data from a database.\n\n ```python\n class DataService:\n def fetch_data(self):\n return \"Fetched data!\"\n ```\n\n 2. **Create the Client Classes**\n\n These are the classes that depend on the services. For example, a `Client` class might depend on `DataService`.\n\n In the `Client` class, instead of instantiating `DataService` directly, we'll have it passed as a parameter. This is the core of Dependency Injection. The `Client` class is no longer responsible for creating the `DataService` object, it's injected from outside.\n\n ```python\n class Client:\n\t def __init__(self, data_service):\n\t self.data_service = data_service\n\n\t def do_something(self):\n\t\t\t data = self.data_service.fetch_data()\n\t\t return \"Client class called DataService and got: \" + data + \"\n ```\n\n 3. **Inject the Dependencies**\n\n Now we'll inject the `DataService` dependency into the `Client` class.\n\n ```python\n data_service = DataService()\n client = Client(data_service)\n print(client.do_something())\n ```\n\n This will output: `Client class called DataService and got: Fetched data!`\n The benefit of this approach is that if you want to change the `DataService` in the future, you only need to change it in one place. Also, it's easier to test the `Client` class by injecting a mock `DataService`.```",
+      "additional_kwargs": {},
+      "example": false
+    }
   }
 ]
