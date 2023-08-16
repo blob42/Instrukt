@@ -36,6 +36,7 @@ from typing import NamedTuple
 
 from langchain.schema import Document
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
+from langchain.document_loaders import FileSystemBlobLoader
 from textual.widgets import ProgressBar
 
 from ..errors import LoaderError
@@ -210,6 +211,23 @@ class AutoDirLoader(DirectoryLoader):
             splitted_docs.extend(splitter.split_documents(splitter_docs))
 
         return splitted_docs
+
+class FSBlobLoaderMixin(FileSystemBlobLoader):
+    def detect_files(self) -> dict[Source, FileInfo]:
+        fi: dict[Source, FileInfo] = {}
+        for path in self._yield_paths():
+            if path.is_file():
+                try:
+                    ext = get_file_ext(str(path))
+                    lang, splitter = splitter_for_file(ext)
+                    fi[str(path)] = FileInfo(ext, lang, splitter)
+                except LoaderError as e:
+                    log.warning(f"Couldn't guess file type for {path}: fallback to text")
+        return fi
+
+class FSBlobLoader(FSBlobLoaderMixin):
+    pass
+
 
 def detect_documents(docs: list["Document"]) -> dict[Source, FileInfo]:
     """Detects the file types of loaded paths."""
