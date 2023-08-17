@@ -517,11 +517,13 @@ class CreateIndex(VerticalScroll,
             self.app.log("TODO: FormState.CREATED")
 
         worker = partial(_create_index_worker, ctx, new_index)
-        self.app.run_worker(worker,
-                            thread=True,
-                            name="create_index",
-                            description="create vectorstore index",
-                            exit_on_error=False)
+        self._current_work = self.app.run_worker(worker,
+                                                thread=True,
+                                                name="create_index",
+                                                exclusive=True,
+                                                description="create vectorstore index",
+                                                exit_on_error=False
+                                            )
 
     @on(Button.Pressed, "#browse-path")
     async def browse_path(self, event: Button.Pressed) -> None:
