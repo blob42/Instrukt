@@ -107,6 +107,7 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
         self.call_next(self._update_curosr_pos)
 
 
+    #TODO!: refactor
     # see https://github.com/Textualize/textual/discussions/165
     def action_external_editor(self) -> None:
         """Open an external editor for editing with an optinal starting text."""
@@ -123,7 +124,11 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
                 # If we don't, the edited text will not be saved into the current file
                 # get EDITOR from env
                 editor = os.environ.get('EDITOR', 'vim')
-                subprocess.call([editor, '+set backupcopy=yes', ef.name])
+                subprocess.call([ editor,
+                                 # '--clean',
+                                 '+set backupcopy=yes wrap',
+                                 ef.name
+                                 ])
                 ef.seek(0)
                 input_ = ef.read()
                 self.value = input_.strip()

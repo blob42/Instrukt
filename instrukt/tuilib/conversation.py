@@ -92,7 +92,7 @@ class ChatBubble(Horizontal, can_focus=True):
                 from ..messages.log import LogMessage
                 self.app.post_message(LogMessage.error(e))
 
-    #TODO!: refactor in own mixin
+    #TODO!: refactor mixin
     def action_external_editor(self) -> None:
         """Open an external editor for editing with an optinal starting text."""
         import tempfile
@@ -104,11 +104,8 @@ class ChatBubble(Horizontal, can_focus=True):
             with tempfile.NamedTemporaryFile(mode="w+") as ef:
                 ef.write(initial.strip())
                 ef.flush()
-                # Need to create a separate backup copy
-                # If we don't, the edited text will not be saved into the current file
-                # get EDITOR from env
                 editor = os.environ.get('EDITOR', 'vim')
-                subprocess.call([editor, '+set backupcopy=yes', ef.name])
+                subprocess.call([editor, '+set backupcopy=yes wrap', ef.name])
                 ef.seek(0)
                 # get input
                 input_ = ef.read()
