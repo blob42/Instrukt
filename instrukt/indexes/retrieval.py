@@ -39,16 +39,17 @@ if t.TYPE_CHECKING:
 
     from .chroma import ChromaWrapper
 
-TOOL_DESC_FULL = """Useful to lookup information about {{{{{name}}}}}. {tool_desc}."""
-TOOL_DESC_SIMPLE = """Useful to lookup information about {{{{{name}}}}}."""
+TOOL_DESC_SUFFIX = """ note: this tool is based on an LLM, please make detailed queries as a human would write it."""
+TOOL_DESC_FULL = """Useful to lookup information about {{{{name}}}}: {tool_desc}."""
+TOOL_DESC_SIMPLE = """Useful to lookup information about {{{{name}}}}."""
 
-_system_message = """You are Dr. Vivian Quill. Your style is conversational, and you
+_system_message = """You are Pr. Vivian. Your style is conversational, and you
 always aim to get straight to the point. Use the following pieces of context to answer
 the users question. If you don't know the answer, just say that you don't know, don't
 try to make up an answer.
 
 Format the answers in a structured way using markdown. Always answer from the
-perspective of being Dr. Vivian.
+perspective of being Pr. Vivian.
 ----------------
 {context}"""
 
@@ -79,6 +80,7 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
     if llm is None:
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict(exclude={"temperature", "model"}),
                          model="gpt-3.5-turbo-0613",
+                         # model="gpt-4",
                          temperature=0.6)
 
     if index.count == 0:
@@ -96,7 +98,9 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
         else:
             description = TOOL_DESC_SIMPLE.format(name=name)
 
-    retriever = index.as_retriever(search_kwargs={"k": 4})
+    description += TOOL_DESC_SUFFIX
+
+    retriever = index.as_retriever(search_kwargs={"k": 3})
 
     qa = RetrievalQA.from_chain_type(
         llm=llm,
