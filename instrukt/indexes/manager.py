@@ -116,6 +116,7 @@ class IndexManager(BaseModel):
                 collection_name=collection_name,
                 **self.chroma_kwargs)
 
+
         return self._indexes[collection_name]
 
     async def aget_index(self, collection_name: str) -> ChromaWrapper | None:
@@ -168,6 +169,9 @@ class IndexManager(BaseModel):
             docs = loader.load_and_split_parallel(console.pbar)
         else:
             docs = loader.load_and_split()
+
+        if len(docs) == 0:
+            return None
 
         ctx.app.call_from_thread(ctx.app.refresh)
 

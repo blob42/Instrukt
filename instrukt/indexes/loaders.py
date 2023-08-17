@@ -37,6 +37,9 @@ from typing import NamedTuple
 from langchain.schema import Document
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain.document_loaders import FileSystemBlobLoader
+from langchain.document_loaders.blob_loaders.schema import Blob
+from langchain.document_loaders.parsers import LanguageParser
+from langchain.document_loaders.helpers import detect_file_encodings
 from textual.widgets import ProgressBar
 
 from ..errors import LoaderError
@@ -64,12 +67,7 @@ FileInfoMap = t.Dict[str, "FileInfo"]
 
 Source = str
 
-
-DEFAULT_EXCLUDES = [
-    "**/*.pyc", "**/*.pyo", "**/__pycache__", "**/.git", "**/*.jpg",
-    "**/*.jpeg", "**/*.png", "**/*.gif", "**/*.mp3", "**/*.mp4",
-    "**/*.avi", "**/*.mov"
-        ]
+DEFAULT_EXCLUDES = [ ".*" "**/.git*", ".git*", "__pycache__/**", "**/__pycache__/*" ]
 
 
 def path_is_visible(p: Path) -> bool:
@@ -82,63 +80,233 @@ class FileInfo(NamedTuple):
     lang: str | None
     splitter: "TextSplitter"
 
+class BlobLoaderProto(t.Protocol):
+    @property
+    def path(self) -> Path: ...
+
+    @property
+    def blob_parser(self) -> LanguageParser: ...
+
+    @property
+    def glob(self) -> t.Sequence[str]: ...
+
+    @property
+    def exclude(self) -> t.Sequence[str]: ...
+
+    @property
+    def suffixes(self) -> t.Sequence[str]: ...
+
+    @property
+    def recursive(self) -> bool: ...
+
+    @property
+    def load_hidden(self) -> bool: ...
+
+    @property
+    def max_concurrency(self) -> int: ...
+
+    def yield_paths(self) -> t.Iterable[Path]: ...
+    """Own version"""
+
+    def count_matching_files(self) -> int: ...
+    """Count files matching pattern without loading to memory"""
+
+    def yield_blobs(self, pbar: ProgressProtocol) -> t.Iterable[Blob]: ...
+
+    def _yield_paths(self) -> t.Iterable[Path]: ...
+
+    def lazy_parse(self, blob: Blob,
+                   pbar: ProgressProtocol) -> t.Iterator[Document]: ...
+
+    def lazy_load_parallel(self, pbar: ProgressProtocol) -> t.Iterator[Document]: ...
+
+
+class FSBlobLoaderMixin:
+    def _yield_paths(self: BlobLoaderProto) -> t.Iterable[Path]:
+        """Overload langchain private method to fix the matching mess."""
+        paths: list[Path] = []
+        for g in self.glob:
+            paths.extend(self.path.glob(g))
+        for path in paths:
+            if self.exclude:
+                # use fnmatch for more predictable matching
+                if any(fnmatch.fnmatch(str(path), glob) for glob in self.exclude):
+                    continue
+            if path.is_file():
+                if self.suffixes and path.suffix not in self.suffixes:
+                    continue
+                yield path
+
+    def yield_paths(self: BlobLoaderProto) -> t.Iterator[Path]:
+        """Returns an iterator over the paths matching the glob pattern."""
+        paths: list[Path] = []
+        for g in self.glob:
+            paths.extend(Path(self.path).glob(g))
+
+        for path in paths:
+            if self.exclude:
+                if any(fnmatch.fnmatch(str(path), glob) for glob in self.exclude):
+                    continue
+            if path.is_file():
+                if self.suffixes and path.suffix not in self.suffixes:
+                    continue
+                if not path_is_visible(path.relative_to(
+                        self.path)) and not self.load_hidden:
+                    continue
+                yield path
+
+    def count_matching_files(self: BlobLoaderProto) -> int:
+        """Lazy count files that match the pattern without loading to memory."""
+        num = 0
+        for _ in self.yield_paths():
+            num += 1
+        return num
+
+
+    def detect_files(self: BlobLoaderProto,
+                     pbar: ProgressProtocol | None = None) -> dict[Source, FileInfo]:
+        fi: dict[Source, FileInfo] = {}
+        if pbar:
+            pbar.update_pbar(total=self.count_matching_files(), progress=0)
+        for path in self.yield_paths():
+            if path.is_file():
+                try:
+                    ext = get_file_ext(str(path))
+                    lang, splitter = splitter_for_file(ext)
+                    fi[str(path)] = FileInfo(ext, lang, splitter)
+                except LoaderError as e:
+                    log.warning(f"Couldn't guess file type for {path}: fallback to text")
+                finally:
+                    if pbar:
+                        pbar.update(1)
+        return fi
+
+
+class FSBlobLoader(FileSystemBlobLoader, FSBlobLoaderMixin):
+    pass
+
+
+#WIP: autodetect encoding
+class _Blob(Blob):
+
+    def as_string(self) -> str:
+        """Read data as a string."""
+        if self.data is None and self.path:
+            text = ""
+            try:
+                with open(str(self.path), "r", encoding=self.encoding) as f:
+                    text = f.read()
+            except UnicodeDecodeError as e:
+                detected_encodings = detect_file_encodings(self.file_path)
+                for encoding in detected_encodings:
+                    logger.debug(f"Trying encoding: {encoding.encoding}")
+                    try:
+                        with open(self.file_path, encoding=encoding.encoding) as f:
+                            text = f.read()
+                        break
+                    except UnicodeDecodeError:
+                        continue
+            return text
+        elif isinstance(self.data, bytes):
+            return self.data.decode(self.encoding)
+        elif isinstance(self.data, str):
+            return self.data
+        else:
+            raise ValueError(f"Unable to get string for blob {self}")
 
 
 
-class AutoDirLoader(DirectoryLoader):
+# implement GenericLoader interface
+class AutoDirLoader(DirectoryLoader, FSBlobLoaderMixin):
     """
-    AutoDirLoader class that extends DirectoryLoader from Langchain.
+    AutoDirLoader is a mix of Langchain's DirectoryLoader and GenericLoader.
+
+    It implements same path lazy loading logic from the FileSystemBlobLoader.
 
     On top of loading files, this class also handles detecting the file type and choosing
     the appropriate text splitter for it. It also saves the file type and any detection
     metadata as document metadata.
+
+    Args:
+        path: Path to the directory to load.
+        glob: Glob patterns to match files.
+        exclude: Glob patterns to exclude files.
+        suffixes: File extensions to match.
     """
     def __init__(self,
                  *args,
                  glob: list[str],
                  exclude: list[str] = [],
+                 suffixes: list[str] = [],
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.glob = glob  # type: ignore
         self.exclude = exclude
+        self.suffixes = suffixes
+        self.blob_parser: LanguageParser = LanguageParser()
 
-    def load_parallel(self, pbar: ProgressProtocol) -> list["Document"]:
-        """Load all files in directory in parallel and try detect the content type.
+    def yield_blobs(self: BlobLoaderProto, pbar: ProgressProtocol) -> t.Iterable[Blob]:
+        """Yield blobs for matched paths."""
+
+        def generate_blobs():
+            for path in self.yield_paths():
+                # time.sleep(0.3)
+                #FIX: add autodetect_encoding
+                yield Blob.from_path(path)
+
+        return generate_blobs()
+
+    def lazy_parse(self: BlobLoaderProto, 
+                   blob: Blob,
+                   pbar: ProgressProtocol) -> t.Iterator["Document"]:
+
+        def generate_docs():
+            # time.sleep(0.3)
+            for doc in self.blob_parser.lazy_parse(blob):
+                pbar.update(1)
+                yield doc
+
+        return generate_docs()
+
+
+    #TODO!: add GenericLoader w/ LanguageParser parsing logic
+    def lazy_load_parallel(self: BlobLoaderProto,
+                           pbar: ProgressProtocol) -> t.Iterator["Document"]:
+        """Lazy load and parse all files in a directory.
 
         Args:
             pbar: Textual progress bar to update
         """
-        p = Path(self.path)
-        docs: list["Document"] = []
-        items: list[Path] = []
+        # p = Path(self.path)
+        # docs: list["Document"] = []
 
-        if self.recursive:
-            for g in self.glob:
-                items.extend(p.rglob(g))
 
-        else:
-            for g in self.glob:
-                items.extend(p.glob(g))
+        # pbar.update_pbar(total=self.count_matching_files(), progress=0)
 
-        # Exclude patterns
-        for pattern in self.exclude:
-            items = [
-                item for item in items
-                if not fnmatch.fnmatch(str(item), pattern) and item.is_file() and (
-                    path_is_visible(item.relative_to(p)) or self.load_hidden)
-            ]  # type: ignore
 
-        pbar.update_pbar(total=len(items), progress=0)
-        with concurrent.futures.ThreadPoolExecutor(
-                max_workers=self.max_concurrency) as executor:
-            executor.map(lambda i: self.load_file(i, p, docs, pbar), items)
+        # with concurrent.futures.ThreadPoolExecutor(
+        #         max_workers=self.max_concurrency) as executor:
+        #     executor.map(lambda i: self.load_file(i, p, docs, pbar), self.yield_paths())
 
-        return docs
+        # NOTE: 
+        # the workers return blobs
+        # the blobs are gathered and passed to self.blob_parser.lazy_parse
 
-    def load_and_split_parallel(
-        self,
-        pbar: ProgressProtocol,
-    ) -> list["Document"]:
+        pbar.update_msg("loading and parsing files ...")
+        pbar.update_pbar(total=self.count_matching_files(), progress=0)
+        for blob in self.yield_blobs(pbar):
+            try:
+                yield from self.lazy_parse(blob, pbar)
+            except Exception as e:
+                # Handle the error here
+                log.error(f"Error with {blob.path} occurred: {str(e)}")
+
+
+
+        # return docs
+
+    def load_and_split_parallel( self: BlobLoaderProto,
+                                pbar: ProgressProtocol) -> list["Document"]:
         """Overload load and split with auto detection heuristics for content type.
         
         the text_splitter passed in is only used as a last resort if auto detection
@@ -147,12 +315,15 @@ class AutoDirLoader(DirectoryLoader):
         all_docs: list["Document"] = []
 
         time.sleep(0.1)
-        pbar.update_msg("loading documents ...")
+        # pbar.update_msg("loading documents ...")
+
+
         #NOTE: IO bound section (loading)
-        with ExecutionTimer("load documents"):
-            docs = self.load_parallel(pbar)
+        # with ExecutionTimer("load documents"):
+        docs = self.lazy_load_parallel(pbar)
 
         # Get unique sources from the loaded documents
+        #BUG: this unwraps the generator, docs can't be used after
         sources = list(
             set([
                 doc.metadata["source"] for doc in docs
@@ -161,13 +332,19 @@ class AutoDirLoader(DirectoryLoader):
 
         time.sleep(0.1)
         pbar.update_msg("splitting documents ...")
-        pbar.update_pbar(total=len(docs), progress=0)
+        doc_count = sum(1 for _ in docs)
+        pbar.update_pbar(total=doc_count, progress=0)
+
+
         #NOTE: CPU bound section (splitting)
-        with ExecutionTimer(f"split {len(docs)} documents"):
+        with ExecutionTimer(f"split {doc_count} documents"):
+
+            # Split documents in parallel by source (path)
             with concurrent.futures.ProcessPoolExecutor(
                     max_workers=self.max_concurrency) as executor:
                 source_docs = {}
                 for source in sources:
+                    log.debug(source)
                     source_docs.setdefault(source, []).extend([
                         doc for doc in docs if doc.metadata["source"] == source
                     ])
@@ -178,7 +355,6 @@ class AutoDirLoader(DirectoryLoader):
 
                 #update the progress as results are received
                 for r in results:
-
                     pbar.update(len(r))
                     all_docs.extend(r)
 
@@ -212,33 +388,35 @@ class AutoDirLoader(DirectoryLoader):
 
         return splitted_docs
 
-class FSBlobLoaderMixin(FileSystemBlobLoader):
-    def detect_files(self) -> dict[Source, FileInfo]:
-        fi: dict[Source, FileInfo] = {}
-        for path in self._yield_paths():
-            if path.is_file():
-                try:
-                    ext = get_file_ext(str(path))
-                    lang, splitter = splitter_for_file(ext)
-                    fi[str(path)] = FileInfo(ext, lang, splitter)
-                except LoaderError as e:
-                    log.warning(f"Couldn't guess file type for {path}: fallback to text")
-        return fi
 
-class FSBlobLoader(FSBlobLoaderMixin):
-    pass
 
 
 def detect_documents(docs: list["Document"]) -> dict[Source, FileInfo]:
     """Detects the file types of loaded paths."""
     fi: dict[Source, FileInfo] = {}
     lang_to_splitter: dict[str, "TextSplitter"] = {}
-    for d in docs:
-        src = d.metadata["source"]
 
+    for d in docs:
+
+
+        src = d.metadata["source"]
         assert src is not None
+
+        #TODO!: if source/language/content_type already set skip the processsing
+        # and just get splitter
+
+        # handle docs already parsed by language parser
+        _lang, _content_type = (d.metadata.get("language"),
+                                d.metadata.get("content_type"))
+        if all((_lang, _content_type)) and isinstance(_lang, Language):
+            fi[src] = FileInfo(get_file_ext(src, raise_err=False), _lang,
+                               RecursiveCharacterTextSplitter.from_language(_lang))
+            continue
+
         try:
             ext = get_file_ext(src)
+
+
         except LoaderError as e:
             log.warning(
                 f"Couldn't guess file type for {src}: fallback to text")
@@ -247,10 +425,13 @@ def detect_documents(docs: list["Document"]) -> dict[Source, FileInfo]:
                                           RecursiveCharacterTextSplitter())
         else:
             lang, splitter = splitter_for_file(ext)
+
+
         if lang in lang_to_splitter:
             splitter = lang_to_splitter[lang]
         else:
             lang_to_splitter[lang] = splitter
+
 
         fi[src] = FileInfo(ext, lang, splitter)
 
@@ -270,7 +451,7 @@ def src_by_lang(fi: FileInfoMap, count_src: bool = False) -> dict[str, list[str]
     if count_src:
         srcs_by_lang = {lang: len(srcs) for lang, srcs in srcs_by_lang.items()}
     return srcs_by_lang
-    
+
 
 
 
@@ -285,23 +466,14 @@ def cpu_count():
 DIRECTORY_LOADER = (
     AutoDirLoader,
     {
-        "loader_cls":
-        TextLoader,
-        "loader_kwargs": {
-            "autodetect_encoding": True
-        },
-        "use_multithreading":
-        True,
-        "max_concurrency":
-        cpu_count(),  #nb of parallel threads
-        "recursive":
-        True,
-        "load_hidden":
-        False,
-        "silent_errors":
-        False,
+        "loader_cls": TextLoader,
+        "loader_kwargs": { "autodetect_encoding": True },
+        "use_multithreading": True,
+        "max_concurrency": cpu_count(),  #nb of parallel threads
+        "load_hidden": False,
+        "silent_errors": False,
         "glob": ["**/[!.]*"],
-        "exclude": DEFAULT_EXCLUDES, 
+        "exclude": DEFAULT_EXCLUDES,
         }, "Directory")
 """Document loader tuples in the form (loader_cls, loader_kwargs)"""
 LOADER_MAPPINGS: dict[str, TLoaderType] = {
@@ -341,7 +513,7 @@ def detect_path_filetype(path: str) -> FileType:
     return FileType(mime, ext)
 
 
-def get_file_ext(path_str: str) -> str:
+def get_file_ext(path_str: str, raise_err=True) -> str:
     """Returns the file extension of the given path.
 
     If the file does not have an extension, it tries to detect the file type and returns
@@ -349,12 +521,16 @@ def get_file_ext(path_str: str) -> str:
     path = Path(path_str)
     file_ext: str | None = path.suffix.lower()
 
-    if file_ext == '':
+    if file_ext == "":
         #TODO!: handle mimetype not found
         _, file_ext = detect_path_filetype(path_str)
 
-    if file_ext is None:
+
+    if file_ext is None and raise_err:
         raise LoaderError(f"Could not find filetype of {path}")
+
+    if file_ext is None:
+        return ""
     return file_ext
 
 

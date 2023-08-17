@@ -561,13 +561,6 @@ class CreateIndex(VerticalScroll,
             return
         assert isinstance(loader, AutoDirLoader)
 
-        #TODO: remove
-        # cheader.set_msg("loading data ...")   # type: ignore
-        # docs_work = self.run_worker(lambda: loader.load_parallel(pbar), thread=True)
-        # docs = await docs_work.wait()
-
-
-
         cheader.set_msg("scanning data ...")   # type: ignore
         self._current_work = self.run_worker(lambda: loader.detect_files(pbar),
                                name="data_scan",
