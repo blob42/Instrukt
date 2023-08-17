@@ -8,6 +8,7 @@ IndexScreen #content {
 
 IndexScreen #main {
     /* background: pink 70%; */
+    background: $panel;
     layout: grid;
     grid-size: 1;
     grid-rows: 1fr 5fr;
@@ -83,7 +84,8 @@ IndexScreen IndexConsole {
     margin-left: 1;
     margin-top: 1;
     margin-bottom: 1;
-    background: $panel 80%;
+    /* background: $panel 80%; */
+    background: transparent;
     height: auto;
     max-height: 30vh;
     overflow-y: hidden;
@@ -97,6 +99,7 @@ IndexConsole TextLog {
     padding-right: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    background: $foreground 10%;
 
 }
 
@@ -165,13 +168,18 @@ IndexList .header {
     width: 100%;
     /* text-style: bold; */
     text-align: center;
-    background: teal 70%;
+    background: royalblue 60%;
 }
 
 IndexList ListItem {
     padding: 1;
 }
 
+IndexList ListItem.--highlight {
+    text-style: bold;
+    background: transparent;
+    color: $success-lighten-1;
+}
 
 
 /* Add Index Form */
@@ -262,10 +270,6 @@ IndexList ListItem {
 /* #add-index-form.processing #submit LoadingIndicator { */
 /*     display: block; */
 /* } */
-
-#add-index-form.processing FormGroup {
-    display: none;
-}
 
 #add-index-form #data-loader-details {
     height: auto;

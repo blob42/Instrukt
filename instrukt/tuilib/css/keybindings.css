@@ -11,5 +11,6 @@ KeyBindingsScreen ScrollableContainer {
     border: blank $foreground 80%;
     border-title-align: center;
     border-title-style: bold underline;
+    background: $foreground 20%;
 }
 
