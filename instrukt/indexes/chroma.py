@@ -64,6 +64,7 @@ class ChromaWrapper(ChromaVectorStore):
     def __init__(self,
                  client: "chromadb.Client",
                  collection_name: str,
+                 loading: bool = True,
                  embedding_function: Optional[TEmbeddings] = None,
                  collection_metadata: Optional[Dict[str, Any]] = None,
                  **kwargs):
@@ -96,10 +97,12 @@ class ChromaWrapper(ChromaVectorStore):
             **{
                 "client": client,
                 "collection_name": collection_name,
-                "embedding_function": embedding_function,
-                "collection_metadata": collection_metadata,
             }
         }
+        if not loading:
+            _kwargs.update({"embedding_function": embedding_function,
+                            "collection_metadata": collection_metadata,
+                            })
         super().__init__(**_kwargs)
 
     async def adelete(self,

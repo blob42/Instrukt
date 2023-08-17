@@ -181,7 +181,7 @@ class IndexManager(BaseModel):
         new_index = ChromaWrapper(
             self._client,
             collection_name=index.name,
-            # embedding_function=index.get_embedding_fn(),
+            loading=False,
             collection_metadata={
                 'description': index.description,
             },
