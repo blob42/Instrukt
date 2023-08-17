@@ -357,6 +357,11 @@ class _IndexDetails:
             return type(self.idx).__name__
 
     @property
+    def description(self) -> str:
+        return self.idx.description or ""
+
+
+    @property
     def embedding(self) -> EmbeddingDetails:
         with index_manager() as im:
             return im.get_embedding_fn(self.name)
@@ -387,10 +392,12 @@ class IndexInfo(Container, InstruktDomNodeMixin):
         with IndexDetails(classes="--details --container"):
             yield IndexEntry(Label("Name:", classes="--label"),
                              FutureLabel(bind="{X.name}"))
-            yield IndexEntry(Label("Count:", classes="--label"),
+            yield IndexEntry(Label("Description:", classes="--label"),
+                             FutureLabel(bind="{X.description}"))
+            yield IndexEntry(Label("Docs:", classes="--label"),
                              FutureLabel(bind="{X.count}"))
             with Horizontal(classes="entry"):
-                yield Label("Type:", classes="--label")
+                yield Label("DB:", classes="--label")
                 yield FutureLabel(bind="{X.type}")
             yield FutureLabel(label="Embeddings: ",
                               nospin=True,
