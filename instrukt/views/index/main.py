@@ -455,6 +455,11 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
                       "can_data",
                       btn_id="scan_data_btn",
                       key_display="s"),
+        ActionBinding("S",
+                      "stop_work",
+                      "top",
+                      btn_id="stop",
+                      key_display="S"),
     ]
 
     AUTO_FOCUS = "IndexList ListView"
@@ -478,6 +483,10 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
     def action_delete_collection(self) -> None:
         idx_info = self.query_one(IndexInfo)
         self.call_next(idx_info.action_delete_collection)
+
+    def action_stop_work(self) -> None:
+        """cancel ongoing work"""
+        self.query_one(CreateIndex).cancel_work()
 
     def action_new_index(self) -> None:
         self.query_one(IndexList).new_index()
@@ -532,11 +541,13 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
             # self.set_timer(2, ic.minimize)
 
         if is_status_created(e):
+            self.remove_class("--loading")
             self.query_one(IndexConsole).clear_msg().remove_class("--loading")
         #   ...
 
     @on(CreateIndex.Creating)
     def _creating_index(self) -> None:
+        self.add_class("--loading")
         cl = self.query_one(IndexConsole)
         cl.set_msg("creating index ...")
         cl.add_class("--loading")

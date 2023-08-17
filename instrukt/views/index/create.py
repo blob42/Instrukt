@@ -34,7 +34,7 @@ from textual.message import Message
 from textual.reactive import reactive, var
 from textual.timer import Timer
 from textual.widgets import Button, Input, Select, Pretty, Label
-from textual.worker import Worker
+from textual.worker import Worker, WorkerState
 
 from ...context import context_var, index_manager_var
 from ...indexes.embeddings import EMBEDDINGS
@@ -123,6 +123,7 @@ class CreateIndex(VerticalScroll,
     embedding: reactive[str] = reactive("default")
     state = reactive(FormState.INITIAL, always_update=True)
     _pristine = var(True)
+    _current_work: Worker[t.Any] | None = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -410,10 +411,10 @@ class CreateIndex(VerticalScroll,
             self.screen.query_one("Button#scan_data_btn").disabled = False
             self.screen.query_one("Button#scan").disabled = False
 
-        elif state == FormState.PROCESSING:
-            self.log.debug(f"total state is {state}")
+        # elif state == FormState.PROCESSING:
+        #     self.log.debug(f"total state is {state}")
         elif state == FormState.CREATED:
-            self.log.debug(f"total state is {state}")
+            # self.log.debug(f"total state is {state}")
             self.reset_form()
         else:
             self.screen.query_one("Button#create").disabled = True
@@ -492,6 +493,11 @@ class CreateIndex(VerticalScroll,
             self.log.debug("index created work handler !")
             # successs means worker success
 
+        if event.worker.state == WorkerState.CANCELLED:
+            self.screen.remove_class("--loading")
+            self.screen.query_one("IndexConsole").clear_msg().remove_class("--loading")
+
+
 
     async def create_index(self) -> None:
         """Create the index, this is a slow operation"""
@@ -552,13 +558,22 @@ class CreateIndex(VerticalScroll,
         if not isinstance(loader, AutoDirLoader):
             return
         assert isinstance(loader, AutoDirLoader)
-        cheader.set_msg("loading data ...")   # type: ignore
-        docs_work = self.run_worker(lambda: loader.load_parallel(pbar), thread=True)
-        docs = await docs_work.wait()
+
+        #TODO: remove
+        # cheader.set_msg("loading data ...")   # type: ignore
+        # docs_work = self.run_worker(lambda: loader.load_parallel(pbar), thread=True)
+        # docs = await docs_work.wait()
+
+
+
         cheader.set_msg("scanning data ...")   # type: ignore
-        # docs = loader.load_parallel(pbar)
-        fi = detect_documents(docs)
-        doc_stats = {k: len(v) for k,v in src_by_lang(fi).items()}
+        self._current_work = self.run_worker(lambda: loader.detect_files(pbar),
+                               name="data_scan",
+                               thread=True,
+                               exit_on_error=False)
+        # fi = detect_documents(docs)
+        files_info = await self._current_work.wait()
+        doc_stats = {k: len(v) for k,v in src_by_lang(files_info).items()}
         self.query_one(Pretty).update(doc_stats)
         self.query_one("VerticalScroll.--container").scroll_end()
         console.remove_class("--loading")
@@ -567,3 +582,6 @@ class CreateIndex(VerticalScroll,
         cheader.set_msg("")
 
 
+    def cancel_work(self) -> None:
+        if self._current_work is not None:
+            self._current_work.cancel()

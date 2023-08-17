@@ -161,10 +161,10 @@ class IndexManager(BaseModel):
         #TODO!: implement custom parallel directory loader
 
         assert ctx.app is not None, "missing App in Context"
+        console = t.cast("IndexConsole", ctx.app.query_one("IndexConsole"))
+        assert console is not None
         if isinstance(loader, AutoDirLoader):
             # get progress bar
-            console = t.cast("IndexConsole", ctx.app.query_one("IndexConsole"))
-            assert console is not None
             docs = loader.load_and_split_parallel(console.pbar)
         else:
             docs = loader.load_and_split()
