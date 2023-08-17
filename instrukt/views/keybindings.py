@@ -53,6 +53,10 @@ Focus Prev			[b]ctrl+p[/]
 open in editor 		[b]ctrl+e[/]
 Copy Message		click on message
 
+[b r] Console Commands [/]
+
+`.help`
+
 """
 
 
