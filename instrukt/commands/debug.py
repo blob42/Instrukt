@@ -23,10 +23,11 @@
 To activate these commands type `%debug` in the console.
 """
 
-from .root_cmd import ROOT as root
-from .command import CallbackOutput, CmdLog
-from ..utils.debug import dap_listen
 import sys
+
+from ..utils.debug import dap_listen
+from .command import CallbackOutput, CmdLog
+from .root_cmd import ROOT as root
 
 
 def toggle_langchain_debug():

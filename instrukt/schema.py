@@ -20,7 +20,9 @@
 ##
 """Common schema classes."""
 from typing import NamedTuple
-from langchain.schema import AIMessage, HumanMessage as LHumanMessage
+
+from langchain.schema import AIMessage
+from langchain.schema import HumanMessage as LHumanMessage
 
 
 class ChatMessage(NamedTuple):

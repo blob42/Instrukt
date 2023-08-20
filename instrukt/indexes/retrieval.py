@@ -30,9 +30,9 @@ from langchain.prompts.chat import (
     SystemMessagePromptTemplate,
 )
 
+from ..config import APP_SETTINGS
 from ..errors import ToolError
 from ..tools.base import Tool
-from ..config import APP_SETTINGS
 
 if t.TYPE_CHECKING:
     from langchain.chat_models.base import BaseChatModel
@@ -40,8 +40,8 @@ if t.TYPE_CHECKING:
     from .chroma import ChromaWrapper
 
 TOOL_DESC_SUFFIX = """ note: this tool is based on an LLM, please make detailed queries as a human would write it."""
-TOOL_DESC_FULL = """Useful to lookup information about {{{{name}}}}: {tool_desc}."""
-TOOL_DESC_SIMPLE = """Useful to lookup information about {{{{name}}}}."""
+TOOL_DESC_FULL = """Useful to lookup information about <{name}>: {tool_desc}."""
+TOOL_DESC_SIMPLE = """Useful to lookup information about <{name}>."""
 
 _system_message = """You are Pr. Vivian. Your style is conversational, and you
 always aim to get straight to the point. Use the following pieces of context to answer
@@ -79,7 +79,7 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
 
     if llm is None:
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict(exclude={"temperature", "model"}),
-                         model="gpt-3.5-turbo-0613",
+                         model="gpt-3.5-turbo",
                          # model="gpt-4",
                          temperature=0.6)
 
@@ -93,14 +93,14 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
             desc = index.metadata.get("description")
             if desc is not None:
                 description = TOOL_DESC_FULL.format(name=name, tool_desc=desc)
-            else:
-                description = TOOL_DESC_SIMPLE.format(name=name)
         else:
-            description = TOOL_DESC_SIMPLE.format(name=name)
+            description = TOOL_DESC_SIMPLE
 
+    assert description is not None
+    description.format(name=name)
     description += TOOL_DESC_SUFFIX
 
-    retriever = index.as_retriever(search_kwargs={"k": 3})
+    retriever = index.as_retriever(search_kwargs={"k": 6})
 
     qa = RetrievalQA.from_chain_type(
         llm=llm,

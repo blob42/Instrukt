@@ -20,8 +20,8 @@
 ## 
 """Custom textlog widget"""
 
-from textual.widgets import TextLog
 from textual.strip import Strip
+from textual.widgets import TextLog
 
 
 class TextLogUp(TextLog):

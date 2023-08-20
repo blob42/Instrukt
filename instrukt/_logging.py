@@ -1,16 +1,17 @@
-import typing as t
 import logging
 import sys
+import typing as t
+from logging import Filter, Handler, LogRecord
 
 from textual._context import active_app
 from textual.logging import TextualHandler
-from logging import Handler, LogRecord, Filter
+
 from .console_capture import (
-                                SentenceTransformersF,
-                                LangchainF,
-                                InstruktIndexF,
-                                ConsoleFilter
-                            )
+    ConsoleFilter,
+    InstruktIndexF,
+    LangchainF,
+    SentenceTransformersF,
+)
 
 # def sentence_transformers_filter(record: LogRecord) -> bool:
 #     return record.name.startswith("sentence_transformers")
@@ -48,12 +49,7 @@ def setup_logging():
     log_ch.setFormatter(ConsoleFilter.formatter)
     log_ch.setLevel(logging.DEBUG)
 
-    log_ch.addFilter(
-            SentenceTransformersF() |
-            LangchainF() |
-            InstruktIndexF()
-            )
-
+    log_ch.addFilter(SentenceTransformersF() | LangchainF() | InstruktIndexF())
 
     # add Textual dev console handler
     logging.basicConfig(

@@ -59,6 +59,8 @@ tiktoken = {version = "^0.4.0"}
 sentence-transformers = {version = "^2.2.2", optional = true}
 instructorembedding = {version = "^1.0.1", optional = true}
 typing-extensions = "^4.7.1"
+esprima = {version = "^4.0.1", optional = true}
+chardet = "^5.2.0"
 
 [tool.poetry.extras]
 tools = ["wikipedia"]
@@ -66,8 +68,11 @@ tools = ["wikipedia"]
 #vectorstores = ["chromadb"]
 openai = ["openai"]
 local = ["sentence-transformers", "instructorembedding"]
+coding = ["esprima"]
 
+#TODO!: add chardet
 all = [
+    "esprima",
     "openai",
     "sentence-transformers",
     "instructorembedding",

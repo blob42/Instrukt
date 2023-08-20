@@ -30,11 +30,9 @@ import typing as t
 from typing import Any, Awaitable, Optional
 
 import pkg_resources
-import rich
 from rich.console import RenderableType
 from rich.spinner import Spinner
 from rich.text import Text
-from textual.app import RenderResult
 from textual.reactive import reactive, var
 from textual.widget import Widget
 from textual.widgets import Label, Static

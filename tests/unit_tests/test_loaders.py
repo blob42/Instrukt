@@ -1,15 +1,19 @@
 """Test index module"""
 import enum
+import logging
 from random import choice
 from string import ascii_lowercase
 from pathlib import Path
 import instrukt
+from unittest.mock import MagicMock
 
 import pytest
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 
 from instrukt.indexes.loaders import (DIRECTORY_LOADER, LOADER_MAPPINGS,
+                                      detect_file_encodings,
                                       get_loader, splitter_for_file,
+                                      Blob,
                                       AutoDirLoader)
 """
 Creating an index should:
@@ -37,7 +41,10 @@ def random_file_name(length=10, ext=""):
         return file_name + random_string()
 
 
-class TestLoader:
+
+
+class TestDirectoryLoader:
+    """Test the GenericLoader and BlobLoader features"""
 
     def test_get_directory_loader(self, tmp_path):
         """directory paths should use a directory loader"""
@@ -46,11 +53,24 @@ class TestLoader:
         assert loader is not None
         assert isinstance(loader, DIRECTORY_LOADER[0])
 
+    def test_warning_unknown_encodings(self, caplog):
+        caplog.set_level(logging.WARNING)
+        pbar = MagicMock()
+        examples = Path(__file__).parent / "examples"
+        non_utf = examples / "example-non-utf8.txt"
+        loader = AutoDirLoader(str(examples), **DIRECTORY_LOADER[1])
+
+        list(loader.lazy_load())
+        assert f"Error decoding {non_utf}" in caplog.text
+
+
+
     @pytest.mark.requires("pdfminer")
     @pytest.mark.parametrize("ext, loader_mapping", [
         (".txt", LOADER_MAPPINGS[".txt"][0]),
         (".pdf", LOADER_MAPPINGS[".pdf"][0]),
     ])
+
     def test_get_loader(self, tmp_path, ext, loader_mapping):
         """file paths should use the correct loader"""
         path = str(tmp_path / f"test{ext}")
@@ -60,32 +80,58 @@ class TestLoader:
         assert loader is not None
         assert isinstance(loader, loader_mapping)
 
-    @pytest.mark.parametrize("ext",
-                             [f".{language.value}" for language in Language] +
-                             [f".{random_string()}" for _ in range(5)])
-    def test_source_code_splitter(self, ext):
-        file_name = random_file_name(ext=ext)
-        if ext in Language.__members__.values():
-            assert isinstance(
-                RecursiveCharacterTextSplitter.from_language(ext),
-                RecursiveCharacterTextSplitter)
+    def test_splitting_docs(self):
+        raise NotImplementedError("duplicate documents when splitting")
 
-            lang, spl = splitter_for_file(file_name)
-            assert spl == RecursiveCharacterTextSplitter.from_language(lang)
+@pytest.mark.parametrize("ext",
+                         [f".{language.value}" for language in Language] +
+                         [f".{random_string()}" for _ in range(5)])
+def test_source_code_splitter(ext):
+    file_name = random_file_name(ext=ext)
+    if ext in Language.__members__.values():
+        assert isinstance(
+            RecursiveCharacterTextSplitter.from_language(ext),
+            RecursiveCharacterTextSplitter)
 
-        # non handled
-        else:
-            with pytest.raises(ValueError):
-                RecursiveCharacterTextSplitter.from_language(ext)
+        lang, spl = splitter_for_file(file_name)
+        assert spl == RecursiveCharacterTextSplitter.from_language(lang)
 
+    # non handled
+    else:
+        with pytest.raises(ValueError):
+            RecursiveCharacterTextSplitter.from_language(ext)
 
-#FIX:
-class TestAutoDirLoader:
-    """Test AutoDirLoader"""
+@pytest.mark.skip(reason="slow test")
+@pytest.mark.requires("chardet")
+def test_detect_encoding_timeout(tmpdir: str) -> None:
+    path = Path(tmpdir)
+    file_path = str(path / "blob.txt")
+    # 2mb binary blob
+    with open(file_path, "wb") as f:
+        f.write(b"\x00" * 2_000_000)
 
-    def test_load_directory(self):
-        # get the absolute path to the package `instrukt`
-        test_dir = Path(instrukt.__file__).parent.parent / 'instrukt'
-        loader = AutoDirLoader(test_dir, **DIRECTORY_LOADER[1])
-        docs = loader.load()
-        print(docs)
+    with pytest.raises(TimeoutError):
+        detect_file_encodings(file_path, timeout=1)
+
+    detect_file_encodings(file_path, timeout=10)
+
+@pytest.mark.requires("chardet")
+def test_detect_encoding_blob_as_string():
+    examples_dir = Path(__file__).parent / "examples"
+
+    with pytest.raises(UnicodeDecodeError):
+        b = Blob(path=str(examples_dir / "example-non-utf8.txt"))
+        b.as_string()
+
+    b = Blob(path=str(examples_dir / "example-non-utf8.txt"), detect_encoding=True)
+    b.as_string()
+
+#TEST:
+# def test_detect_files():
+#     raise NotImplementedError
+#
+# def test_detect_mimetypes():
+#     raise NotImplementedError 
+#
+# def test_detect_encodings():
+#     raise NotImplementedError

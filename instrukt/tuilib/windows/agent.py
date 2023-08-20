@@ -23,10 +23,10 @@ import typing as t
 
 from textual import log, on, work
 from textual.app import ComposeResult, RenderResult
+from textual.binding import Binding
 from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Button, Label, Static
-from textual.binding import Binding
 
 from ...agent.events import AgentEvents
 from ...agent.state import AgentState

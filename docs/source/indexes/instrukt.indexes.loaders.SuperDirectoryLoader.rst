@@ -15,7 +15,7 @@
       ~AutoDirLoader.lazy_load
       ~AutoDirLoader.load
       ~AutoDirLoader.load_and_split
-      ~AutoDirLoader.load_and_split_parallel
+      ~AutoDirLoader.load_and_split_pbar
       ~AutoDirLoader.load_file
       ~AutoDirLoader.load_parallel
       ~AutoDirLoader.split_documents

@@ -21,20 +21,20 @@
 """UI elements used for conversations with agents."""
 
 import typing as t
+
 import pyperclip
-from textual import on
-from textual.app import ComposeResult
-from textual.widgets import Markdown, Static, Placeholder, Label
-from textual.widget import Widget
-from textual.containers import Container, Horizontal, Vertical, VerticalScroll
-from textual import events
-from textual.binding import Binding
 from rich.console import RenderableType
 from rich.markdown import Markdown as RichMarkdown
+from textual import events, on
+from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.containers import Container, Horizontal
+from textual.widgets import Label, Static
 
 from ..config import APP_SETTINGS
-from ..schema import ChatMessage, HumanChatMessage, AgentChatMessage
 from ..output_parsers.parser_lib import sanitize_md_code
+from ..schema import AgentChatMessage, ChatMessage, HumanChatMessage
+
 
 class MessageContainer(Container):
     """Base widget for chat messages."""
@@ -95,9 +95,9 @@ class ChatBubble(Horizontal, can_focus=True):
     #TODO!: refactor mixin
     def action_external_editor(self) -> None:
         """Open an external editor for editing with an optinal starting text."""
-        import tempfile
-        import subprocess
         import os
+        import subprocess
+        import tempfile
         initial = self._msg.content
         self.app._driver.stop_application_mode()
         try:

@@ -20,8 +20,9 @@
 ## 
 """Root command route for the app."""
 from importlib import import_module
-from .command import CmdGroup
+
 from ..commands import CMD_MODULES
+from .command import CmdGroup
 
 ROOT: CmdGroup = CmdGroup("root", "root command")
 SKIP_COMMAND_TESTS: bool = False

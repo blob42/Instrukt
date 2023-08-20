@@ -27,9 +27,9 @@ from typing import (
     Union,
 )
 
+from textual import on
 from textual.binding import Binding
 from textual.widgets import Input
-from textual import on
 from textual.worker import Worker, WorkerState
 
 from ..agent import AgentEvents
@@ -37,9 +37,9 @@ from ..commands.command import CMD_PREFIX
 from ..commands.history import CommandHistory
 from ..messages.agents import AgentMessage
 from ..messages.log import LogMessage
+from ..types import InstruktDomNodeMixin
 from .input import blur_on
 from .windows import ConsoleWindow
-from ..types import InstruktDomNodeMixin
 
 
 class CmdMsg(str):
@@ -111,9 +111,9 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
     # see https://github.com/Textualize/textual/discussions/165
     def action_external_editor(self) -> None:
         """Open an external editor for editing with an optinal starting text."""
-        import tempfile
-        import subprocess
         import os
+        import subprocess
+        import tempfile
         self.app._driver.stop_application_mode()
         initial = self.value
         try:

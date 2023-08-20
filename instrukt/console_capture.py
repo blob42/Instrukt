@@ -20,9 +20,9 @@
 ##
 """Console/ output capture and redirection."""
 
-from abc import ABC, abstractmethod
-from logging import Filter, Formatter, Handler, LogRecord
-from typing import ClassVar, Optional
+from abc import ABC
+from logging import Filter, Formatter, LogRecord
+from typing import ClassVar
 
 
 class ConsoleFilter(Filter, ABC):

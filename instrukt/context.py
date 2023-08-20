@@ -18,11 +18,11 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-import typing as t
-from typing import TYPE_CHECKING
-from contextvars import ContextVar
 import logging
+import typing as t
 from contextlib import contextmanager
+from contextvars import ContextVar
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
 

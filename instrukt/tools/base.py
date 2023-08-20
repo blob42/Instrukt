@@ -22,17 +22,19 @@
 
 #TODO: check if tools offer async or provide async wrappers
 
-import logging
 import inspect
-import ast
+import logging
 import typing as t
 from abc import ABC, abstractmethod
 from typing import TypeVar
-from pydantic import BaseModel
 
 from langchain.agents.load_tools import load_tools
-from langchain.tools import Tool as LangchainTool, BaseTool
+from langchain.tools import BaseTool
+from langchain.tools import Tool as LangchainTool
+from pydantic import BaseModel
+
 from ..utils.asynctools import run_async
+
 if t.TYPE_CHECKING:
     from langchain.base_language import BaseLanguageModel
 
@@ -45,7 +47,7 @@ DEFAULT_LC_TOOLS = ["requests_all"]
 
 #FIXME: cleaner way to test installed tool dependencies and add them
 try:
-    import wikipedia   # type: ignore
+    import wikipedia  # type: ignore
     DEFAULT_LC_TOOLS.append("wikipedia")
 except ImportError:
     pass

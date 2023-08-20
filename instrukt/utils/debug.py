@@ -2,15 +2,15 @@
 
 import logging
 import os
-import subprocess
-from typing import TYPE_CHECKING
 import timeit
+from typing import TYPE_CHECKING
 
 from xdg import BaseDirectory
+
 from ..config import APP_SETTINGS
 
 if TYPE_CHECKING:
-    from debugpy import Endpoint
+    pass
 
 dap_conn = None
 DAP_PORT = 5678

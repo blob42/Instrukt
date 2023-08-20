@@ -1,6 +1,7 @@
+from instrukt.commands.command import CallbackOutput, CmdGroup, CmdLog
 from instrukt.commands.root_cmd import ROOT as root
-from instrukt.commands.command import CmdGroup, CallbackOutput, CmdLog
 from instrukt.context import Context
+
 
 @root.group(name="docqa")
 class DocQACommands(CmdGroup):

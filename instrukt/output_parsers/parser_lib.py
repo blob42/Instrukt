@@ -22,10 +22,11 @@
 import json
 import re
 from typing import Any
-from rich.markdown import Markdown
 
 from langchain.output_parsers.json import (
-    parse_json_markdown as __lc_parse_json_markdown, )
+    parse_json_markdown as __lc_parse_json_markdown,
+)
+from rich.markdown import Markdown
 
 REGEXES = {
     "default": r"```(json)?(.*?)```",

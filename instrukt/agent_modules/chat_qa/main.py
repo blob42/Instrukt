@@ -26,8 +26,8 @@ from langchain.memory import ConversationBufferMemory
 
 from instrukt.agent.base import InstruktAgent
 from instrukt.config import APP_SETTINGS
-from instrukt.tools.base import TOOL_REGISTRY, LcToolWrapper
 from instrukt.output_parsers.multi_strategy import multi_parser
+from instrukt.tools.base import TOOL_REGISTRY
 
 if TYPE_CHECKING:
     from instrukt.context import Context

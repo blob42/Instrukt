@@ -21,22 +21,14 @@
 """Chroma wrapper and utils."""
 
 import logging
-from typing import (
-                    cast,
-                    TYPE_CHECKING,
-                    Any,
-                    Dict,
-                    Optional,
-                    Sequence,
-                    Union
-                )
-
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Union, cast
 
 import chromadb
-from langchain.embeddings import ( HuggingFaceEmbeddings,
-                                    HuggingFaceInstructEmbeddings,
-                                   OpenAIEmbeddings
-                                )
+from langchain.embeddings import (
+    HuggingFaceEmbeddings,
+    HuggingFaceInstructEmbeddings,
+    OpenAIEmbeddings,
+)
 from langchain.vectorstores import Chroma as ChromaVectorStore
 
 from ..config import CHROMA_INSTALLED
@@ -100,9 +92,8 @@ class ChromaWrapper(ChromaVectorStore):
             }
         }
         if not loading:
-            _kwargs.update({"embedding_function": embedding_function,
-                            "collection_metadata": collection_metadata,
-                            })
+            _kwargs["collection_metadata"] = collection_metadata
+        _kwargs["embedding_function"] = embedding_function
         super().__init__(**_kwargs)
 
     async def adelete(self,

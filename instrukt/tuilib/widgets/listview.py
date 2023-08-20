@@ -18,9 +18,11 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
-from textual.widgets import ListView as TListView
-from textual.binding import Binding, BindingType
 from typing import ClassVar
+
+from textual.binding import Binding, BindingType
+from textual.widgets import ListView as TListView
+
 
 class ListView(TListView):
 

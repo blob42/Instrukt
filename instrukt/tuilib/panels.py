@@ -20,16 +20,16 @@
 ## 
 """Panels and panel containers."""
 from textual import on
-from textual.reactive import reactive
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Tabs, Tab, Static
+from textual.reactive import reactive
+from textual.widgets import Static, Tab, Tabs
 
-from .repl_prompt import REPLPrompt
-from .windows import AgentWindow, ConsoleWindow, RealmWindow, RealmWindowHeader
 from ..agent.state import AgentState
 from ..messages.agents import AgentLoaded
 from ..types import InstruktDomNodeMixin
+from .repl_prompt import REPLPrompt
+from .windows import AgentWindow, ConsoleWindow, RealmWindow, RealmWindowHeader
 
 
 class InstPanel(Vertical):

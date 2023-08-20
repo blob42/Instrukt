@@ -23,8 +23,6 @@ from typing import Tuple
 
 from instrukt.config import APP_SETTINGS
 
-from ..utils.misc import _version
-
 
 class Icons(dict[str, Tuple[str, str]]):
     """Custom dict subclass for storing icons.
@@ -59,7 +57,7 @@ ICONS = Icons({
     "index": ("indexes", ""),
 })
 
-INTRO_MESSAGE = f"""
+INTRO_MESSAGE = """
 Welcome to Instrukt 👏: the swiss knife AI commander in the terminal !
 
 This is the main prompt and info window where you can find various information about the agents and available commands.

@@ -18,15 +18,11 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
-from textual.reactive import reactive
-from textual.app import ComposeResult, RenderResult
-from textual.widgets import Header, Button, Placeholder
-from textual.widget import Widget
-from textual.containers import Container
-from instrukt.utils.debug import notify
-from textual import events
 from rich.text import Text
-
+from textual.app import RenderResult
+from textual.containers import Container
+from textual.reactive import reactive
+from textual.widget import Widget
 
 
 class HeaderTitle(Widget):

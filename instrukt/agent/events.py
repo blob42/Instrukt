@@ -20,6 +20,7 @@
 ## 
 from enum import Enum
 
+
 class AgentEvents(Enum):
     LLMStart = "llm_start"
     LLMNewToken = "llm_new_token"

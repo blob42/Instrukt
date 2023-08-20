@@ -19,21 +19,15 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
 """langchain callback handler """
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
 from langchain.callbacks.base import AsyncCallbackHandler
-from typing import (
-        Any,
-        Dict,
-        List,
-        Union,
-        Optional,
-        TYPE_CHECKING
-        )
 from pydantic import BaseModel
 
-from ..utils.debug import notify
-from ..messages.agents import AgentMessage
-from .events import AgentEvents
 from ..context import Context
+from ..messages.agents import AgentMessage
+from ..utils.debug import notify
+from .events import AgentEvents
 
 if TYPE_CHECKING:
     from langchain.schema import AgentAction, AgentFinish, LLMResult

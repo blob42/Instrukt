@@ -26,12 +26,9 @@ import platform
 import sys
 import typing as t
 from glob import glob
-from rich.text import Text
-from rich.console import Console
 
 import nest_asyncio as _nest_asyncio  # type: ignore
 from IPython.terminal.embed import InteractiveShellEmbed
-from rich.console import Console
 from rich.text import Text
 from textual import events, on
 from textual.app import App, ComposeResult
@@ -51,6 +48,7 @@ from .commands.root_cmd import ROOT as root_cmd
 from .context import context_var, init_context
 from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
+from .tuilib.conversation import ChatBubble
 from .tuilib.messages import UpdateProgress
 from .tuilib.modals.index_menu import IndexMenuScreen
 from .tuilib.modals.tools_menu import ToolsMenuScreen
@@ -58,13 +56,10 @@ from .tuilib.repl_prompt import REPLPrompt
 from .tuilib.strings import IPYTHON_SHELL_INTRO
 from .tuilib.widgets.header import InstruktHeader
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
-from .tuilib.strings import IPYTHON_SHELL_INTRO
-from .tuilib.conversation import ChatBubble
+from .utils.misc import _version
 from .views.index import IndexScreen
 from .views.keybindings import KeyBindingsScreen
 from .views.man import ManualScreen
-from .context import context_var, init_context
-from .utils.misc import _version
 
 _loop = _asyncio.get_event_loop()
 _nest_asyncio.apply(_loop)

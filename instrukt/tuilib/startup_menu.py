@@ -19,16 +19,17 @@
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-from textual import on
-from textual.reactive import reactive
+from textual import events, on
 from textual.app import ComposeResult
-from textual.containers import Container, Vertical, Horizontal
-from textual.widgets import Placeholder, Label, ListItem
-from textual import events
+from textual.containers import Container, Horizontal
+from textual.reactive import reactive
+from textual.widgets import Label, ListItem
+
 from ..agent.loading import ModuleManager
 from ..schema import AgentManifest
-from .widgets.listview import ListView
 from ..types import InstruktDomNodeMixin
+from .widgets.listview import ListView
+
 
 class StartupMenu(Container, InstruktDomNodeMixin):
     """Startup menu"""

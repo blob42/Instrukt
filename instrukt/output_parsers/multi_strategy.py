@@ -23,10 +23,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import (
     Any,
-    Callable,
     Generic,
     Sequence,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -40,9 +38,8 @@ from langchain.schema import (
     OutputParserException,
 )
 
-from .strategy import Strategy
 from .strategies import json_react_strategies
-
+from .strategy import Strategy
 
 log = logging.getLogger(__name__)
 

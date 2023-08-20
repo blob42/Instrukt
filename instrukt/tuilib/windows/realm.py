@@ -20,9 +20,7 @@
 ##
 """Realm window."""
 
-import typing as t
 
-from textual import on
 from textual.app import ComposeResult, RenderResult
 from textual.containers import Horizontal
 from textual.reactive import reactive
@@ -31,9 +29,9 @@ from textual.widgets import Static
 
 from ...agent.events import AgentEvents
 from ...agent.state import AgentState
+from ...messages.agents import AgentLoaded, AgentMessage
 from ..strings import REALM_WINDOW_INTRO
 from ..widgets.textlog import TextLogUp
-from ...messages.agents import AgentLoaded, AgentMessage
 
 
 #TODO: realm window hidden by default, show when realm active

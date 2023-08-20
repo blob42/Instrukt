@@ -28,6 +28,7 @@ from langchain.embeddings import (
     HuggingFaceInstructEmbeddings,
     OpenAIEmbeddings,
 )
+
 if t.TYPE_CHECKING:
     from langchain.embeddings.base import Embeddings
 

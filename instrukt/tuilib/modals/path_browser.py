@@ -22,16 +22,15 @@
 
 
 import typing as t
+from pathlib import Path
+
 from textual import on
+from textual.app import ComposeResult
+from textual.containers import Container, Horizontal
+from textual.css.query import NoMatches
 from textual.reactive import var
 from textual.screen import ModalScreen
-from textual.app import ComposeResult
-from textual.widgets import Tree, Label, Button, Footer
-from textual.containers import Container, Horizontal
-from textual import events
-from textual.css.query import NoMatches
-from textual.binding import Binding, BindingType
-from pathlib import Path
+from textual.widgets import Label, Tree
 
 from ...types import InstruktDomNodeMixin
 from ..widgets.actionbar import ActionBar, ActionBinding

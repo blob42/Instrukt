@@ -1,18 +1,15 @@
 from typing import TYPE_CHECKING, Optional
-from instrukt.config import APP_SETTINGS
 
+from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory, ConversationBufferWindowMemory
+from langchain.memory import ConversationBufferWindowMemory
+from langchain.tools.searx_search.tool import SearxSearchResults, SearxSearchRun
 from langchain.utilities import SearxSearchWrapper
-from langchain.tools.searx_search.tool import SearxSearchRun, SearxSearchResults
-
-from langchain.agents import (
-                              AgentType
-                              )
 
 from instrukt.agent.base import InstruktAgent
-from instrukt.tools.base import TOOL_REGISTRY, LcToolWrapper
+from instrukt.config import APP_SETTINGS
 from instrukt.output_parsers.multi_strategy import multi_parser
+from instrukt.tools.base import TOOL_REGISTRY, LcToolWrapper
 
 if TYPE_CHECKING:
     from instrukt.context import Context

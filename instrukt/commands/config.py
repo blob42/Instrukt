@@ -20,9 +20,10 @@
 ## 
 """Config commands"""
 
-from .root_cmd import ROOT as root
-from .command import CmdGroup, CallbackOutput, CmdLog
 from ..context import Context
+from .command import CallbackOutput, CmdGroup, CmdLog
+from .root_cmd import ROOT as root
+
 
 @root.group(name="config")
 class Config(CmdGroup):

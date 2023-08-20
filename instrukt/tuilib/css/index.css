@@ -287,3 +287,13 @@ IndexList ListItem.--highlight {
 /*     height: 2; */
 /*     background: $foreground 10%; */
 /* } */
+
+#add-index-form #data-loader #loader-type{
+    border-bottom: none;
+}
+
+/* WIP: disable styling of textual input validation, to use pydantic validation */
+#add-index-form FormControl Input.-invalid {
+    height: 1;
+    border: none;
+}
