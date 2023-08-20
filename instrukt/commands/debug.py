@@ -25,7 +25,7 @@ To activate these commands type `%debug` in the console.
 
 from .root_cmd import ROOT as root
 from .command import CallbackOutput, CmdLog
-from ..utils.debug import dap_conn, DAP_PORT
+from ..utils.debug import dap_listen
 import sys
 
 
@@ -61,10 +61,8 @@ async def toggle_dbg(ctx) -> CallbackOutput:
 async def dap(ctx) -> CallbackOutput:
     """Toggle DAP debugging"""
 
-    import debugpy
-    global dap_conn
-    if dap_conn is None:
-        dap_conn = debugpy.listen(DAP_PORT)
+
+    if dap_listen():
         return CmdLog("started DAP server")
 
     return CmdLog("DAP server already started")

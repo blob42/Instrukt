@@ -50,6 +50,13 @@ def get_dbg_path() -> str:
     """Returns the debug path"""
     return BaseDirectory.save_cache_path("instrukt")
 
+def dap_listen() -> bool:
+    import debugpy
+    global dap_conn
+    if dap_conn is None:
+        dap_conn = debugpy.listen(DAP_PORT)
+        return True
+    return False
 
 def log_llm_output(msg: str) -> None:
     """Logs the msg to the file"""

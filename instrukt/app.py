@@ -117,6 +117,7 @@ class InstruktApp(App[None]):
         Binding("?", "uniq_screen('keybindings')", "keys"),
         Binding("j", "focus_next_msg", "next msg" , show=False),
         Binding("k", "focus_previous_msg", "prev msg" , show=False),
+        Binding("exclamation_mark", "dap_listen", "debug with dap", show=False, priority=True),
     ]
 
     CSS_PATH = [
@@ -253,6 +254,14 @@ class InstruktApp(App[None]):
         """Notify all windows that the app is ready"""
         for w in self.query(".window"):
             w.post_message(self.Ready())
+
+    def action_dap_listen(self) -> None:
+        from .utils.debug import dap_listen
+        if dap_listen():
+            self.post_message( LogMessage.info("started DAP"))
+        else:
+            self.post_message( LogMessage.info("DAP already listening"))
+
 
     def action_focus_instruct_prompt(self) -> None:
         try:
