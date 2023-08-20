@@ -19,6 +19,7 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 from typing import Any, Callable
+
 from textual import events
 
 

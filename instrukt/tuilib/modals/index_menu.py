@@ -23,16 +23,16 @@
 import typing as t
 
 from textual import on
-from textual.reactive import reactive
 from textual.app import ComposeResult
-from textual.widgets import SelectionList, Button
-from textual.widgets.selection_list import Selection
 from textual.containers import Container
 from textual.events import ScreenResume
+from textual.reactive import reactive
+from textual.widgets import Button, SelectionList
+from textual.widgets.selection_list import Selection
 
+from ...types import InstruktDomNodeMixin
 from ...views.index import IndexScreen
 from .basemenu import BaseModalMenu
-from ...types import InstruktDomNodeMixin
 
 if t.TYPE_CHECKING:
     from ...indexes.schema import Collection

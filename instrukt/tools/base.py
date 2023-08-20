@@ -22,6 +22,7 @@
 
 #TODO: check if tools offer async or provide async wrappers
 
+import importlib.util
 import inspect
 import logging
 import typing as t
@@ -40,17 +41,19 @@ if t.TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-
 #TEST: used for testing, default list not yet finalized
 DEFAULT_LC_TOOLS = ["requests_all"]
 """Default langchain tools to load"""
 
 #FIXME: cleaner way to test installed tool dependencies and add them
-try:
-    import wikipedia  # type: ignore
-    DEFAULT_LC_TOOLS.append("wikipedia")
-except ImportError:
-    pass
+
+if importlib.util.find_spec("wikipedia"):
+    try:
+        import wikipedia  # type: ignore
+        DEFAULT_LC_TOOLS.append("wikipedia")
+    except ImportError:
+        pass
+
 
 class SomeTool(ABC):
     """Interface that all instrukt tools must implement."""
@@ -68,7 +71,6 @@ class SomeTool(ABC):
     attached: bool = True
     """Whether the tool is attached to the agent at startup or not."""
 
-
     @abstractmethod
     def run(self, *args, **kwargs) -> t.Any:
         pass
@@ -79,6 +81,7 @@ class SomeTool(ABC):
 
     async def _arun(self, *args, **kwargs) -> t.Any:
         pass
+
 
 T = TypeVar("T", bound=t.Union[SomeTool, "BaseTool"])
 
@@ -107,8 +110,6 @@ def enforce_async_tool(tool: T) -> T:
     return tool
 
 
-
-
 #WIP: this cannot be used directly as langchain tool, we actually pass the base_tool
 # to langchain when we build the agent, the defined methods here are not used.
 #TODO: create decorator
@@ -119,7 +120,6 @@ class LcToolWrapper(t.Generic[T], SomeTool):
         self.base_tool: T = enforce_async_tool(basetool)
         for key, value in kwargs.items():
             setattr(self, key, value)
-
 
     def __repr__(self) -> str:
         return f"LcToolWrapper({self.base_tool})"
@@ -170,11 +170,10 @@ class ToolRegistry:
         """Register a tool."""
         _name = name or tool.name
         if _name in self._tools:
-            raise ValueError(
-                f"A tool with name {_name} is already registered")
+            raise ValueError(f"A tool with name {_name} is already registered")
         self._tools[_name] = tool
 
-    def register_tools(self, *tools: t.Tuple[str,SomeTool]) -> None:
+    def register_tools(self, *tools: t.Tuple[str, SomeTool]) -> None:
         """Register many tools."""
         for tool_name, tool in tools:
             try:
@@ -224,7 +223,6 @@ class Tool(LangchainTool, SomeTool, BaseModel):
 
     coroutine: t.Callable[..., t.Awaitable[str]]
     is_retrieval: bool = False
-
     """If this is a retrieval tool"""
 
     def wrapped(self) -> LcToolWrapper["BaseTool"]:

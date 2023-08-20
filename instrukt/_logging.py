@@ -1,10 +1,8 @@
 import logging
 import sys
-import typing as t
-from logging import Filter, Handler, LogRecord
+from logging import Handler, LogRecord
 
 from textual._context import active_app
-from textual.logging import TextualHandler
 
 from .console_capture import (
     ConsoleFilter,

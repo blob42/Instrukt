@@ -21,6 +21,7 @@
 """Messages addressed to Widgets"""
 from textual.message import Message
 
+
 class UpdateProgress(Message, namespace="instrukt"):
     def __init__(self, msg: str) -> None:
         super().__init__()

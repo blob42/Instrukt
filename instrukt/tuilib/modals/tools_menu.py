@@ -27,8 +27,8 @@ from textual.events import Mount, ScreenResume
 from textual.reactive import reactive
 from textual.widgets import Button, SelectionList
 
-from .basemenu import BaseModalMenu
 from ...types import InstruktDomNodeMixin
+from .basemenu import BaseModalMenu
 
 if t.TYPE_CHECKING:
     from ...agent.base import InstruktAgent

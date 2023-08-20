@@ -23,7 +23,6 @@
 import logging
 from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Union, cast
 
-import chromadb
 from langchain.embeddings import (
     HuggingFaceEmbeddings,
     HuggingFaceInstructEmbeddings,
@@ -37,7 +36,7 @@ from .retrieval import retrieval_tool_from_index
 from .schema import Collection
 
 if TYPE_CHECKING:
-    import chromadb  # type: ignore
+    import chromadb
     from langchain.embeddings.base import Embeddings
 
     from ..tools.base import SomeTool
@@ -78,11 +77,13 @@ class ChromaWrapper(ChromaVectorStore):
 
         collection_metadata["embedding_fn"] = embedding_fn_fqn
 
-        if type(embedding_function) in (HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings):
+        if type(embedding_function) in (HuggingFaceEmbeddings,
+                                        HuggingFaceInstructEmbeddings):
             collection_metadata["model_name"] = cast(
                 "HuggingFaceEmbeddings", embedding_function).model_name
-        elif type(embedding_function) in (OpenAIEmbeddings,):
-            collection_metadata["model_name"] = cast(OpenAIEmbeddings, embedding_function).model
+        elif type(embedding_function) in (OpenAIEmbeddings, ):
+            collection_metadata["model_name"] = cast(OpenAIEmbeddings,
+                                                     embedding_function).model
 
         _kwargs = {
             **kwargs,

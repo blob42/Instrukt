@@ -20,6 +20,7 @@
 ##
 """Console for the index view."""
 import re
+import typing as t
 from typing import Any
 
 from rich.console import RenderableType
@@ -38,11 +39,16 @@ from ..._logging import ANSI_ESCAPE_RE
 from ...tuilib.widgets.progress import ProgressBarWrapper
 from ...types import ProgressProtocol
 
+if t.TYPE_CHECKING:
+    from typing_extensions import Self
+
 
 class ConsoleMessage(Message):
+
     def __init__(self, msg: Any):
         self.msg = msg
         super().__init__()
+
 
 class ConsoleHeader(Horizontal):
     minimized = var[bool](False)
@@ -87,13 +93,15 @@ class IndexConsole(TextLog, can_focus=False, can_focus_children=False):
     def watch_minimized(self, m: bool) -> None:
         if m and self.has_log:
             # self.border_title = "\[c]onsole [b yellow][/]"
-            self.query_one(ConsoleHeader).update_label("\[c]onsole [b yellow][/]")
+            self.query_one(ConsoleHeader).update_label(
+                "\[c]onsole [b yellow][/]")
         else:
             self.query_one(ConsoleHeader).update_label("\[c]onsole")
 
     def watch_has_log(self, m: bool) -> None:
         if m:
-            self.query_one(ConsoleHeader).update_label("\[c]onsole [b yellow][/]")
+            self.query_one(ConsoleHeader).update_label(
+                "\[c]onsole [b yellow][/]")
         else:
             self.query_one(ConsoleHeader).update_label("\[c]onsole")
 
