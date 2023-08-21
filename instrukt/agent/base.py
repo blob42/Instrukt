@@ -60,6 +60,7 @@ def make_mem() -> BaseChatMemory:
                                     return_messages=True)
 
 
+#REFACT: use contextvar
 class InstruktAgent(BaseModel, ABC):
     """Instrukt agents need to satisfy this base class.
 
@@ -225,8 +226,12 @@ class InstruktAgent(BaseModel, ABC):
             ctx.info("Agent is already running.")
         else:
             self._task = asyncio.create_task(coro)
-            await self._task
-            self._task = None
+            try:
+                await self._task
+            except Exception as e:
+                ctx.error(e)
+            finally:
+                self._task = None
 
     async def agent_running(self) -> bool:
         """Check if a task is running for this agent."""
