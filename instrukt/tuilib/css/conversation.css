@@ -1,69 +1,111 @@
 AgentConversation.window {
-    /* background: gray; */
+    background: $panel;
     scrollbar-size-vertical: 1;
-    border-left: blank;
 }
 
 ChatBubble {
-    padding: 0 1;
     height: auto;
+    margin: 1 0;
 }
 
 /* left padding space for messages on right side */
 ChatBubble .left-space {
     display: none;
-}
 
+}
 
 ChatBubble.human .left-space {
     display: block;
     width: 1fr;
 }
 
+/* DEBUG: */
+ChatBubble.human #sources {
+    display: none;
+}
+
 ChatBubble.agent {
     width: 100%;
-    background: $foreground 10%;
 }
 
-ChatBubble.human {
-    background: $panel 100%;
-}
 
 MessageContainer {
-    background: $background-lighten-2 50%;
     height: auto;
-    border-title-color: $foreground;
-    /* border: wide $foreground 5%; */
-    padding-top: 1;
-    padding-bottom: 1;
 }
+
 
 MessageContainer.human {
     width: 3fr;
-    border: wide $foreground 10%;
 }
 
 MessageContainer.human MessageBody {
-    /* background: blue; */
     text-align: left;
+    border: none;
+    background: $panel-lighten-1;
 }
 
 MessageContainer.agent {
-    border: wide $foreground 10%;
-    background: transparent;
+    border-left: wide rebeccapurple;
 }
 
 ChatBubble:focus-within MessageContainer.agent {
-    border: wide mediumslateblue 60%;
+    /* border: wide mediumslateblue 60%; */
     /* background: $accent-darken-3; */
+    background: rebeccapurple;
 
+}
+
+ChatBubble:focus-within MessageBody {
+    border-title-color: $foreground;
+}
+
+ChatBubble.--with-sources MessageBody {
+    border-bottom: none;
+}
+
+ChatBubble.--with-sources MessageContainer {
+    padding-bottom: 1;
+}
+
+ChatBubble.--with-sources MessageContainer #sources {
+    display: block;
+}
+
+ChatBubble.human MessageBody {
+    border-title-background: $panel-lighten-1;
 }
 
 MessageBody {
-    margin: 0;
-    /* padding-top: 1; */
-    /* background: $warning 50%; */
     width: 100%;
     height: auto;
     content-align: center middle;
+    border: panel $panel-lighten-1;
+    border-top: panel transparent;
+    /* border-title-color: $foreground; */
+    border-title-color: $panel;
+    border-title-background: transparent;
+    padding: 1;
+    background: $panel-lighten-1;
 }
+
+MessageContainer #sources {
+    display: none;
+    padding: 1;
+    padding-bottom: 0;
+    height: auto;
+    text-style: underline;
+    border-top: panel $panel-lighten-1;
+    border-title-color: $foreground;
+    border-title-background: $background-lighten-2;
+    border-bottom: tall $background-lighten-2;
+    border-left: tall $background-lighten-2;
+    border-right: tall $background-lighten-2;
+    background: $background-lighten-2;
+}
+
+MessageContainer #sources Label {
+    display: block;
+    height: 1;
+    width: 100%;
+}
+

@@ -143,9 +143,13 @@ class ChromaWrapper(ChromaVectorStore):
     def get_retrieval_tool(self,
                            description: str | None = None,
                            return_direct: bool = False,
+                           with_sources: bool = False,
+                           with_citation: bool = False,
                            **kwargs) -> "SomeTool":
         """Get a retrieval tool for this collection."""
         return retrieval_tool_from_index(self,
                                          description,
                                          return_direct=return_direct,
+                                         with_sources=with_sources,
+                                         with_citation=with_citation,
                                          **kwargs)
