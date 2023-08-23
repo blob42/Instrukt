@@ -162,10 +162,7 @@ class IndexManager(BaseModel):
             if index.glob is not None:
                 loader.glob = [index.glob]
 
-            # get progress bar
-            docs = loader.load_and_split_pbar()
-        else:
-            docs = loader.load_and_split()
+        docs = loader.load_and_split()
 
         if len(docs) == 0:
             return None

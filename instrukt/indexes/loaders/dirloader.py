@@ -32,6 +32,7 @@ from pathlib import Path
 
 from langchain.document_loaders.blob_loaders.schema import Blob as LcBlob
 from langchain.document_loaders.parsers import LanguageParser
+from langchain.document_loaders.base import BaseBlobParser
 
 from ...errors import LoaderError
 from ...types import ProgressProtocol
@@ -48,6 +49,7 @@ from .utils import (
     splitter_for_file,
     src_by_lang,
 )
+from .mappings import LOADER_MAPPINGS, PARSER_MAPPINGS
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,7 @@ log = logging.getLogger(__name__)
 
 class Blob(LcBlob):
     detect_encoding: bool = False
+    filetype: str = ""
 
     def as_string(self) -> str:
         """Read data as a string."""
@@ -127,10 +130,13 @@ class AutoDirLoader:
         self.exclude = exclude
         self.suffixes = suffixes
         self.mimetype_prefixes = mimetype_prefixes
-        self.blob_parser: LanguageParser = LanguageParser(parser_threshold=100)
         self.load_hidden = load_hidden
         self.max_concurrency = max_concurrency
         self._pbar: ProgressProtocol | None = None
+
+        #default blob parser
+        self._default_blob_parser: LanguageParser = LanguageParser(parser_threshold=100)
+
 
     @property
     def pbar(self) -> ProgressProtocol | None:
@@ -141,19 +147,33 @@ class AutoDirLoader:
     def pbar(self, value: ProgressProtocol):
         self._pbar = value
 
+    def get_blob_parser(self, blob: Blob) -> BaseBlobParser:
+        """The blob_parser property."""
+        if blob.path is None:
+            raise ValueError("blobs without paths are not handled")
+
+        ext = Path(blob.path).suffix.lower()
+        if ext in PARSER_MAPPINGS:
+            parser = PARSER_MAPPINGS[ext]
+            return parser.parser_cls(**parser.options)
+
+        return self._default_blob_parser
+
     def yield_blobs(self) -> t.Iterable[Blob]:
         """Yield blobs for matched paths."""
 
         def generate_blobs():
             for path in self.yield_paths():
+                log.debug(f"{path}")
                 yield Blob.from_path(path)
 
         return generate_blobs()
 
     def lazy_parse(self, blob: Blob) -> t.Iterator["Document"]:
+        parser = self.get_blob_parser(blob)
 
         def generate_docs():
-            for doc in self.blob_parser.lazy_parse(blob):
+            for doc in parser.lazy_parse(blob):
                 if self.pbar is not None:
                     self.pbar.update(1)
                 yield doc
@@ -183,7 +203,7 @@ class AutoDirLoader:
     def lazy_load(self):
         return self._lazy_load()
 
-    def load_and_split_pbar(self) -> list["Document"]:
+    def load_and_split(self) -> list["Document"]:
         """Overload load and split with auto detection heuristics for content type.
         
         the text_splitter passed in is only used as a last resort if auto detection
@@ -191,6 +211,7 @@ class AutoDirLoader:
         """
         all_docs: list["Document"] = []
 
+        # duplicate the iterator for counting
         _for_cnt, docs = itertools.tee(self.lazy_load(), 2)
         doc_count = sum(1 for _ in _for_cnt)
         infomap: FileInfoMap = {}
@@ -283,7 +304,10 @@ DIRECTORY_LOADER = (
         "max_concurrency": cpu_count(),  #nb of parallel threads
         "load_hidden": False,
         "exclude": DEFAULT_EXCLUDES,
-        "mimetype_prefixes": ["text/"]
+        "mimetype_prefixes": ["text/", "application/pdf"]
     },
     "Directory")
 """Default configuration for DirectoryLoader."""
+
+# register loader mapping
+LOADER_MAPPINGS["._dir"] = DIRECTORY_LOADER

@@ -24,13 +24,10 @@ import typing as t
 
 from langchain.document_loaders.base import BaseLoader
 
-from ...types import AnyDict
 
 if t.TYPE_CHECKING:
     from .dirloader import AutoDirLoader
 
-TLoaderType = t.Tuple[t.Type["BaseLoader"] | t.Type["AutoDirLoader"],
-                      t.Optional[AnyDict], str | None]
 
 DEFAULT_EXCLUDES = [
     ".*"
@@ -61,6 +58,7 @@ lang_map = {
     '.markdown': 'markdown',
     '.tex': 'tex',
     '.txt': 'text',
+    '.pdf': 'pdf',
 }
 
 

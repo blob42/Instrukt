@@ -104,6 +104,8 @@ def splitter_for_file(ft: FileType) -> LangSplitter:
     if lang in list(v.value for v in Language):
         return LangSplitter(
             lang, RecursiveCharacterTextSplitter.from_language(Language(lang)))
+    elif lang is not None:
+        return LangSplitter(lang, RecursiveCharacterTextSplitter())
     else:
         return LangSplitter("text", RecursiveCharacterTextSplitter())
 
@@ -245,7 +247,8 @@ def get_loader(path: str) -> t.Optional["BaseLoader"]:
     Returns:
         A tuple in the form (loader_cls, loader_kwargs)
     """
-    from . import DIRECTORY_LOADER, LOADER_MAPPINGS
+    from .dirloader import DIRECTORY_LOADER
+    from .mappings import LOADER_MAPPINGS
 
     _path = Path(path).expanduser()
 

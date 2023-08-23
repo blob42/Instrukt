@@ -79,7 +79,8 @@ class BaseRetrievalMemoryMixin(BaseChatMemory):
 class ConversationBufferMemory(BaseRetrievalMemoryMixin, LcConversationBufferMemory):
     pass
 
-class ConversationBufferWindowMemory(BaseRetrievalMemoryMixin, LcConversationBufferWindowMemory):
+class ConversationBufferWindowMemory(BaseRetrievalMemoryMixin,
+                                     LcConversationBufferWindowMemory):
     pass
 
 def make_buffer_mem() -> BaseChatMemory:
