@@ -111,7 +111,7 @@ class InstruktApp(App[None]):
         #TODO: set priority binding but allow in inputs
         Binding("?", "uniq_screen('keybindings')", "keys"),
         Binding("j", "focus_next_msg", "next msg" , show=False),
-        Binding("k", "focus_previous_msg", "prev msg" , show=False),
+        Binding("k", "focus_previous_msg", "focus msg", key_display="j|k"),
         Binding("exclamation_mark", "dap_listen", "debug with dap", show=False, priority=True),
     ]
 
