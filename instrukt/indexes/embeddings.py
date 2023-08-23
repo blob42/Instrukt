@@ -44,6 +44,12 @@ EMBEDDINGS: dict[str, Embedding] = {
     "default":
     Embedding("Setence Transormers (xs)", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-MiniLM-L6-v2", )),
+    "bge-base-en":
+    Embedding("BGE Base EN", HuggingFaceEmbeddings,
+              dict(model_name="BAAI/bge-base-en",
+                    # set True to compute cosine similarity)
+                   encode_kwargs = {'normalize_embeddings': True}
+                   )), 
     "mpnet-base-v2":
     Embedding("Setence Transormers", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-mpnet-base-v2", )),
