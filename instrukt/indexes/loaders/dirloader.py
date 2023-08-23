@@ -94,6 +94,7 @@ class Blob(LcBlob):
 
 
 #TODO: handle custom loader_cls
+#TODO: language parser threshold
 class AutoDirLoader:
     """
     AutoDirLoader is a mix of Langchain's DirectoryLoader and GenericLoader.
@@ -126,7 +127,7 @@ class AutoDirLoader:
         self.exclude = exclude
         self.suffixes = suffixes
         self.mimetype_prefixes = mimetype_prefixes
-        self.blob_parser: LanguageParser = LanguageParser()
+        self.blob_parser: LanguageParser = LanguageParser(parser_threshold=100)
         self.load_hidden = load_hidden
         self.max_concurrency = max_concurrency
         self._pbar: ProgressProtocol | None = None
