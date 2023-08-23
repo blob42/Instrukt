@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- select and edit source documents used for retrieval Q&A with ctrl+p
+- Retrieval Q&A with agents returns source documents
 - `ProgressBar` protocol and wrapper to use Textual progress bar in a thread safe way
   and hook into tqdm update events.
 - Edit input using an external `$EDITOR` with `ctrl+e`
@@ -20,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### index management: 
 
+- Embeddings: added bge-base embeddings option
+- Scan and load multiple PDFs from a directory under a single collection
 - `AutoDirLoader`: scan and load a directory, auto detects file types and assigns 
 the appropriate splitter based on the detected content type.
 - link (patch) the index console progress bar to `tqdm` updates
@@ -32,6 +36,9 @@ the appropriate splitter based on the detected content type.
 
 ### Changed
 
+- Improved key bindings
+- Memory mixin to handle retrieval answers with source documents
+- Retrieval uses MMR search algorithm by default
 - Improved form validation
 - Upgraded dependencies
 - ChromaDB: no more manual call to `persist`
