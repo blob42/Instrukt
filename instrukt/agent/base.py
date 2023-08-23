@@ -28,7 +28,8 @@ import sys
 import threading
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any, ClassVar, Coroutine, Optional, Sequence, Type, Union, cast
+from typing import (Any, ClassVar, Coroutine, Optional, Sequence, Type, Union,
+                    cast, Dict, Tuple)
 
 from langchain.agents import AgentExecutor, initialize_agent
 from langchain.agents.agent import (
@@ -37,7 +38,6 @@ from langchain.agents.agent import (
 )
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chat_models.base import BaseChatModel
-from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_memory import BaseChatMemory
 from langchain.tools import BaseTool
 
@@ -49,15 +49,11 @@ from ..errors import AgentError
 from ..llms.openai.token_usage import OpenAICallbackHandler
 from ..tools.base import LcToolWrapper, SomeTool
 from .state import AgentStateMachine
+from .memory import make_buffer_mem
 
 log = logging.getLogger(__name__)
 
 BaseAgentType = Union[BaseSingleActionAgent, BaseMultiActionAgent]
-
-
-def make_mem() -> BaseChatMemory:
-    return ConversationBufferMemory(memory_key="chat_history",
-                                    return_messages=True)
 
 
 #REFACT: use contextvar
@@ -87,7 +83,7 @@ class InstruktAgent(BaseModel, ABC):
     executor: Optional[AgentExecutor] = None
     realm: Optional[Any] = None  # DockerWrapper
     state: AgentStateMachine[Any] = Field(default_factory=AgentStateMachine)
-    memory: Optional[BaseChatMemory] = Field(default_factory=make_mem)
+    memory: Optional[BaseChatMemory] = Field(default_factory=make_buffer_mem)
     executor_params: dict[str, Any] = Field(default_factory=dict)
     llm_callback_handlers: list[BaseCallbackHandler] = Field(
         default_factory=lambda: [OpenAICallbackHandler()])
@@ -96,7 +92,6 @@ class InstruktAgent(BaseModel, ABC):
     _attached_tools: list[str] = PrivateAttr(default_factory=list)
     _lock: threading.Lock = PrivateAttr(default_factory=threading.Lock)
 
-    #store current agent asyncio task
     _task: asyncio.Task[Any] | None = PrivateAttr(default=None)
 
     class Config:
@@ -128,11 +123,9 @@ class InstruktAgent(BaseModel, ABC):
         if self.toolset is not None:
             self._attached_tools = [t.name for t in self.toolset if t.attached]
 
-        # initialize the agent
         if self.executor is None:
             self.executor = self._initialize_agent()
 
-        #TODO: mypy
         self.base_agent.llm_chain.llm.callbacks = self.llm_callback_handlers  # type: ignore
 
     @validator("executor_params", pre=True)
@@ -219,8 +212,9 @@ class InstruktAgent(BaseModel, ABC):
     # async def aload(cls, ctx: 'Context') -> Optional['InstruktAgent']:
     #     """Agent loading logic goes here (async)."""
 
-    async def _start_agent_task(self, ctx: Context,
-                                coro: Coroutine[Any, Any, str]) -> None:
+    async def _start_agent_task(
+            self, ctx: Context, coro: Coroutine[Any, Any, dict[str,
+                                                               Any]]) -> None:
         """Start a the agent query task. Only task can be running."""
         if self._task is not None:
             ctx.info("Agent is already running.")
@@ -230,6 +224,8 @@ class InstruktAgent(BaseModel, ABC):
                 await self._task
             except Exception as e:
                 ctx.error(e)
+                # traceback
+                raise e
             finally:
                 self._task = None
 
@@ -252,7 +248,10 @@ class InstruktAgent(BaseModel, ABC):
         instrukt_cb_handler = InstruktCallbackHandler(ctx=ctx)
         callbacks = [instrukt_cb_handler, *self.llm_callback_handlers]
         await self._start_agent_task(
-            ctx, self.executor.arun(input=msg, callbacks=callbacks))
+            ctx,
+            self.executor.acall(dict(input=msg),
+                                return_only_outputs=True,
+                                callbacks=callbacks))
 
     def update_tool_name(self, old: str, new: str) -> None:
         """Change the name of an attached tool."""
