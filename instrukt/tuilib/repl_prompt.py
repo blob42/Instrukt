@@ -40,6 +40,7 @@ from ..messages.log import LogMessage
 from ..types import InstruktDomNodeMixin
 from .input import blur_on
 from .windows import ConsoleWindow
+from ..subprocess import ExternalProcessMixin
 
 
 class CmdMsg(str):
@@ -53,7 +54,7 @@ class ToAgentMsg(str):
 
 
 @blur_on(key="escape")
-class REPLPrompt(Input, InstruktDomNodeMixin):
+class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
 
     BINDINGS = [
         Binding("up", "history_prev", "previous command", show=False),
@@ -106,39 +107,12 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
         self.value = self.cmd_history.get_previous().entry
         self.call_next(self._update_curosr_pos)
 
-
-    #TODO!: refactor
-    # see https://github.com/Textualize/textual/discussions/165
     def action_external_editor(self) -> None:
         """Open an external editor for editing with an optinal starting text."""
-        import os
-        import subprocess
-        import tempfile
-        self.app._driver.stop_application_mode()
-        initial = self.value
-        try:
-            with tempfile.NamedTemporaryFile(mode="w+") as ef:
-                ef.write(initial)
-                ef.flush()
-                # Need to create a separate backup copy
-                # If we don't, the edited text will not be saved into the current file
-                # get EDITOR from env
-                editor = os.environ.get('EDITOR', 'vim')
-                subprocess.call([ editor,
-                                 # '--clean',
-                                 '+set backupcopy=yes wrap',
-                                 ef.name
-                                 ])
-                ef.seek(0)
-                input_ = ef.read()
-                self.value = input_.strip()
-                self.call_next(self.action_submit)
-        finally:
-            self.app.refresh()
-            self.app._driver.start_application_mode()
-
-
-
+        output = self.edit(self.value.strip())
+        if output is not None:
+            self.value = output.strip()
+            self.call_next(self.action_submit)
 
     async def action_history_next(self) -> None:
         self.value = self.cmd_history.get_next().entry

@@ -34,6 +34,7 @@ from textual.widgets import Label, Static
 from ..config import APP_SETTINGS
 from ..output_parsers.parser_lib import sanitize_md_code
 from ..schema import AgentChatMessage, ChatMessage, HumanChatMessage
+from ..subprocess import ExternalProcessMixin
 
 
 class MessageContainer(Container):
@@ -64,7 +65,7 @@ class MessageContainer(Container):
         yield self.message_body
 
 
-class ChatBubble(Horizontal, can_focus=True):
+class ChatBubble(Horizontal, ExternalProcessMixin, can_focus=True):
     """A chat bubble."""
 
     BINDINGS = [
@@ -92,31 +93,13 @@ class ChatBubble(Horizontal, can_focus=True):
                 from ..messages.log import LogMessage
                 self.app.post_message(LogMessage.error(e))
 
-    #TODO!: refactor mixin
     def action_external_editor(self) -> None:
-        """Open an external editor for editing with an optinal starting text."""
-        import os
-        import subprocess
-        import tempfile
-        initial = self._msg.content
-        self.app._driver.stop_application_mode()
-        try:
-            with tempfile.NamedTemporaryFile(mode="w+") as ef:
-                ef.write(initial.strip())
-                ef.flush()
-                editor = os.environ.get('EDITOR', 'vim')
-                subprocess.call([editor, '+set backupcopy=yes wrap', ef.name])
-                ef.seek(0)
-                # get input
-                input_ = ef.read()
-                if input_ != initial:
-                    prompt = self.app.query_one("REPLPrompt")
-                    assert prompt is not None
-                    prompt.value = input_.strip()
-                    self.call_next(prompt.action_submit)
-        finally:
-            self.app.refresh()
-            self.app._driver.start_application_mode()
+        output = self.edit(self.content.strip())
+        if output is not None:
+            prompt = t.cast("REPLPrompt", self.app.query_one("REPLPrompt"))
+            assert prompt is not None
+            prompt.value = output.strip()
+            self.call_next(prompt.action_submit)
 
 
 
