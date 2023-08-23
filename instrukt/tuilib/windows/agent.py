@@ -21,7 +21,7 @@
 """Agent window."""
 import typing as t
 
-from textual import log, on, work
+from textual import on, work
 from textual.app import ComposeResult, RenderResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal, VerticalScroll
@@ -236,10 +236,10 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
         """Main agent event handler."""
         #FIXME: reset the state of last used tool on agent finish
         if message.event in [AgentEvents.AgentFinish]:
-            # write the message in bold cyan with rich
-            self.parent.query_one(AgentStatus).tool = ""
-            msg = message.data.return_values['output']
-            await self.push_msg(AgentChatMessage(content=msg))
+            self.parent.query_one(AgentStatus).tool = ""   # type: ignore
+
+            output = message.data.return_values['output']
+            await self.push_msg(AgentChatMessage(content=output))
 
         #TODO: use model to get data out of message
         #NOTE: use this event for catching tool events in general
@@ -258,7 +258,7 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
             await self.push_msg(HumanChatMessage(content=message.data))
 
         else:
-            log(f"received message {message}")
+            self.log.debug(f"received message {message}")
 
         message.stop()
 

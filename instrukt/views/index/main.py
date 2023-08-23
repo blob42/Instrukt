@@ -155,62 +155,6 @@ class IndexDetails(AsyncDataContainer):
         self.border_title = "index details:"
 
 
-class BackupIndexDetails(Static, InstruktDomNodeMixin):
-
-    collection: reactive[Collection] = reactive(Collection("", "", {}))
-    collection_type = reactive("")
-    count = reactive(-1)
-
-    def on_mount(self) -> None:
-        self.border_title = "index details:"
-
-    def render(self) -> RenderResult:
-        # if no collection is selected render nothing
-        if len(self.collection.name) == 0:
-            return ""
-
-        embedding = self.embedding_fn
-        return f"""
-    Collection Name: {self.collection.name}
-    Document Count: {"[dim]loading ..." if self.count < 0 else "[r]" + str(self.count)}[/]
-    Type: {self.collection_type or "[dim]loading ...[/]"}
-
-    [b]Embeddings:[/b]  {embedding.extra.get("error", "")}
-    Function : {embedding.embedding_fn_cls} 
-    Model: {embedding.model_name} 
-        """
-
-    @property
-    def idx_manager(self) -> "IndexManager":
-        return self._app.context.index_manager
-
-    @property
-    def embedding_fn(self) -> EmbeddingDetails:
-        return self.idx_manager.get_embedding_fn(self.collection.name)
-
-    def clear(self) -> None:
-        self.collection = Collection("", "", {})
-        self.collection_type = ""
-        self.count = -1
-
-    async def get_index(self) -> Optional[ChromaWrapper]:
-        idx = await t.cast('InstruktApp',
-                           self.app).context.index_manager.aget_index(
-                               self.collection.name)
-        return idx
-
-    async def wwatch_collection(self, collection: Collection) -> None:
-        self.count = -1
-        idx = await self.get_index()
-        if idx is None:
-            return
-        self.count = idx.count
-        if isinstance(idx, ChromaWrapper):
-            self.collection_type = "Chroma DB"
-        else:
-            self.collection_type = type(idx).__name__
-
-
 @dataclass(frozen=True)
 class _IndexDetails:
     idx: ChromaWrapper

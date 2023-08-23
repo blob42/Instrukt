@@ -143,12 +143,12 @@ class InstruktApp(App[None]):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cmd_handler = root_cmd
-        #HACK: is this the right way to store a global context ?
+        #WIP: is this the right way to store a global context ?
         self.context = context_var.get()
         assert self.context is not None
         self.context.app = self
         self.agent_manager: AgentManager = AgentManager(self.context)
-        self._ishell: InteractiveShellEmbed = None
+        self._ishell: InteractiveShellEmbed | None = None
 
     async def on_mount(self):
         #DEBUG:

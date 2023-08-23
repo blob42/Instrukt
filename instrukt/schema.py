@@ -19,7 +19,7 @@
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 """Common schema classes."""
-from typing import NamedTuple
+from typing import NamedTuple, Any
 
 from langchain.schema import AIMessage
 from langchain.schema import HumanMessage as LHumanMessage
@@ -27,7 +27,7 @@ from langchain.schema import HumanMessage as LHumanMessage
 
 class ChatMessage(NamedTuple):
     """Base class for chat messages."""
-    content: str
+    content: str | dict[str, Any]
 
 class AgentManifest(NamedTuple):
     """A manifest for an agent."""

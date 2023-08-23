@@ -3,6 +3,7 @@ import sys
 from logging import Handler, LogRecord
 
 from textual._context import active_app
+# from textual.logging import TextualHandler
 
 from .console_capture import (
     ConsoleFilter,
