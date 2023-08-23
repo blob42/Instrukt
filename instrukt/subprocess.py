@@ -42,9 +42,8 @@
 """Calling external processes."""
 import os
 import subprocess
-import sys
 import tempfile
-from typing import Protocol
+import typing as t
 
 from textual.dom import DOMNode
 
@@ -84,3 +83,46 @@ class ExternalProcessMixin(DOMNode):
             self.app.refresh()
             self.app._driver.start_application_mode()
             return result
+
+    def open_path(self, path: str) -> None:
+        assert self.app._driver is not None
+        self.app._driver.stop_application_mode()
+        try:
+            editor = os.environ.get('EDITOR', 'vim')
+            subprocess.call([editor, path])
+        finally:
+            self.app.refresh()
+            self.app._driver.start_application_mode()
+
+        
+    def select(self, items: t.Iterable[str]) -> str:
+        """Select an item from a list using an external selector (fzf, dmenu, rofi ...)
+
+        Items are passed to selector through stdin.
+        A custom selector can be set using the env variable `SELECTOR`.
+
+        Args:
+            items: The list of items to select from.
+
+        Returns:
+            str: the selected item.
+        """
+        assert self.app._driver is not None
+        self.app._driver.stop_application_mode()
+
+        selected = ""
+        input = "\n".join(items)
+        try:
+            selector = os.environ.get('SELECTOR', 'fzf')
+
+            output = subprocess.run(selector.split(),
+                                    input=input,
+                                    text=True,
+                                    stdout=subprocess.PIPE)
+            selected = output.stdout.strip()
+        finally:
+            self.app.refresh()
+            self.app._driver.start_application_mode()
+
+        return selected
+
