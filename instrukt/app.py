@@ -149,6 +149,7 @@ class InstruktApp(App[None]):
         self.context.app = self
         self.agent_manager: AgentManager = AgentManager(self.context)
         self._ishell: InteractiveShellEmbed | None = None
+        self._alock = _asyncio.Lock()
 
     async def on_mount(self):
         #DEBUG:

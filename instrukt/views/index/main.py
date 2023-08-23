@@ -197,8 +197,6 @@ class IndexEntry(Horizontal):
 
 class IndexInfo(Container, InstruktDomNodeMixin):
 
-    _lock: asyncio.Lock = Lock()
-
     collection: reactive[Collection] = reactive(Collection("", "", {}))
 
     class Deleted(Message):
@@ -231,7 +229,7 @@ class IndexInfo(Container, InstruktDomNodeMixin):
         self.count = -1
 
         async def get_idx_details():
-            async with self._lock:
+            async with self.app._alock:
                 with index_manager() as im:
                     idx = await im.aget_index(self.collection.name)
                     assert idx is not None
