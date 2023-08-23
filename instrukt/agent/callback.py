@@ -19,9 +19,11 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
 """langchain callback handler """
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, Sequence
+from uuid import UUID
+import logging
 
-from langchain.callbacks.base import AsyncCallbackHandler
+from langchain.callbacks.base import AsyncCallbackHandler, RetrieverManagerMixin
 from pydantic import BaseModel
 
 from ..context import Context
@@ -29,11 +31,15 @@ from ..messages.agents import AgentMessage
 from ..utils.debug import notify
 from .events import AgentEvents
 
-if TYPE_CHECKING:
-    from langchain.schema import AgentAction, AgentFinish, LLMResult
+log = logging.getLogger(__name__)
 
+
+if TYPE_CHECKING:
+    from langchain.schema import AgentAction, AgentFinish, LLMResult, Document
+
+#REFACT:
 #TODO!: use contextvar
-class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
+class InstruktCallbackHandler(AsyncCallbackHandler, RetrieverManagerMixin,  BaseModel):
 
     ctx: Context
 
@@ -146,3 +152,16 @@ class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
         notify("agent finish")
         msg = AgentMessage(event=AgentEvents.AgentFinish, data=finish)
         self.ctx.app.post_message(msg)
+
+
+    #TODO:
+    async def on_retriever_end(
+            self,
+            documents: Sequence["Document"],
+            *,
+            run_id: UUID,
+            parent_run_id: UUID | None = None,
+            **kwargs: Any
+            ) -> Any:
+        # log.debug("on_retriever_end")
+        pass
