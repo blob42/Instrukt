@@ -1,0 +1,69 @@
+#monitor-panel AgentWindow {
+    height: 5fr;
+}
+
+#monitor-panel AgentWindow .--topbar {
+    background: $primary-background;
+}
+
+AgentWindow .--topbar {
+    height: 1;
+}
+
+#agent-menu #agent-menu-info {
+    width: 1fr;
+}
+
+#agent-menu AgentStatus {
+    width: 2fr;
+}
+#agent-menu #progress {
+    width: 1fr;
+    text-align: right;
+    padding: 0 1;
+    color: $success-lighten-2;
+}
+
+#agent-menu AgentMenu.-nerd {
+    width: 9;
+}
+
+#agent-menu Button {
+    /* background: $primary-background; */
+    border: none;
+    height: 1;
+    min-width: 3;
+}
+
+AgentStatusBar {
+    background: $foreground 20%;
+    height: 1;
+    align: right middle;
+}
+
+AgentStatusBar .spacer {
+    width: 1fr;
+}
+
+AgentStatusBar.ready .spinner {
+    visibility: hidden;
+}
+
+AgentStatusBar .spinner {
+    /* background: blue; */
+    /* color: $foreground 90%; */
+    width: 1;
+    /* padding: 0 1; */
+    content-align: left middle;
+}
+
+AgentStatusBar Label {
+    padding: 0 1;
+    border-left: solid $foreground 20%;
+    color: $foreground 50%;
+}
+
+AgentStatus.ready {
+    color: $success-lighten-2;
+    padding-left: 1;
+}
