@@ -42,7 +42,7 @@ from ...types import InstruktDomNodeMixin
 from ..conversation import ChatBubble
 from ..modals.basemenu import set_screen_menu_position
 from ..strings import ICONS
-from ..widgets.spinner import SpinnerWidget
+from ..widgets.spinner import FutureSpinner, SpinnerWidget
 
 if t.TYPE_CHECKING:
     from instrukt.agent.base import InstruktAgent
@@ -113,7 +113,7 @@ class AgentWindow(Container, InstruktDomNodeMixin):
 
 
     def compose(self) -> ComposeResult:
-        yield AgentWindowHeader(classes="header")
+        yield AgentWindowHeader(classes="--topbar")
         yield AgentConversation(
             # highlight=True,
             #   markup=True,
@@ -263,8 +263,8 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
         message.stop()
 
 
-class AgentStatus(Horizontal):
-    """Shows the agent status in the agent buffer header"""
+class AgentStatus(Static):
+    """Shows the agent's status in the top bar of the agent window."""
 
     agent_state = reactive(AgentState.NIL)
     status = reactive("")
@@ -339,6 +339,7 @@ class AgentWindowHeader(Container):
 
         with Horizontal(id="agent-menu"):
             with Horizontal(id="agent-menu-info"):
-                yield AgentStatus(classes="header-entry")
+                yield AgentStatus(classes="--topbar-entry")
+                yield FutureSpinner(spinner="bouncingBar", id="progress")
 
             yield AgentMenu()

@@ -59,7 +59,7 @@ class ToolsMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
     def _build_menu(self, *args, **kwargs) -> ComposeResult:
         def tool_name(tool: "SomeTool") -> str:
             if tool.is_retrieval:
-                return f"{tool.name.capitalize()} [b yellow]\[Retrieval][/]"
+                return f"{tool.name.capitalize()} [b yellow]\[R][/]"
             else:
                 return tool.name.capitalize()
         self.sel_list = SelectionList(*[(tool_name(t), t.name)

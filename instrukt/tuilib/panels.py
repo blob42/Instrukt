@@ -50,7 +50,7 @@ class Realm(Container):
     """Realm container"""
 
     def compose(self) -> ComposeResult:
-        yield RealmWindowHeader(classes="header")
+        yield RealmWindowHeader(classes="--topbar")
         yield RealmWindow(highlight=True, wrap=True, classes="window")
 
 #TODO: move to own module

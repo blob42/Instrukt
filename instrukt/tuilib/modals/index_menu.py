@@ -1,27 +1,28 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 """Index menu modal"""
 
 import typing as t
-from asyncio import create_task
+import asyncio
+
 
 from textual import on
 from textual.app import ComposeResult
@@ -31,6 +32,7 @@ from textual.reactive import reactive
 from textual.widgets import Button, SelectionList
 from textual.widgets.selection_list import Selection
 
+from ..messages import FutureAgentTask
 from ...context import index_manager
 from ...types import InstruktDomNodeMixin
 from ...views.index import IndexScreen
@@ -50,7 +52,7 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
     def compose(self) -> ComposeResult:
 
         with Container(id="menu"):
-            yield Button("Manage", id="manage", variant="default")
+            yield Button("Manage Indexes", id="manage", variant="default")
             yield from self._build_menu()
 
     def index_attached_as_tool(self, index: str) -> bool:
@@ -159,18 +161,18 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
 
     @on(SelectionList.SelectionToggled)
     async def update_selected_index(self, s: SelectionList.SelectionMessage) -> None:
-        self.log.info("Selection toggled")
-        # self.log.debug(s.selection.value)
-        # self.log.debug(s.selection.prompt)
-        # self.log.debug(s.selection_list)
-        # self.log.debug(s.selection_index)
-        self.log.debug(s.selection_list.selected)
+        self.log.debug("Selection toggled")
+        # self.log.debug(s.selection_list.selected)
 
         # selected index: inject as tool
         if s.selection.value in s.selection_list.selected:
-            self.log.debug("selected")
-            self.call_next(self.add_index_as_tool, s.selection.value)
             self.dismiss()
+            add_index_task = asyncio.create_task(
+                self.add_index_as_tool(s.selection.value))
+            def notify_tool_change():
+                self.post_message(FutureAgentTask(future=add_index_task))
+            self.set_timer(0.05, notify_tool_change)
+
 
 
 

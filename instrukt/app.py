@@ -49,7 +49,7 @@ from .context import context_var, init_context
 from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
 from .tuilib.conversation import ChatBubble
-from .tuilib.messages import UpdateProgress
+from .tuilib.messages import IndexProgress, FutureAgentTask
 from .tuilib.modals.index_menu import IndexMenuScreen
 from .tuilib.modals.tools_menu import ToolsMenuScreen
 from .tuilib.repl_prompt import REPLPrompt
@@ -184,15 +184,29 @@ class InstruktApp(App[None]):
         else:
             self.post_message(LogMessage.warning("agent was not loaded !"))
 
-    #NOTE: currently used for index console
-    @on(UpdateProgress)
-    def update_progress_event(self, event: UpdateProgress) -> None:
+    @on(IndexProgress)
+    def index_progress_event(self, event: IndexProgress) -> None:
         """Notify index console"""
         try:
             ic = self.query_one("IndexConsole")
-            ic.set_msg(event.msg)
+            ic.set_msg(event.msg)   # type: ignore
         except NoMatches:
             self.log.info(event.msg)
+
+    @on(FutureAgentTask)
+    def future_agent_task_handler(self, ev: FutureAgentTask) -> None:
+        """Future events that should update the agent window."""
+        try:
+            self.log.debug("notifying agent header progress")
+            progress = self.query_one("AgentWindowHeader #progress")
+            progress.track_future(ev.future)
+        except NoMatches:
+            self.log.warning(f"agent window header not found")
+
+
+
+
+
 
     @on(CmdLog)
     async def cmd_log(self, message: CmdLog) -> None:
@@ -217,6 +231,7 @@ class InstruktApp(App[None]):
 
     @on(AgentMessage)
     async def handle_agent_message(self, message: AgentMessage) -> None:
+        """Events coming from agents."""
         # what goes to the realm buffer
         if message.event in [AgentEvents.ToolStart, AgentEvents.ToolEnd]:
             self.notify_realm_buffer(message)

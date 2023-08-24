@@ -77,6 +77,6 @@ class RealmWindowHeader(Horizontal):
 
     def compose(self) -> ComposeResult:
         #TODO: use tool name
-        yield Static("Linux Terminal", id="tool-name")
-        yield Static("Realm\[docker]", id="filler")
-        yield RealmInfo(id="realm-name", classes="header-entry")
+        yield Static("Linux Terminal", id="tool-name", classes="--topbar-entry")
+        yield Static("Realm\[docker]", id="filler", classes="--topbar-entry")
+        yield RealmInfo(id="realm-name", classes="--topbar-entry")

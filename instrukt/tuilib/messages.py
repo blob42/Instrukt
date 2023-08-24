@@ -19,12 +19,23 @@
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 """Messages addressed to Widgets"""
+import typing as t
+
 from textual.message import Message
 
 
-class UpdateProgress(Message, namespace="instrukt"):
+class IndexProgress(Message, namespace="instrukt"):
+    """Used for index update notifications."""
     def __init__(self, msg: str) -> None:
         super().__init__()
         self.msg = msg
+
+class FutureAgentTask(Message):
+    """Message posted for a furutre task related to an agent."""
+    def __init__(self, future: t.Awaitable):
+        super().__init__()
+        self.future = future
+        
+
 
 
