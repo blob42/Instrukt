@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Progress bar for async events on tools
 - select and edit source documents used for retrieval Q&A with ctrl+p
 - Retrieval Q&A with agents returns source documents
 - `ProgressBar` protocol and wrapper to use Textual progress bar in a thread safe way
