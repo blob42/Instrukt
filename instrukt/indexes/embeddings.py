@@ -42,7 +42,7 @@ class Embedding(NamedTuple):
 
 EMBEDDINGS: dict[str, Embedding] = {
     "default":
-    Embedding("Setence Transormers (xs)", HuggingFaceEmbeddings,
+    Embedding("Sentence Transormers (xs)", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-MiniLM-L6-v2", )),
     "bge-base-en":
     Embedding("BGE Base EN", HuggingFaceEmbeddings,
@@ -51,7 +51,7 @@ EMBEDDINGS: dict[str, Embedding] = {
                    encode_kwargs = {'normalize_embeddings': True}
                    )), 
     "mpnet-base-v2":
-    Embedding("Setence Transormers", HuggingFaceEmbeddings,
+    Embedding("Sentence Transormers", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-mpnet-base-v2", )),
     "instructor":
     Embedding("Instructor (base)", HuggingFaceInstructEmbeddings,

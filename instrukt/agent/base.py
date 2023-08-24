@@ -225,7 +225,7 @@ class InstruktAgent(BaseModel, ABC):
             except Exception as e:
                 ctx.error(e)
                 # traceback
-                raise e
+                # raise e
             finally:
                 self._task = None
 

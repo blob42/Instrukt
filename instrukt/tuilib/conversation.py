@@ -46,12 +46,13 @@ class MessageContainer(Container):
     """Base widget for chat messages."""
 
     message: ChatMessage
-    sources: list[Document] = []
-    _path_map: dict[str, Document] = {}
 
     def __init__(self, msg: ChatMessage, **kwargs: t.Any) -> None:
         super().__init__(**kwargs)
+        self._path_map: dict[str, Document] = {}
+        self.sources: list[Document] = []
         self.is_human = False
+
         if isinstance(msg, HumanChatMessage):
             self.add_class("human")
             self.is_human = True

@@ -98,8 +98,8 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
 
     if llm is None:
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict(exclude={"temperature", "model"}),
-                         # model="gpt-3.5-turbo",
-                         model="gpt-4",
+                         model="gpt-3.5-turbo-0613",
+                         # model="gpt-4",
                          temperature=0.3)
 
 
@@ -120,7 +120,9 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
     description += TOOL_DESC_SUFFIX
 
     #TEST: k, mmr ...
-    retriever = index.as_retriever(search_type="mmr", search_kwargs={"k": 6})
+    retriever = index.as_retriever(search_type="mmr",
+                                   search_kwargs={"k": 6})
+                                                  # "lambda_mult":0.8})
 
 
     #WIP: add citation support
