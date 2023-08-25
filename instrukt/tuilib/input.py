@@ -38,3 +38,5 @@ def blur_on(key: str) -> Callable[..., Any]:
         return cls
 
     return decorator_unfocusable
+
+

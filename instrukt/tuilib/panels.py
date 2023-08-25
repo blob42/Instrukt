@@ -43,6 +43,7 @@ class InstPanel(Vertical):
                             classes="window")
 
         with Container(id="instrukt-prompt"):
+            yield Static("mode", id="repl-mode")
             yield REPLPrompt()
 
 

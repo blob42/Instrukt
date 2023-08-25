@@ -49,7 +49,8 @@ from .context import context_var, init_context
 from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
 from .tuilib.conversation import ChatBubble
-from .tuilib.messages import IndexProgress, FutureAgentTask
+from .messages.indexes import IndexProgress, IndexAttached
+from .messages.agents import FutureAgentTask
 from .tuilib.modals.index_menu import IndexMenuScreen
 from .tuilib.modals.tools_menu import ToolsMenuScreen
 from .tuilib.repl_prompt import REPLPrompt
@@ -192,6 +193,16 @@ class InstruktApp(App[None]):
             ic.set_msg(event.msg)   # type: ignore
         except NoMatches:
             self.log.info(event.msg)
+
+    @on(IndexAttached)
+    def index_attached(self, ev: IndexAttached) -> None:
+        # update the repl suggester
+        try:
+            repl = self.query_one(REPLPrompt)
+            repl.suggester.add(ev.index_name)
+        except NoMatches:
+            self.log.warning("REPLPrompt not found")
+
 
     @on(FutureAgentTask)
     def future_agent_task_handler(self, ev: FutureAgentTask) -> None:

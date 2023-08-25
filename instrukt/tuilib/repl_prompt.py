@@ -19,16 +19,14 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
 """Main prompt."""
+import typing as t
+from difflib import get_close_matches
 from enum import Enum
 from importlib import import_module
-from typing import (
-    Any,
-    Optional,
-    Union,
-)
 
-from textual import on
+from textual import events, on
 from textual.binding import Binding
+from textual.suggester import Suggester
 from textual.widgets import Input
 from textual.worker import Worker, WorkerState
 
@@ -37,10 +35,93 @@ from ..commands.command import CMD_PREFIX
 from ..commands.history import CommandHistory
 from ..messages.agents import AgentMessage
 from ..messages.log import LogMessage
+from ..subprocess import ExternalProcessMixin
 from ..types import InstruktDomNodeMixin
 from .input import blur_on
 from .windows import ConsoleWindow
-from ..subprocess import ExternalProcessMixin
+
+
+class Suggestion(t.NamedTuple):
+    suggestion: str
+    """Suggestion token"""
+
+    action: str
+    """Action to be called when the suggestion is selected"""
+
+    def __str__(self) -> str:
+        return self.suggestion
+
+TSuggestion = str | Suggestion
+
+class ActionSuggestions(dict[str, str]):
+    """Dict like class for storing suggestions with actions"""
+
+    def __init__(self, *suggestions: Suggestion, **kwargs) -> None:
+        super().__init__(**kwargs)
+        for suggestion in suggestions:
+            self.add(suggestion)
+
+    def add(self, suggestion: Suggestion) -> None:
+        self[suggestion.suggestion] = suggestion.action
+
+    def get_full(self, value: str) -> Suggestion | None:
+        if value in self:
+            return Suggestion(value, self[value])
+        else:
+            return None
+
+
+
+class ReplSuggester(Suggester):
+
+    suggestions: list[str] = [
+            # "gpt-3.5-turbo",
+            # "gpt-4",
+            # "gpt-3.5-turbo-0613",
+            ]
+
+    action_suggestions = ActionSuggestions(
+            # Suggestion("test", "say_hello"),
+            )
+
+    def __init__(self, *args, **kwargs):
+        self.current_suggestion = None
+        super().__init__(*args, **kwargs)
+
+    def add(self, *content: TSuggestion) -> None:
+        for c in content:
+            if isinstance(c, Suggestion):
+                self.action_suggestions.add(c)
+            else:
+                self.suggestions = list(set(self.suggestions + [c]))
+
+    @property
+    def current_suggestion(self):
+        """The current_suggestion property."""
+        if self._current_suggestion in self.action_suggestions:
+            return self.action_suggestions.get_full(self._current_suggestion)
+        return self._current_suggestion
+
+    @current_suggestion.setter
+    def current_suggestion(self, value):
+        self._current_suggestion = value
+
+    @property
+    def all(self) -> list[str]:
+        return self.suggestions + list(self.action_suggestions.keys())
+
+
+    async def get_suggestion(self, value) -> str | None:
+        suggestion = get_close_matches(value, self.all, n=1, cutoff=0.3)
+        res = suggestion[0] if suggestion else None
+        if res is not None:
+            self.current_suggestion = res
+        else:
+            self.current_suggestion = None
+        return res
+
+
+        
 
 
 class CmdMsg(str):
@@ -64,24 +145,21 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
                 key_display="C-e")
     ]
 
-    class Mode(Enum):
-        NORMAL = 0
-        SEARCH = 1
-
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+        super().__init__(suggester=ReplSuggester(), *args, **kwargs)
         self.placeholder = ""
         self.cmd_history = CommandHistory(
             config=self._app.context.config_manager.config)
         self.cmd_history.load()
 
         #WIP: use reactive attribute here
-        self.mode = self.Mode.NORMAL
+        self.llm_mode = None
+
 
     def on_mount(self) -> None:
         self.main_buffer = self._app.query_one(ConsoleWindow)
 
-    def _parse_input(self, msg: str) -> Optional[Union[CmdMsg, ToAgentMsg]]:
+    def _parse_input(self, msg: str) -> t.Optional[CmdMsg | ToAgentMsg]:
         if len(msg) == 0:
             return None
         if msg in ["help", "h", "?"]:
@@ -118,7 +196,7 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
         self.value = self.cmd_history.get_next().entry
         self.call_next(self._update_curosr_pos)
 
-    def _write_main_buffer(self, msg: Any) -> None:
+    def _write_main_buffer(self, msg: t.Any) -> None:
         """Write on main buffer"""
         self.main_buffer.write(msg, expand=True)
 
@@ -165,3 +243,30 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
         agent = self._app.agent_manager.active_agent
         if agent is not None:
             await agent.stop_agent(self._app.context)
+
+
+    def key_tab(self, ev: events.Key) -> None:
+        self.log.debug(f"tab pressed {ev.key}")
+        if self.suggester.current_suggestion is not None and len(self.value) != 0:
+            ev.stop()
+            self.log.debug("suggesting")
+            self.log.debug(self.suggester.current_suggestion)
+            cur_sug = self.suggester.current_suggestion
+            if isinstance(cur_sug, Suggestion):
+                self.call_next(self.action_cursor_right)
+
+                #WIP: repl modes
+                # self.call_next(self.run_action, cur_sug.action)
+                # self.action_delete_left_word()
+            else:
+                self.call_next(self.action_cursor_right)
+        else:
+            self.log.debug("not suggesting")
+
+    def action_llm_mode(self, mode: str) -> None:
+        self.llm_mode = mode
+        self.parent.add_class("--has-mode")
+
+
+    # def action_say_hello(self) -> None:
+    #     self.log.debug("hello")

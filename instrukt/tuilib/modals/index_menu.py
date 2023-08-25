@@ -32,7 +32,8 @@ from textual.reactive import reactive
 from textual.widgets import Button, SelectionList
 from textual.widgets.selection_list import Selection
 
-from ..messages import FutureAgentTask
+from ...messages.agents import FutureAgentTask
+from ...messages.indexes import IndexAttached
 from ...context import index_manager
 from ...types import InstruktDomNodeMixin
 from ...views.index import IndexScreen
@@ -169,8 +170,14 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
             self.dismiss()
             add_index_task = asyncio.create_task(
                 self.add_index_as_tool(s.selection.value))
+
+            def tool_added_cb():
+                self.post_message(IndexAttached(s.selection.value))
+
             def notify_tool_change():
                 self.post_message(FutureAgentTask(future=add_index_task))
+
+            add_index_task.add_done_callback(lambda _: tool_added_cb())
             self.set_timer(0.05, notify_tool_change)
 
 

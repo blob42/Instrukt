@@ -42,11 +42,25 @@ SettingsScreen {
 
 #instrukt-panel #instrukt-prompt {
     height: 3;
+    background: $background-lighten-2;
+}
+
+/* WIP: */
+#instrukt-prompt #repl-mode {
+    display: none;
+    background: $background-lighten-2;
+}
+
+#instrukt-prompt.--has-mode {
+    height: 4;
+}
+
+#instrukt-prompt.--has-mode:focus-within #repl-mode {
+    display: block;
 }
 
 #instrukt-prompt Input {
-    background: $background-lighten-2;
-    outline: solid $foreground 20%;
+    outline: vkey $foreground 20%;
     dock: bottom;
     /* margin-bottom: 1; */
 }

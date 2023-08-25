@@ -28,7 +28,7 @@ import tqdm
 from textual.widgets import ProgressBar
 
 from ...types import ProgressProtocol
-from ..messages import IndexProgress
+from ...messages.indexes import IndexProgress
 
 log = logging.getLogger(__name__)
 
