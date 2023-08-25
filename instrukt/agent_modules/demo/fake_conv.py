@@ -21,7 +21,6 @@
 """Fake conversation for testing."""
 import json
 
-from langchain.memory import ConversationBufferMemory
 from langchain.schema import messages_from_dict
 
 print(__file__)

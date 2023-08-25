@@ -25,42 +25,34 @@ Implements the main command classes that are used to register and execute comman
 
 #TODO: allow for command aliases
 
-from typing import (
-        Callable,
-        Optional,
-        TypeVar,
-        Type,
-        Dict,
-        List,
-        Sequence,
-        Tuple,
-        Any,
-        Union,
-        Generic,
-        Awaitable,
-        Coroutine,
-        Generator,
-        cast
-        )
-
-from functools import wraps
 import inspect
-from textual.app import App
-from textual.message import Message
-from rich.console import RenderableType
+from functools import wraps
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 
-from ..utils.debug import notify
+from rich.console import RenderableType
+from textual.message import Message
+
 from ..context import Context
-from ..utils.misc import MISSING
 from ..errors import (
-        CommandError,
-        CommandGroupError,
-        CommandHandlerError,
-        UnknownCommand,
-        CommandAlreadyRegistered,
-        NoCommandsRegistered,
-        CommandNotFound,
-        )
+    CommandAlreadyRegistered,
+    CommandError,
+    CommandGroupError,
+    CommandNotFound,
+    NoCommandsRegistered,
+)
+from ..utils.misc import MISSING
 
 __all__ = [
         'CmdGroup',

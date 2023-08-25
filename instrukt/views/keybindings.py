@@ -32,12 +32,12 @@ from textual.widgets import Static
 BINDING_TEXT = """
 [b r] General [/]
 
-Index Management	[b]i[/]
+Index Management	[b]I[/]
 Dev Console		[b]ctrl+d[/]
 Help/Manual		[b]h[/]
 Quit App		[b]Q[/]
 Force Quit		[b]ctrl+c[/]
-Focus On Prompt		[b]/ (slash)[/]
+Focus On Prompt		[b]/ (slash)[/] | [b]i[/]
 
 [b r] Prompt (focused) [/]
 
@@ -46,7 +46,16 @@ History			[b]up / down[/]
 
 [b r] Agent Conversation [/]
 
+Focus Next			[b]j[/]
+Focus Prev			[b]k[/]
+Focus Next			[b]ctrl+n[/]
+Focus Prev			[b]ctrl+p[/]
+open in editor 		[b]ctrl+e[/]
 Copy Message		click on message
+
+[b r] Console Commands [/]
+
+`.help`
 
 """
 

@@ -1,18 +1,15 @@
 from typing import TYPE_CHECKING, Optional
-from instrukt.config import APP_SETTINGS
 
+from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory, ConversationBufferWindowMemory
+from langchain.tools.searx_search.tool import SearxSearchResults, SearxSearchRun
 from langchain.utilities import SearxSearchWrapper
-from langchain.tools.searx_search.tool import SearxSearchRun, SearxSearchResults
-
-from langchain.agents import (
-                              AgentType
-                              )
 
 from instrukt.agent.base import InstruktAgent
-from instrukt.tools.base import TOOL_REGISTRY, LcToolWrapper
+from instrukt.config import APP_SETTINGS
 from instrukt.output_parsers.multi_strategy import multi_parser
+from instrukt.tools.base import TOOL_REGISTRY, LcToolWrapper
+from instrukt.agent.memory import ConversationBufferWindowMemory
 
 if TYPE_CHECKING:
     from instrukt.context import Context
@@ -22,7 +19,8 @@ if TYPE_CHECKING:
 # shows how to customize the agent's prompt
 SUFFIX = """TOOLS
 ------
-Assistant can ask the user to use tools to look up information that may be helpful in answering the users original question. The tools the human can use are:
+Assistant can ask the user to use tools to look up information that may be helpful in 
+answering the users original question. The tools the human can use are:
 
 {{tools}}
 
@@ -30,7 +28,8 @@ Assistant can ask the user to use tools to look up information that may be helpf
 
 USER'S INPUT
 --------------------
-Here is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):
+Here is the user's input (remember to respond with a markdown code snippet of a json 
+blob with a single action, and NOTHING else):
 
 {{{{input}}}}"""
 
@@ -48,8 +47,7 @@ class DemoAgent(InstruktAgent):
         """Load the docqa agent."""
 
         memory = ConversationBufferWindowMemory(memory_key="chat_history",
-                                          return_messages=True, k=3)
-
+                                          return_messages=True, k=4)
 
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict(
             exclude={"model", "temperature"}),
@@ -94,7 +92,6 @@ class DemoAgent(InstruktAgent):
                 agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
                 verbose=True,
                 max_iterations=7,
-                # handle_parsing_errors=True,
                 agent_kwargs=agent_kwargs,
                 )
 

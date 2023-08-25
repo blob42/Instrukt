@@ -30,12 +30,12 @@ To define new commands use the @RootCmd.command decorator.
 If you add a command on a separate module, make sure to only export the
 decorated functions with __all__
 """
-from .command import ( CmdGroup,
-                      Command,
-                      Context,
-                      CmdLog,
-                      )
-
+from .command import (
+    CmdGroup,
+    CmdLog,
+    Command,
+    Context,
+)
 
 """register command modules here"""
 CMD_MODULES = [
@@ -46,7 +46,6 @@ CMD_MODULES = [
         'index',
         ]
 
-from .root_cmd import ROOT
 
 __all__ = [
         'CmdGroup',

@@ -7,8 +7,10 @@
  *
  */
 
+
 VerticalScroll {
     scrollbar-size-vertical: 1;
+    scrollbar-color: royalblue 70%;
 }
 
 SettingsScreen {
@@ -40,15 +42,34 @@ SettingsScreen {
 
 #instrukt-panel #instrukt-prompt {
     height: 3;
+    background: $background-lighten-2;
+}
+
+/* WIP: */
+#instrukt-prompt #repl-mode {
+    display: none;
+    background: $background-lighten-2;
+}
+
+#instrukt-prompt.--has-mode {
+    height: 4;
+}
+
+#instrukt-prompt.--has-mode:focus-within #repl-mode {
+    display: block;
 }
 
 #instrukt-prompt Input {
-    background: $background-lighten-2;
-    /* background: $primary-background; */
-    /* background: transparent; */
-    border: $accent;
+    outline: vkey $foreground 20%;
     dock: bottom;
     /* margin-bottom: 1; */
+}
+
+#instrukt-prompt Input:focus>.input--cursor {
+}
+
+#instrukt-prompt Input:focus {
+    outline: hkey royalblue 80%;
 }
 
 
@@ -64,14 +85,17 @@ SettingsScreen {
     overflow-x: hidden;
     scrollbar-size-vertical: 1;
     scrollbar-gutter: stable;
+    scrollbar-color: $foreground  20%;
 }
 
+/* Main panel for agent and tools output */
 #monitor-panel {
     width: 1fr;
     height: 1fr;
 }
 
-#monitor-panel #realm-container { /* realm window container */
+/* realm window container */
+#monitor-panel #realm-container { 
     /* border: hkey $primary-lighten-2 80%; */
     /* background: red; */
     height: 4fr;
@@ -82,112 +106,31 @@ SettingsScreen {
     display: block;
 }
 
-#realm-container .window {
-}
-
 #realm-container TextLog {
     /* background: orange; */
+    background: rebeccapurple;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-#monitor-panel AgentWindow .header, #realm-container .header {
+#realm-container .--topbar {
     background: $primary-background;
-    dock: top;
     height: 1;
 }
 
-
-#monitor-panel AgentWindow {
-    /* border: hkey $panel-lighten-3; */
-    /* border: none; */
-    height: 5fr;
-}
-
-AgentWindow TextLog {
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0;
-}
-
-
-AgentWindow .header {
-    height: 1;
-}
-
-AgentWindow #agent-menu {
-    height: 1fr;
-}
-
-#agent-menu #agent-menu-info {
+#monitor-panel Realm .--topbar-entry {
     width: 1fr;
 }
 
-#agent-menu AgentMenu.-nerd {
-    width: 9;
-}
-
-#agent-menu Button {
-    /* background: $primary-background; */
-    border: none;
-    height: 1;
-    min-width: 3;
-}
-
-AgentWindow #agent-header-info {
-    height: 1fr;
-}
-
-AgentStatusBar {
-    background: $foreground 20%;
-    height: 1;
-    align: right middle;
-}
-
-AgentStatusBar .spacer {
-    width: 1fr;
-}
-
-AgentStatusBar.ready .spinner {
-    visibility: hidden;
-}
-
-AgentStatusBar .spinner {
-    /* background: blue; */
-    /* color: $foreground 90%; */
-    width: 1;
-    /* padding: 0 1; */
-    content-align: left middle;
-}
-
-AgentStatusBar Label {
-    padding: 0 1;
-    border-left: solid $foreground 20%;
-    color: $foreground 50%;
-}
-
-#monitor-panel .header Static, .header .header-entry {
-    width: 2fr;
-}
-
-AgentStatus.ready {
-    /* background: pink; */
-    color: $success-lighten-1;
-    padding-left: 1;
-}
 
 /* filler inside the header between left and right side */
-#monitor-panel .header #middle-filler {
-    /* background: orange; */
+#monitor-panel Realm .--topbar #filler {
+    text-align: center;
     width: 2fr;
 }
 
-#monitor-panel .header #middle-filler Label {
-    text-align: center;
-}
 
-
-#monitor-panel .header #realm-name {
+#monitor-panel .--topbar #realm-name {
     text-align: right;
 }
 
@@ -203,6 +146,8 @@ MonitorPanel {
 
 AgentTabs {
     background: $foreground 10%;
+    /* background: royalblue 60%; */
+    color: white;
     /* background: pink; */
 }
 
@@ -213,18 +158,23 @@ AgentTabs Tabs {
 AgentTabs Tab {
     height: 1;
     padding: 0 1;
+    color: $foreground;
 }
 
-AgentTabs #tabs-list-bar {
-    height: 1;
-}
 
 
 AgentTabs Tabs Underline {
     display: none;
 }
+
 AgentTabs Tab.-active {
     /* color: $success; */
+    text-style: none;
+    background: royalblue;
+}
+
+AgentTabs Tab:hover {
+    background: teal;
 }
 
 /* ToastRack { */
@@ -243,8 +193,24 @@ AgentTabs Tab.-active {
 /*     width: 30; */
 /* } */
 
-
-
 .--padding-top-1 {
     padding-top: 1;
+}
+
+
+/* Foooter */
+Footer {
+    background: $panel;
+}
+
+Footer > .footer--key {
+    background: $foreground 20%;
+}
+
+Footer > .footer--highlight-key {
+    background: teal;
+}
+
+Footer > .footer--highlight {
+    background: royalblue 80%;
 }

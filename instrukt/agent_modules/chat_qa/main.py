@@ -26,8 +26,8 @@ from langchain.memory import ConversationBufferMemory
 
 from instrukt.agent.base import InstruktAgent
 from instrukt.config import APP_SETTINGS
-from instrukt.tools.base import TOOL_REGISTRY, LcToolWrapper
 from instrukt.output_parsers.multi_strategy import multi_parser
+from instrukt.tools.base import TOOL_REGISTRY
 
 if TYPE_CHECKING:
     from instrukt.context import Context
@@ -43,8 +43,6 @@ class DocQAAgent(InstruktAgent):
     def load(cls, ctx: 'Context') -> Optional[InstruktAgent]:
         """Load the docqa agent."""
 
-        memory = ConversationBufferMemory(memory_key="chat_history",
-                                          return_messages=True)
 
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict())
         agent_kwargs = {
@@ -52,8 +50,9 @@ class DocQAAgent(InstruktAgent):
         }
         executor_params = dict(
             agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-            max_iterations=5,
+            max_iterations=7,
             agent_kwargs=agent_kwargs,
+            # return_intermediate_steps=True,
             # verbose=True,
         )
 
@@ -66,7 +65,6 @@ class DocQAAgent(InstruktAgent):
 
         instrukt_agent = cls(toolset=toolset,
                              llm=llm,
-                             memory=memory,
                              executor_params=executor_params)
 
         return instrukt_agent

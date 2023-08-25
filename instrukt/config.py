@@ -22,12 +22,11 @@
 
 import os
 from pathlib import Path
-from typing import Any, ClassVar, Literal, Optional, Union, Tuple
+from typing import Any, ClassVar, Optional, Tuple, Union
 
 from pydantic import (
     BaseSettings,
     Field,
-    PrivateAttr,
     SecretStr,
     root_validator,
     validator,

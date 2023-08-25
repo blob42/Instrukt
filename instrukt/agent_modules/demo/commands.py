@@ -1,6 +1,7 @@
-from instrukt.commands.command import CallbackOutput, CmdGroup, CmdLog
+from instrukt.commands.command import CmdGroup
 from instrukt.commands.root_cmd import ROOT as root
 from instrukt.context import Context
+
 """
 This code illustrates how to create commands for an agent module.
 

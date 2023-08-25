@@ -20,10 +20,9 @@
 ## 
 from pathlib import Path
 
-from textual import on
 from textual.app import ComposeResult
-from textual.screen import ModalScreen
 from textual.reactive import var
+from textual.screen import ModalScreen
 from textual.widgets import Footer, MarkdownViewer
 
 

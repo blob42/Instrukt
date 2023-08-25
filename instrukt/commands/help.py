@@ -20,8 +20,8 @@
 ## 
 """Help commands"""
 
-from .root_cmd import ROOT as root
 from .command import CallbackOutput
+from .root_cmd import ROOT as root
 
 """Main help for the command interface to Instrukt."""
 HELP_TEXT = """

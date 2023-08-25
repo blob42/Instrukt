@@ -26,12 +26,9 @@ import platform
 import sys
 import typing as t
 from glob import glob
-from rich.text import Text
-from rich.console import Console
 
 import nest_asyncio as _nest_asyncio  # type: ignore
 from IPython.terminal.embed import InteractiveShellEmbed
-from rich.console import Console
 from rich.text import Text
 from textual import events, on
 from textual.app import App, ComposeResult
@@ -51,18 +48,19 @@ from .commands.root_cmd import ROOT as root_cmd
 from .context import context_var, init_context
 from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
-from .tuilib.messages import UpdateProgress
+from .tuilib.conversation import ChatBubble
+from .messages.indexes import IndexProgress, IndexAttached
+from .messages.agents import FutureAgentTask
 from .tuilib.modals.index_menu import IndexMenuScreen
 from .tuilib.modals.tools_menu import ToolsMenuScreen
 from .tuilib.repl_prompt import REPLPrompt
 from .tuilib.strings import IPYTHON_SHELL_INTRO
 from .tuilib.widgets.header import InstruktHeader
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
-from .tuilib.strings import IPYTHON_SHELL_INTRO
+from .utils.misc import _version
 from .views.index import IndexScreen
 from .views.keybindings import KeyBindingsScreen
 from .views.man import ManualScreen
-from .context import context_var, init_context
 
 _loop = _asyncio.get_event_loop()
 _nest_asyncio.apply(_loop)
@@ -97,28 +95,32 @@ class InstruktApp(App[None]):
 
     BINDINGS = [
         Binding("d", "toggle_dark", "dark mode", show=False),
-        ("Q", "quit", "exit"),
-        Binding("i", "uniq_screen('index_mgmt')", "indexes", key_display="i"),
+        Binding("Q", "quit", "exit", show=False),
+        Binding("I", "uniq_screen('index_mgmt')", "indexes"),
         Binding("slash", "focus_instruct_prompt", "goto prompt"),
+        Binding("i", "focus_instruct_prompt", "goto prompt", show=False),
 
         #TODO: settings screen
         # ("S", "push_screen('settings_screen')", "Settings"),
         Binding("ctrl+d",
                 "dev_console",
-                "ishell",
+                "shell",
                 priority=True,
-                key_display="ctrl+d"),
+                key_display="C-d"),
         Binding("h", "push_screen('manual_screen')", "help", key_display="h"),
 
         #TODO: set priority binding but allow in inputs
         Binding("?", "uniq_screen('keybindings')", "keys"),
+        Binding("j", "focus_next_msg", "next msg" , show=False),
+        Binding("k", "focus_previous_msg", "focus msg", key_display="j|k"),
+        Binding("exclamation_mark", "dap_listen", "debug with dap", show=False, priority=True),
     ]
 
     CSS_PATH = [
         "instrukt.css",
         *glob("{}/tuilib/css/*.css".format(os.path.dirname(__file__)))
     ]
-    TITLE = "Instrukt"
+    TITLE = f"Instrukt v{_version()}"
     SCREENS = {
         "settings_screen": SettingsScreen(),
         "index_menu": IndexMenuScreen(),  #modal
@@ -142,12 +144,13 @@ class InstruktApp(App[None]):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cmd_handler = root_cmd
-        #HACK: is this the right way to store a global context ?
+        #WIP: is this the right way to store a global context ?
         self.context = context_var.get()
         assert self.context is not None
         self.context.app = self
         self.agent_manager: AgentManager = AgentManager(self.context)
-        self._ishell: InteractiveShellEmbed = None
+        self._ishell: InteractiveShellEmbed | None = None
+        self._alock = _asyncio.Lock()
 
     async def on_mount(self):
         #DEBUG:
@@ -166,7 +169,7 @@ class InstruktApp(App[None]):
             self.log.error("AgentConversation window not found")
 
     def notify_realm_buffer(self, message: "AnyMessage") -> None:
-        if self.active_agent.realm is not None:  # type: ignore
+        if self.active_agent.realm is None:  # type: ignore
             return
         try:
             self.query_one(RealmWindow).post_message(message)
@@ -182,15 +185,39 @@ class InstruktApp(App[None]):
         else:
             self.post_message(LogMessage.warning("agent was not loaded !"))
 
-    #NOTE: currently used for index console
-    @on(UpdateProgress)
-    def update_progress_event(self, event: UpdateProgress) -> None:
+    @on(IndexProgress)
+    def index_progress_event(self, event: IndexProgress) -> None:
         """Notify index console"""
         try:
             ic = self.query_one("IndexConsole")
-            ic.set_msg(event.msg)
+            ic.set_msg(event.msg)   # type: ignore
         except NoMatches:
             self.log.info(event.msg)
+
+    @on(IndexAttached)
+    def index_attached(self, ev: IndexAttached) -> None:
+        # update the repl suggester
+        try:
+            repl = self.query_one(REPLPrompt)
+            repl.suggester.add(ev.index_name)
+        except NoMatches:
+            self.log.warning("REPLPrompt not found")
+
+
+    @on(FutureAgentTask)
+    def future_agent_task_handler(self, ev: FutureAgentTask) -> None:
+        """Future events that should update the agent window."""
+        try:
+            self.log.debug("notifying agent header progress")
+            progress = self.query_one("AgentWindowHeader #progress")
+            progress.track_future(ev.future)
+        except NoMatches:
+            self.log.warning(f"agent window header not found")
+
+
+
+
+
 
     @on(CmdLog)
     async def cmd_log(self, message: CmdLog) -> None:
@@ -215,6 +242,7 @@ class InstruktApp(App[None]):
 
     @on(AgentMessage)
     async def handle_agent_message(self, message: AgentMessage) -> None:
+        """Events coming from agents."""
         # what goes to the realm buffer
         if message.event in [AgentEvents.ToolStart, AgentEvents.ToolEnd]:
             self.notify_realm_buffer(message)
@@ -249,12 +277,47 @@ class InstruktApp(App[None]):
         for w in self.query(".window"):
             w.post_message(self.Ready())
 
+    def action_dap_listen(self) -> None:
+        from .utils.debug import dap_listen
+        if dap_listen():
+            self.post_message( LogMessage.info("started DAP"))
+        else:
+            self.post_message( LogMessage.info("DAP already listening"))
+
+
     def action_focus_instruct_prompt(self) -> None:
         try:
             self.query_one(REPLPrompt).focus()
         except NoMatches:
             pass
 
+    def action_focus_next_msg(self) -> None:
+        conv = self.query_one("AgentConversation")
+        focused = self.focused
+        if isinstance(focused, ChatBubble):
+            if conv.children[-1] != focused:
+                self.action_focus_next()
+        else:
+            try:
+                messages = self.query("ChatBubble")
+                messages.last().focus()
+            except NoMatches:
+                return
+
+    def action_focus_previous_msg(self) -> None:
+        conv = self.query_one("AgentConversation")
+        focused = self.focused
+        if isinstance(focused, ChatBubble):
+            # pos 0 is user msg normally
+            if conv.children[1] != focused:
+                self.action_focus_previous()
+        else:
+            try:
+                messages = self.query("ChatBubble")
+                messages.last().focus()
+            except NoMatches:
+                return
+        
     def action_uniq_screen(self, screen_name: str) -> None:
         screen = self.SCREENS.get(screen_name)
         if len(self.screen_stack) > 0 and not isinstance(
@@ -282,10 +345,21 @@ class InstruktApp(App[None]):
         def print_banner():
             return Text.from_markup(IPYTHON_SHELL_INTRO)
 
+        def get_memory():
+            def get_agent_memory():
+                if agent is not None:
+                    return agent.memory
+                else:
+                    return None
+            return get_agent_memory()
+
+
         user_ns = {
             "app": self,
             "agent": agent,
             "intro": print_banner(),
+            "memory": get_memory(),
+            "im": self.context.index_manager,
         }
 
         frame = sys._getframe(1)

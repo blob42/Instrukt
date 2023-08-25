@@ -31,6 +31,11 @@ from ..context import Context
 from .root_cmd import ROOT as root
 
 
+@root.command(name="clearmem")
+async def cmd_clear_memory(ctx: Context) -> CallbackOutput:
+    """Clears the agent's memory."""
+    return await Agent.cmd_clear_memory(ctx)
+
 @root.group(name="agent")
 class Agent(CmdGroup):
     """Agent related commands."""

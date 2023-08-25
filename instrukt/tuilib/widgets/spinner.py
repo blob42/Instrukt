@@ -30,11 +30,9 @@ import typing as t
 from typing import Any, Awaitable, Optional
 
 import pkg_resources
-import rich
 from rich.console import RenderableType
 from rich.spinner import Spinner
 from rich.text import Text
-from textual.app import RenderResult
 from textual.reactive import reactive, var
 from textual.widget import Widget
 from textual.widgets import Label, Static
@@ -55,7 +53,6 @@ class IntervalUpdater(Static):
 
 class SpinnerWidget(IntervalUpdater):
     """Basic spinner widget based on rich.spinner.Spinner"""
-
     def __init__(self, style: str, **kwargs) -> None:
         super().__init__("", **kwargs)
         self._renderable_object = Spinner(style)
@@ -69,6 +66,17 @@ class SpinningMixin(Widget):
     spinner = reactive[Optional[str]](None)
 
     _frames: list[str]
+
+    def on_mount(self) -> None:
+        if self.spinner is not None:
+            self._spinner = self.spinner
+
+    def spin(self) -> None:
+        #backup spinner
+        self.spinner = self._spinner
+
+    def unspin(self) -> None:
+        self.spinner = None
 
     def watch_spinner(self, spinner: str | None):
         if spinner is None:
@@ -90,6 +98,40 @@ class SpinningMixin(Widget):
             cur_frame = int(
                 (time.monotonic() / self.auto_refresh) % len(self._frames))
             return self._frames[cur_frame]
+
+class FutureSpinner(SpinningMixin):
+
+    def __init__(self, spinner: str, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._spinner = spinner
+
+    def track_future(self, fut: Any):
+        """
+        Set the spinner to track the given task/future/etc.
+
+        This is not re-entrant; do not call multiple times. Instead use
+        :func:`asyncio.gather`.
+
+        Params:
+            update: update the widget with the Future result when ready.
+        """
+        future = asyncio.ensure_future(fut)
+        self.spin()
+        self.refresh(layout=True)
+        self.future = future
+
+        @future.add_done_callback
+        def done(fut):
+            self.unspin()
+
+        return future
+
+    def render(self):
+        if (frame := self.get_spin_frame()) is None:
+            return ""
+        else:
+            text = Text(frame, style=self.text_style)
+            return text
 
 
 class FutureLabel(Label, SpinningMixin):
@@ -153,7 +195,7 @@ class FutureLabel(Label, SpinningMixin):
         if not self.nospin:
             self.spinner = self._spinner
 
-    def track_future(self, fut: Any, update: bool = True):
+    def track_future(self, fut: Any, update: bool = True) -> t.Awaitable[t.Any]:
         """
         Set the spinner to track the given task/future/etc.
 
@@ -245,7 +287,7 @@ class AsyncDataContainer(Static):
         self.resolved = fut.result()
         self.log.debug(f"{self} resolved to data: {self.resolved}")
         children = self.query(FutureLabel)
-        #FIX: glitch momentarly shows wrong model data
+        #TEST:
         for c in children:
             fstring = f"f'{c.bind}'"
             res = eval(fstring, {}, {'X': self.resolved})

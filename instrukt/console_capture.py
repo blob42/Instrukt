@@ -20,20 +20,30 @@
 ##
 """Console/ output capture and redirection."""
 
-from abc import ABC, abstractmethod
-from logging import Filter, Formatter, Handler, LogRecord
-from typing import ClassVar, Optional
+from abc import ABC
+from logging import Filter, Formatter, LogRecord
+from typing import ClassVar, Sequence
 
 
 class ConsoleFilter(Filter, ABC):
     """Base filter class to use with output and log capture."""
 
-    module: ClassVar[str]
+    modules: ClassVar[Sequence[str]]
     formatter: ClassVar[Formatter] = Formatter('%(message)s')
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.module_filters = [self.module]
+    def __init__(self, *module_filters: str, **kwargs):
+        super().__init__(**kwargs)
+        self._module_filters = set([*module_filters])
+
+    @property
+    def module_filters(self):
+        return set(self._module_filters).union(self.modules)
+
+    @module_filters.setter
+    def module_filters(self, val):
+        self._module_filters = val
+
+    
 
     def filter(self, record: LogRecord) -> bool:
         """Implements logging.Filter"""
@@ -44,17 +54,21 @@ class ConsoleFilter(Filter, ABC):
 
     def __or__(self, other):
         new_filter = self.__class__()
-        new_filter.module_filters = self.module_filters + other.module_filters
+        new_filter.module_filters = self.module_filters.union(other.module_filters)
+        return new_filter
+
+    def __and__(self, other):
+        new_filter = self.__class__()
+        new_filter.module_filters = self.module_filters.intersection(other.module_filters)
         return new_filter
 
 
-class SentenceTransformersF(ConsoleFilter):
-    """Capture SentenceTransformers output."""
-    module = "sentence_transformers"
-
 class LangchainF(ConsoleFilter):
     """Capture langchain output."""
-    module = "langchain"
+    modules = ( "langchain", )
 
-class InstruktIndexF(ConsoleFilter):
-    module = "instrukt.indexes"
+class IndexCreationF(ConsoleFilter):
+    modules = (
+            "sentence_transformers",
+            "instrukt.indexes",
+            "pdfminer" )

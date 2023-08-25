@@ -20,12 +20,7 @@
 ## 
 """Agent manager"""
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Sequence
-)
+from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 from instrukt.messages.agents import AgentLoaded
 from instrukt.messages.log import LogMessage

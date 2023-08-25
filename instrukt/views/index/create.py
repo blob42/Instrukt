@@ -18,7 +18,6 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-import asyncio
 import typing as t
 from contextvars import copy_context
 from functools import partial
@@ -27,24 +26,23 @@ from pathlib import Path
 
 from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
 from pydantic import ValidationError
-from textual import events, on, work
+from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Horizontal, VerticalScroll, Container
+from textual.containers import Horizontal, VerticalScroll
 from textual.message import Message
 from textual.reactive import reactive, var
 from textual.timer import Timer
-from textual.widgets import Button, Input, Select, Pretty, Label
-from textual.worker import Worker
+from textual.validation import Function
+from textual.widgets import Button, Input, Label, Pretty, Select
+from textual.worker import Worker, WorkerFailed, WorkerState
 
-from ...context import context_var, index_manager_var
+from ...context import index_manager_var
 from ...indexes.embeddings import EMBEDDINGS
 from ...indexes.loaders import (
-                                LOADER_MAPPINGS,
-                                SuperDirectoryLoader,
-                                src_by_lang,
-                                detect_documents,
-
-                            )
+    LOADER_MAPPINGS,
+    AutoDirLoader,
+    src_by_lang,
+)
 from ...indexes.schema import Index
 from ...tuilib.forms import (
     FormControl,
@@ -57,6 +55,7 @@ from ...tuilib.forms import (
 from ...tuilib.modals.path_browser import PathBrowserModal
 from ...types import InstruktDomNodeMixin
 from ...workers import WorkResultMixin
+from .console import ConsoleMessage
 
 if t.TYPE_CHECKING:
     import contextvars
@@ -89,6 +88,11 @@ class Debouncer:
         self.timer._start()
 
 
+def valid_path(path: str) -> bool:
+    p = Path(path).expanduser()
+    return any((Path(p).is_file(), Path(p).is_dir()))
+
+
 class CreateIndex(VerticalScroll,
                   InstruktDomNodeMixin,
                   WorkResultMixin,
@@ -117,12 +121,12 @@ class CreateIndex(VerticalScroll,
     enforce necessary inputs.
     """
 
-    new_index: reactive[Index] = reactive(Index.construct())
+    new_index: var[Index] = var(Index.construct())
     path: reactive[str] = reactive("")
-    loader_type: reactive[str] = reactive("")
-    embedding: reactive[str] = reactive("default")
     state = reactive(FormState.INITIAL, always_update=True)
     _pristine = var(True)
+    _current_work: Worker[t.Any] | None = None
+    can_scan = var[bool](True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -139,14 +143,15 @@ class CreateIndex(VerticalScroll,
 
     def update_state(self) -> None:
         """Compute final form state from sub FormGroup states."""
-        # self.log.debug("updating state")
+        self.log.debug("updating state")
         forms = self.query(FormGroup)
         if all(form.state == FormState.VALID for form in forms):
-            # self.log.debug("state valid")
+            self.log.debug("state valid")
             self.state = FormState.VALID
         else:
-            # self.log.debug("state invalid")
+            self.log.debug("state invalid")
             self.state = FormState.INVALID
+        self.log.debug(self.new_index)
 
     # generator for loader type tuples for the Select widget
     def get_loader_types(self):
@@ -185,7 +190,7 @@ class CreateIndex(VerticalScroll,
                 yield FormControl(
                     Select(
                         embedding_choices,
-                        value=self.embedding,
+                        value=self.new_index.embedding,
                         classes="form-input",
                         id="embedding-fn",
                     ),
@@ -218,13 +223,14 @@ class CreateIndex(VerticalScroll,
                 )
                 yield FormControl(
                     Horizontal(
-                        Input(
-                            classes="form-input",
-                            placeholder=
-                            "path to the data source (file or directory)",
-                            id="path-input",
-                            name="path",
-                        ),
+                        Input(classes="form-input",
+                              placeholder=
+                              "path to data [file | directory] (default to .)",
+                              id="path-input",
+                              name="path",
+                              validators=[
+                                  Function(valid_path, "path is not valid")
+                              ]),
                         Button("Browse", id="browse-path", variant="default"),
                     ),
                     label="path",
@@ -235,6 +241,7 @@ class CreateIndex(VerticalScroll,
             # data loader form group
             with FormGroup(border_title="data loader",
                            name="data-loader",
+                           id="data-loader",
                            state=FormState.VALID):
                 yield FormControl(
                     Horizontal(
@@ -247,6 +254,19 @@ class CreateIndex(VerticalScroll,
                                variant="primary"),
                     ),
                     label="loader type:",
+                    id="loader-type",
+                )
+                yield FormControl(
+                    Horizontal(
+                        Input(
+                            classes="form-input",
+                            placeholder=
+                            "custom `glob` for matching files (e.g. `**/*.py`)",
+                            id="glob-input",
+                            name="glob",
+                        ), ),
+                    label="path glob pattern",
+                    id="glob",
                 )
                 with VerticalScroll(id="data-loader-details") as vs:
                     vs.can_focus = False
@@ -270,16 +290,25 @@ class CreateIndex(VerticalScroll,
         if input.name is not None:
             setattr(self.new_index, input.name, input.value.strip())
 
-        # when the form is pristine we done show form errors related to empty input
+        # when the form is pristine we show form errors related to empty input
         if input.name == "path":
             self._pristine = False
             self.path = input.value
+
+            if event.validation_result.is_valid:
+                self.can_scan = True
+            else:
+                self.can_scan = False
+
             if len(input.value) == 0:
                 self.validate_parent_form(input)
 
         if input.name == "description":
             t.cast(dict[str, t.Any],
                    self.new_index.metadata)["description"] = input.value
+
+        if input.name == "glob" and len(input.value) == 0:
+            self.new_index.glob = None
 
     # handle path submission
     @on(Input.Submitted)
@@ -305,8 +334,7 @@ class CreateIndex(VerticalScroll,
                     self.new_index.loader_type = None
 
             elif e.control.id == "embedding-fn":
-                self.embedding = str(e.value)
-                self.new_index.embedding = self.embedding
+                self.new_index.embedding = str(e.value)
                 self.validate_parent_form(e.control)
 
     @on(FormGroup.Blur)
@@ -394,11 +422,21 @@ class CreateIndex(VerticalScroll,
         # if all inputs are empty
         empty_inputs = map(lambda i: len(i.value) == 0,
                            chain(*[fc.query(Input) for fc in form_controls]))
-        # if empty_inputs is not empty
-        if any(empty_inputs) and all(empty_inputs):
+        if all(empty_inputs):
             return
 
         self.__validate_new_index(form)
+
+    def watch_can_scan(self, v):
+        if v:
+            self.screen.query_one("Button#scan_data_btn").disabled = False
+            self.screen.query_one("Button#scan").disabled = False
+        else:
+            self.screen.query_one("Button#scan_data_btn").disabled = True
+            self.screen.query_one("Button#scan").disabled = True
+
+    def validate_path(self, path: str) -> str:
+        return str(Path(path).expanduser())
 
     # TODO!: loading progress indicator
     def watch_state(self, state: FormState) -> None:
@@ -407,19 +445,14 @@ class CreateIndex(VerticalScroll,
         if state == FormState.VALID:
             create_btn = self.screen.query_one("Button#create")
             create_btn.disabled = False
-            self.screen.query_one("Button#scan_data_btn").disabled = False
-            self.screen.query_one("Button#scan").disabled = False
 
-        elif state == FormState.PROCESSING:
-            self.log.debug(f"total state is {state}")
+        # elif state == FormState.PROCESSING:
+        #     self.log.debug(f"total state is {state}")
         elif state == FormState.CREATED:
-            self.log.debug(f"total state is {state}")
+            # self.log.debug(f"total state is {state}")
             self.reset_form()
         else:
             self.screen.query_one("Button#create").disabled = True
-            self.screen.query_one("Button#scan_data_btn").disabled = True
-            self.screen.query_one("Button#scan").disabled = True
-
 
     def reset_form(self) -> None:
         self.new_index = Index.construct()
@@ -429,7 +462,10 @@ class CreateIndex(VerticalScroll,
             input.value = ""
         self.state = FormState.INITIAL
 
-    @work(exclusive=True, thread=True, name="validate_new_index", exit_on_error=False)
+    @work(exclusive=True,
+          thread=True,
+          name="validate_new_index",
+          exit_on_error=False)
     def __validate_new_index(self, form: FormGroup) -> FormValidity[FormGroup]:
         """Validates the new_index form data"""
         try:
@@ -492,11 +528,18 @@ class CreateIndex(VerticalScroll,
             self.log.debug("index created work handler !")
             # successs means worker success
 
+        if event.worker.state == WorkerState.CANCELLED or \
+                event.worker.state == WorkerState.ERROR:
+            self.screen.remove_class("--loading")  # type: ignore
+            self.screen.query_one("IndexConsole").clear_msg().remove_class(
+                "--loading")
 
     async def create_index(self) -> None:
         """Create the index, this is a slow operation"""
         if self.state != FormState.VALID:
             return
+        console = self.screen.query_one("IndexConsole")
+        console.header.progress.update(total=None, progress=0)
         new_index = Index(**self.new_index.dict())
         self.log.info(f"Creating index\n{new_index}")
         self.post_message(self.Creating())
@@ -511,11 +554,13 @@ class CreateIndex(VerticalScroll,
             self.app.log("TODO: FormState.CREATED")
 
         worker = partial(_create_index_worker, ctx, new_index)
-        self.app.run_worker(worker,
-                            thread=True,
-                            name="create_index",
-                            description="create vectorstore index",
-                            exit_on_error=False)
+        self._current_work = self.app.run_worker(
+            worker,
+            thread=True,
+            name="create_index",
+            exclusive=True,
+            description="create vectorstore index",
+            exit_on_error=False)
 
     @on(Button.Pressed, "#browse-path")
     async def browse_path(self, event: Button.Pressed) -> None:
@@ -526,41 +571,57 @@ class CreateIndex(VerticalScroll,
             self.log.debug(f"selected path: {path}")
             if path is not None:
                 input = t.cast(Input, self.query_one("Input#path-input"))
-                input.value = self.new_index.path = str(path)
-                self.call_later(self.validate_parent_form, input)
+                input.value = self.new_index.path = self.path = str(path)
+                self.call_next(self.validate_parent_form, input)
             t.cast("IndexScreen", self.screen).reset_form = False
 
-        self.app.push_screen(PathBrowserModal(), handle_path)
+        selected_path = t.cast(Input, self.query_one("Input#path-input")).value
+        path = Path(selected_path).expanduser() if len(
+            selected_path) > 0 else None
+        path = path if path is not None and path.exists() else None
+        self.app.push_screen(PathBrowserModal(path), handle_path)
 
-    #HACK: clean and refactor
+    #REFACT:
     @on(Button.Pressed, "#scan, #scan_data_btn")
-    async def scan_data(self, event: Button.Pressed | None = None) -> None:
-        if self.state != FormState.VALID:
+    async def scan_data(self, event: Button.Pressed | None = None):
+        if not self.can_scan:
             return
         console = self.screen.query_one("IndexConsole")
-        cheader = console.header
+        c_header = console.header
         console.minimize(True)
         console.add_class("--loading")
-        pbar = console.pbar
-        new_index = Index(**self.new_index.dict())
+        c_header.progress.update(total=None)
+        pbar_thread = console.pbar
         im = index_manager_var.get()
         assert im is not None
-        loader = im.get_loader(new_index)
-        if not isinstance(loader, SuperDirectoryLoader):
+        loader = im.get_loader(self.path, self.new_index.loader_type)
+        loader.pbar = pbar_thread
+        if self.new_index.glob is not None:
+            loader.glob = [self.new_index.glob]
+        if not isinstance(loader, AutoDirLoader):
             return
-        assert isinstance(loader, SuperDirectoryLoader)
-        cheader.set_msg("loading data ...")   # type: ignore
-        docs_work = self.run_worker(lambda: loader.load_parallel(pbar), thread=True)
-        docs = await docs_work.wait()
-        cheader.set_msg("scanning data ...")   # type: ignore
-        # docs = loader.load_parallel(pbar)
-        fi = detect_documents(docs)
-        doc_stats = {k: len(v) for k,v in src_by_lang(fi).items()}
-        self.query_one(Pretty).update(doc_stats)
-        self.query_one("VerticalScroll.--container").scroll_end()
+        assert isinstance(loader, AutoDirLoader)
+
+        c_header.set_msg("scanning data ...")  # type: ignore
+        files = loader.detect_files()
+
+        self._current_work = self.run_worker(lambda: src_by_lang(files, True),
+                                             name="data_scan",
+                                             thread=True,
+                                             exclusive=True,
+                                             exit_on_error=False)
+        try:
+            doc_stats = await self._current_work.wait()
+            self.query_one(Pretty).update(doc_stats)
+            self.query_one("VerticalScroll.--container").scroll_end()
+        except WorkerFailed as e:
+            self.post_message(ConsoleMessage(e))
+
         console.remove_class("--loading")
-        cheader.progress.update(progress=0)
-        cheader.progress.refresh()
-        cheader.set_msg("")
+        c_header.progress.update(total=None, progress=0)
+        c_header.progress.refresh()
+        c_header.set_msg("")
 
-
+    def cancel_work(self) -> None:
+        if self._current_work is not None:
+            self._current_work.cancel()

@@ -19,26 +19,27 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
 """langchain callback handler """
-from langchain.callbacks.base import AsyncCallbackHandler
-from typing import (
-        Any,
-        Dict,
-        List,
-        Union,
-        Optional,
-        TYPE_CHECKING
-        )
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, Sequence
+from uuid import UUID
+import logging
+
+from langchain.callbacks.base import AsyncCallbackHandler, RetrieverManagerMixin
 from pydantic import BaseModel
 
-from ..utils.debug import notify
-from ..messages.agents import AgentMessage
-from .events import AgentEvents
 from ..context import Context
+from ..messages.agents import AgentMessage
+from ..utils.debug import notify
+from .events import AgentEvents
+
+log = logging.getLogger(__name__)
+
 
 if TYPE_CHECKING:
-    from langchain.schema import AgentAction, AgentFinish, LLMResult
+    from langchain.schema import AgentAction, AgentFinish, LLMResult, Document
 
-class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
+#REFACT:
+#TODO!: use contextvar
+class InstruktCallbackHandler(AsyncCallbackHandler, RetrieverManagerMixin,  BaseModel):
 
     ctx: Context
 
@@ -46,7 +47,7 @@ class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
         arbitrary_types_allowed = True
 
     def _set_agent_state(self, state: str) -> None:
-        assert self.ctx.app is not None
+        assert self.ctx.app is not None, "app context error"
         if self.ctx.app.active_agent is None:
             raise ValueError("Agent is not loaded")
         self.ctx.app.active_agent.state.update_state(state)
@@ -55,8 +56,8 @@ class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> Any:
         """Run when LLM starts running."""
-        self._set_agent_state("llm_start")
         notify("llm_start")
+        self._set_agent_state("llm_start")
         # msg = AgentMessage(event=AgentEvents.LLMStart)
 
     async def on_llm_new_token(self, token: str, **kwargs: Any) -> Any:
@@ -151,3 +152,16 @@ class InstruktCallbackHandler(AsyncCallbackHandler, BaseModel):
         notify("agent finish")
         msg = AgentMessage(event=AgentEvents.AgentFinish, data=finish)
         self.ctx.app.post_message(msg)
+
+
+    #TODO:
+    async def on_retriever_end(
+            self,
+            documents: Sequence["Document"],
+            *,
+            run_id: UUID,
+            parent_run_id: UUID | None = None,
+            **kwargs: Any
+            ) -> Any:
+        # log.debug("on_retriever_end")
+        pass

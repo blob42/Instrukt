@@ -4,7 +4,11 @@ from pathlib import Path
 import pytest
 
 from instrukt.output_parsers.multi_strategy import ConvMultiStrategyParser
-from instrukt.output_parsers.strategies import json_react_strategies, fix_json_with_embedded_code_block
+from instrukt.output_parsers.strategies import (
+    json_react_strategies,
+    fix_json_with_embedded_code_block,
+    json_recover_final_answer
+)
 
 # @pytest.fixture
 # def parser():
@@ -47,7 +51,7 @@ def test_json_react_strategies(output, name, parser):
 
 def _test_json_react_strategy(output, name, parser):
         try:
-            parser.parse(output)
+            res = parser.parse(output)
         except Exception as e:
             pytest.fail(f"Error parsing output entry: {name}.")
 
@@ -58,7 +62,15 @@ def test_fix_json_with_embedded_code_block():
     res = fix_json_with_embedded_code_block(output)
     assert type(res) == dict
     with pytest.raises(Exception):
-            res = fix_json_with_embedded_code_block(output, max_loop=1)
+        res = fix_json_with_embedded_code_block(output, max_loop=1)
+
+def test_fix_broken_final_answer():
+    path =  (Path(__file__).parent / "data/llm_outputs/broken_final_answer")
+    with open(str(path), "r") as f:
+        output = f.read()
+    res = json_recover_final_answer(output)
+    assert type(res) == dict
+    assert output.find(res["action_input"]) != -1
 
 
 

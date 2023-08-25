@@ -163,7 +163,7 @@ Debug and introspect agents using an in-built IPython console. `ctrl+d`
         - [x] HF SetenceTransformers or other embeddings models.
         - [x] [Instructor Embeddings](https://instructor-embedding.github.io/)
 - Indexing and embeddings
-    - [x] Index directories and auto detect content. ( see `SuperDirectoryLoader`)
+    - [x] Index directories and auto detect content. ( see `AutoDirLoader`)
     - [x] Detect programming languages and use the appropriate splitter.
     - [ ] Load a git repository from URL
     - [ ] Load any webpage / website.

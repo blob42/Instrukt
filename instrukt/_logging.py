@@ -1,16 +1,15 @@
-import typing as t
 import logging
 import sys
+from logging import Handler, LogRecord
 
 from textual._context import active_app
-from textual.logging import TextualHandler
-from logging import Handler, LogRecord, Filter
+# from textual.logging import TextualHandler
+
 from .console_capture import (
-                                SentenceTransformersF,
-                                LangchainF,
-                                InstruktIndexF,
-                                ConsoleFilter
-                            )
+    ConsoleFilter,
+    LangchainF,
+    IndexCreationF,
+)
 
 # def sentence_transformers_filter(record: LogRecord) -> bool:
 #     return record.name.startswith("sentence_transformers")
@@ -48,12 +47,7 @@ def setup_logging():
     log_ch.setFormatter(ConsoleFilter.formatter)
     log_ch.setLevel(logging.DEBUG)
 
-    log_ch.addFilter(
-            SentenceTransformersF() |
-            LangchainF() |
-            InstruktIndexF()
-            )
-
+    log_ch.addFilter(IndexCreationF() | LangchainF())
 
     # add Textual dev console handler
     logging.basicConfig(
@@ -72,6 +66,9 @@ def setup_logging():
 
     openai = logging.getLogger("openai")
     openai.setLevel("INFO")
+
+    pdfminer = logging.getLogger("pdfminer")
+    pdfminer.setLevel("INFO")
 
 
 ANSI_ESCAPE_RE = r"\x1b\[[AB]"

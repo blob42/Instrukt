@@ -24,12 +24,12 @@ import os
 import typing as t
 from typing import Any, NamedTuple, Optional
 
+from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, Field, validator
 
-from .loaders import LOADER_MAPPINGS
 from ..config import APP_SETTINGS
-from .embeddings import Embedding, EMBEDDINGS
-from langchain.embeddings.base import Embeddings
+from .embeddings import EMBEDDINGS
+from .loaders import LOADER_MAPPINGS
 
 
 class Collection(NamedTuple):
@@ -70,6 +70,9 @@ class Index(BaseModel):
     embedding: str = "default"
     loader_type: str | None = None  # auto detected or selected
     metadata: Optional[dict[Any, Any]] = Field(default_factory=dict)
+    glob: str | None = None
+    """custom glob for matching files"""
+
 
 
     @validator("path")

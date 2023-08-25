@@ -43,7 +43,7 @@ Classes
     schema.EmbeddingDetails
     chroma.ChromaWrapper
     manager.IndexManager
-    loaders.SuperDirectoryLoader
+    loaders.AutoDirLoader
     loaders.FileInfo
     loaders.FileType
     loaders.LangSplitter

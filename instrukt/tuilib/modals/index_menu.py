@@ -1,41 +1,47 @@
-## 
+##
 ##  Copyright (c) 2023 Chakib Ben Ziane <contact@blob42.xyz>. All rights reserved.
-## 
+##
 ##  SPDX-License-Identifier: AGPL-3.0-or-later
-## 
+##
 ##  This file is part of Instrukt.
-## 
+##
 ##  This program is free software: you can redistribute it and/or modify it under
 ##  the terms of the GNU Affero General Public License as published by the Free
 ##  Software Foundation, either version 3 of the License, or (at your option) any
 ##  later version.
-## 
+##
 ##  This program is distributed in the hope that it will be useful, but WITHOUT
 ##  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 ##  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
 ##  details.
-## 
+##
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
-## 
+##
 """Index menu modal"""
 
 import typing as t
+import asyncio
+
 
 from textual import on
-from textual.reactive import reactive
 from textual.app import ComposeResult
-from textual.widgets import SelectionList, Button
-from textual.widgets.selection_list import Selection
 from textual.containers import Container
 from textual.events import ScreenResume
+from textual.reactive import reactive
+from textual.widgets import Button, SelectionList
+from textual.widgets.selection_list import Selection
 
+from ...messages.agents import FutureAgentTask
+from ...messages.indexes import IndexAttached
+from ...context import index_manager
+from ...types import InstruktDomNodeMixin
 from ...views.index import IndexScreen
 from .basemenu import BaseModalMenu
-from ...types import InstruktDomNodeMixin
 
 if t.TYPE_CHECKING:
     from ...indexes.schema import Collection
+    from ...app import InstruktApp
 
 
 class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
@@ -47,7 +53,7 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
     def compose(self) -> ComposeResult:
 
         with Container(id="menu"):
-            yield Button("Manage", id="manage", variant="warning")
+            yield Button("Manage Indexes", id="manage", variant="default")
             yield from self._build_menu()
 
     def index_attached_as_tool(self, index: str) -> bool:
@@ -73,31 +79,30 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
 
     async def _update_menu(self) -> None:
         await self.query_one(SelectionList).remove()
-        await self.query_one("Container#menu").mount(*self._build_menu())
+        await self.query_one("Container#menu").mount_all(self._build_menu())
         self.query_one(SelectionList).focus()
 
 
-
-
-    def add_index_as_tool(self, index_name: str) -> None:
+    async def add_index_as_tool(self, index_name: str) -> None:
         """Add selected index as tool to the active agent."""
-        # get selected index's Index object
-        im = self._app.context.index_manager
-        index = im.get_index(index_name)
-        if index is None:
-            self._app.context.error(f"Index {index_name} not found")
-            return
+        async with self.app._alock:
+            with index_manager() as im:
+                index = await im.aget_index(index_name)
+                if index is None:
+                    self._app.context.error(f"Index {index_name} not found")
+                    return
+                # get tool from index, return_direct
+                tool = index.get_retrieval_tool(return_direct=True,
+                                        with_sources=True)
 
-        # get tool from index, return_direct
-        tool = index.get_retrieval_tool(return_direct=True)
+                # add tool to active agent
+                agent = self._app.agent_manager.active_agent
+                if agent is None:
+                    self._app.context.error("No active agent")
+                    return
 
-        # add tool to active agent
-        agent = self._app.agent_manager.active_agent
-        if agent is None:
-            self._app.context.error("No active agent")
-            return
-
-        agent.add_tool(tool)
+                agent.add_tool(tool)
+                self._app.context.info(f"Added index <{index_name}> as tool")
 
 
     def detach_index_tool(self, index_name: str) -> None:
@@ -111,25 +116,24 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
         changed=False
         self.log.debug("sync collections")
         # check if there are new collections and update local one
-        im = self._app.context.index_manager
-        assert im is not None, "No index manager"
-        # compare im.indexes with self.collections and update self.collections
-        for index in im.indexes:
-            if index not in self.collections:
-                self.collections[index] = im.get_index(index)
-                changed = True
+        async with self.app._alock:
+            with index_manager() as im:
+                for index in im.indexes:
+                    if index not in self.collections:
+                        self.collections[index] = im.get_index(index)
+                        changed = True
 
-        _to_remove = []
-        for c in self.collections.keys():
-            if c not in im.indexes:
-                _to_remove.append(c)
-                changed=True
+                _to_remove = []
+                for c in self.collections.keys():
+                    if c not in im.indexes:
+                        _to_remove.append(c)
+                        changed=True
 
-        for c in _to_remove:
-            del self.collections[c]
+                for c in _to_remove:
+                    del self.collections[c]
 
-        if changed:
-            await self._update_menu()
+                if changed:
+                    await self._update_menu()
 
 
     @on(ScreenResume)
@@ -157,18 +161,28 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
         self.app.push_screen(IndexScreen())
 
     @on(SelectionList.SelectionToggled)
-    def update_selected_index(self, s: SelectionList.SelectionMessage) -> None:
-        self.log.info("Selection toggled")
-        # self.log.debug(s.selection.value)
-        # self.log.debug(s.selection.prompt)
-        # self.log.debug(s.selection_list)
-        # self.log.debug(s.selection_index)
-        self.log.debug(s.selection_list.selected)
+    async def update_selected_index(self, s: SelectionList.SelectionMessage) -> None:
+        self.log.debug("Selection toggled")
+        # self.log.debug(s.selection_list.selected)
 
         # selected index: inject as tool
         if s.selection.value in s.selection_list.selected:
-            self.log.debug("selected")
-            self.add_index_as_tool(s.selection.value)
+            self.dismiss()
+            add_index_task = asyncio.create_task(
+                self.add_index_as_tool(s.selection.value))
+
+            def tool_added_cb():
+                self.post_message(IndexAttached(s.selection.value))
+
+            def notify_tool_change():
+                self.post_message(FutureAgentTask(future=add_index_task))
+
+            add_index_task.add_done_callback(lambda _: tool_added_cb())
+            self.set_timer(0.05, notify_tool_change)
+
+
+
+
 
         # deselected: detach underlying tool if attached
         else:

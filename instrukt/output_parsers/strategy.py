@@ -20,7 +20,7 @@
 ##
 """Strategy type definition and helper class."""
 
-from typing import Callable, Generic, Tuple, TypeVar
+from typing import Callable, Generic, TypeVar
 
 S = TypeVar("S")
 

@@ -12,7 +12,8 @@ StartupMenu {
 
 StartupMenu #welcome {
     /* background: pink; */
-    height: 0fr;
+    /* height: 0fr; */
+    height: 0;
 }
 
 StartupMenu #agents-container {
@@ -21,24 +22,31 @@ StartupMenu #agents-container {
 }
 
 #agents-container .-agents-list {
-    /* background: blue 50%; */
-    background: $background 10%;
-    width: 1fr;
+    /* background: $background 10%; */
+    background: rebeccapurple;
+    background: $panel-lighten-2;
+
+    width: 1.5fr;
     height: 100%;
     padding: 3;
 }
 
 .-agents-list ListView {
-    /* background: blue; */
+    /* background: royalblue 60%; */
 }
 
 .-agents-list ListItem {
-    color: $secondary;
+    background: $panel-lighten-2;
+    background: transparent;
+    color: $foreground;
+    padding: 0 1;
+    margin: 1 0;
 }
 
 .-agents-list ListItem.--highlight {
-    background: $secondary;
-    color: $background;
+    background: royalblue 60%;
+    /* background: teal; */
+    color: $foreground;
 }
 
 #agents-container .-agent-info {
@@ -50,6 +58,8 @@ StartupMenu #agents-container {
 }
 
 StartupMenu ListView:hover, StartupMenu ListView:focus {
-    border-bottom: heavy $secondary;
+    /* background: royalblue 50%; */
+    /* border-bottom: heavy teal; */
+    border-bottom: heavy royalblue 60%;
 }
 

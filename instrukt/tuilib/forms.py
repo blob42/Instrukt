@@ -19,20 +19,17 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 from enum import Enum
-from typing import Any, Generic, Sequence, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic.error_wrappers import ValidationError
-from rich.columns import Columns
 from rich.text import Text
 from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import Container
-from textual.css.query import DOMQuery
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Input, Label, Select
-from textual import events
 
 
 class FormState(Enum):
@@ -46,7 +43,7 @@ class FormState(Enum):
 
 F = TypeVar('F')
 
-
+#REFACT: use textual Input validator
 class FormValidity(Generic[F]):
 
     def __init__(self,

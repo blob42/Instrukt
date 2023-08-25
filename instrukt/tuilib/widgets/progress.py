@@ -28,7 +28,7 @@ import tqdm
 from textual.widgets import ProgressBar
 
 from ...types import ProgressProtocol
-from ..messages import UpdateProgress
+from ...messages.indexes import IndexProgress
 
 log = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class ProgressBarWrapper(ProgressProtocol):
 
     def update_msg(self, msg: str) -> None:
         #post_message is thread safe
-        self.progress.app.post_message(UpdateProgress(msg))
+        self.progress.app.post_message(IndexProgress(msg))
 
     @property
     def total(self) -> float | None:

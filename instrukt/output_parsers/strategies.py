@@ -21,16 +21,19 @@
 
 import json
 import re
-from typing import Any
 from datetime import datetime
+from typing import Any
 
+from ..config import APP_SETTINGS
 from .parser_lib import (
     parse_json_md_langchain,
     parse_json_md_nested_code_block,
 )
 from .strategy import Strategy
-from ..config import APP_SETTINGS
 
+
+class OutputParserException(ValueError):
+    pass
 
 T = dict[str, Any]
 
@@ -94,6 +97,31 @@ def json_nested_code_block(text: str) -> T:
     return parse_json_md_nested_code_block(text)
 
 
+def json_recover_final_answer(text: str) -> T:
+    """A last resort strategy when the final answer json 'output' field is a multiline
+    string that breaks the json parser.
+
+
+    Alrorithm:
+        - text must match `"Final Answer"`
+        - get rid of all text preceding `"action_input" ?:`
+        - get rid of the last `}` in the text
+        - put the result in a new json object and return it
+
+    """
+    if text.find("Final Answer") == -1:
+        raise OutputParserException("Text does not contain 'Final Answer'")
+
+    # get rid of all text preceding `"action_input" ?:`
+    prefix_pattern = r".*\"action_input\" *: *\""
+    res = re.sub(prefix_pattern, "", text, count=1, flags=re.DOTALL)
+
+    # get rid of the json tail
+    suffix_pattern = r"\"[ \n]*\}[ \n]*"
+    res = re.sub(suffix_pattern, "", res, count=1, flags=re.DOTALL)
+    return dict(action="Final Answer", action_input=res)
+
+
 
 
 def fallback(text: str) -> T:
@@ -113,6 +141,7 @@ json_react_strategies = (
     Strategy(json_nested_code_block, lambda text: text.find("```") != -1),
     Strategy(fix_json_with_embedded_code_block,
              lambda text: text.find("```") != -1),
+    Strategy(json_recover_final_answer, lambda text: text.find("Final Answer") != -1),
     Strategy(fallback, lambda _: True),
 )
 

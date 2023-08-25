@@ -18,16 +18,16 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
-from typing import TYPE_CHECKING, Any, Union, cast, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, Union, cast
 
-from textual.message import Message
 from textual.dom import DOMNode
+from textual.message import Message
 from textual.widgets import ProgressBar
 
 if TYPE_CHECKING:
+    from .app import InstruktApp
     from .messages.agents import AgentMessage
     from .messages.log import LogMessage
-    from .app import InstruktApp
 
     AnyMessage = Union[
         Message,

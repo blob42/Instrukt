@@ -21,9 +21,9 @@
 """textual custom messages."""
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, TypeAlias, Union
-from rich.console import RenderableType
+from typing import Any, TypeAlias, Union
 
+from rich.console import RenderableType
 from rich.panel import Panel
 from textual.message import Message
 

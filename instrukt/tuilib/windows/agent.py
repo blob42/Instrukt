@@ -21,8 +21,9 @@
 """Agent window."""
 import typing as t
 
-from textual import log, on, work
+from textual import on, work
 from textual.app import ComposeResult, RenderResult
+from textual.binding import Binding
 from textual.containers import Container, Horizontal, VerticalScroll
 from textual.reactive import reactive
 from textual.widgets import Button, Label, Static
@@ -41,7 +42,7 @@ from ...types import InstruktDomNodeMixin
 from ..conversation import ChatBubble
 from ..modals.basemenu import set_screen_menu_position
 from ..strings import ICONS
-from ..widgets.spinner import SpinnerWidget
+from ..widgets.spinner import FutureSpinner, SpinnerWidget
 
 if t.TYPE_CHECKING:
     from instrukt.agent.base import InstruktAgent
@@ -103,8 +104,16 @@ class AgentStatusBar(Horizontal, InstruktDomNodeMixin):
 
 class AgentWindow(Container, InstruktDomNodeMixin):
 
+    BINDINGS = [
+            Binding("G", "goto_bottom", "end"),
+            Binding("T", "goto_top", "top"),
+            Binding("ctrl+n", "focus_next", "next" , show=False),
+            Binding("ctrl+p", "focus_previous", "prev" , show=False),
+            ]
+
+
     def compose(self) -> ComposeResult:
-        yield AgentWindowHeader(classes="header")
+        yield AgentWindowHeader(classes="--topbar")
         yield AgentConversation(
             # highlight=True,
             #   markup=True,
@@ -114,10 +123,18 @@ class AgentWindow(Container, InstruktDomNodeMixin):
 
     def watch_state(self, state: AgentState) -> None:
         if state == AgentState.READY:
-            self.border_title = self._app.active_agent.display_name
+            self.border_title = self._app.active_agent.display_name   # type: ignore
 
 
-class AgentConversation(VerticalScroll, InstruktDomNodeMixin):
+    def action_goto_bottom(self) -> None:
+        self.query_one(AgentConversation).scroll_end()
+
+    def action_goto_top(self) -> None:
+        self.query_one(AgentConversation).scroll_home()
+
+
+
+class AgentConversation(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
     """Displays the conversation with the active agent."""
 
     _chat_messages: reactive[list["ChatMessage"]] = reactive([])
@@ -219,10 +236,10 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin):
         """Main agent event handler."""
         #FIXME: reset the state of last used tool on agent finish
         if message.event in [AgentEvents.AgentFinish]:
-            # write the message in bold cyan with rich
-            self.parent.query_one(AgentStatus).tool = ""
-            msg = message.data.return_values['output']
-            await self.push_msg(AgentChatMessage(content=msg))
+            self.parent.query_one(AgentStatus).tool = ""   # type: ignore
+
+            output = message.data.return_values['output']
+            await self.push_msg(AgentChatMessage(content=output))
 
         #TODO: use model to get data out of message
         #NOTE: use this event for catching tool events in general
@@ -241,13 +258,13 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin):
             await self.push_msg(HumanChatMessage(content=message.data))
 
         else:
-            log(f"received message {message}")
+            self.log.debug(f"received message {message}")
 
         message.stop()
 
 
-class AgentStatus(Horizontal):
-    """Shows the agent status in the agent buffer header"""
+class AgentStatus(Static):
+    """Shows the agent's status in the top bar of the agent window."""
 
     agent_state = reactive(AgentState.NIL)
     status = reactive("")
@@ -322,6 +339,7 @@ class AgentWindowHeader(Container):
 
         with Horizontal(id="agent-menu"):
             with Horizontal(id="agent-menu-info"):
-                yield AgentStatus(classes="header-entry")
+                yield AgentStatus(classes="--topbar-entry")
+                yield FutureSpinner(spinner="bouncingBar", id="progress")
 
             yield AgentMenu()

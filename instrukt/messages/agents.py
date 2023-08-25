@@ -20,10 +20,7 @@
 ## 
 """Textual event handlers related to agents."""
 
-from typing import (
-    Any,
-    Optional,
-)
+import typing as t
 
 from textual.message import Message
 
@@ -44,7 +41,7 @@ class AgentMessage(Message, namespace="instrukt"):
     :param data: Additional data
     """
 
-    def __init__(self, event: AgentEvents, data: Any = None) -> None:
+    def __init__(self, event: AgentEvents, data: t.Any = None) -> None:
         if not isinstance(event, AgentEvents):
             raise ValueError(f"event must be an AgentEvents, got {event}")
         self.event = event
@@ -71,5 +68,11 @@ class AgentLoaded(AgentMessage, namespace="instrukt"):
         super().__init__(AgentEvents.AgentLoad)
 
     @property
-    def value(self) -> Optional[InstruktAgent]:
+    def value(self) -> t.Optional[InstruktAgent]:
         return self.agent
+
+class FutureAgentTask(Message):
+    """Message posted for a furutre task related to an agent."""
+    def __init__(self, future: t.Awaitable):
+        super().__init__()
+        self.future = future

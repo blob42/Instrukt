@@ -19,45 +19,41 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 import asyncio
-import re
 import typing as t
 from asyncio.locks import Lock
 from dataclasses import dataclass
 from itertools import chain
 from typing import Optional, Sequence
 
-from rich.console import RenderableType
 from textual import events, on
 from textual.app import ComposeResult, RenderResult
 from textual.binding import Binding
 from textual.containers import Container, Grid, Horizontal, VerticalScroll
 from textual.css.query import NoMatches
 from textual.message import Message
-from textual.reactive import reactive, var
+from textual.reactive import reactive
 from textual.screen import Screen
 from textual.widgets import (
     Header,
+    Input,
     Label,
     ListItem,
     Static,
-    TextLog,
-    ProgressBar,
 )
 
-from ..._logging import ANSI_ESCAPE_RE
+from ...binding import ActionBinding
 from ...context import index_manager
 from ...indexes.chroma import ChromaWrapper
 from ...indexes.schema import Collection, EmbeddingDetails
 from ...tuilib.forms import FormState
-from ...tuilib.widgets.actionbar import ActionBar, ActionBinding
+from ...tuilib.widgets.actionbar import ActionBar
 from ...tuilib.widgets.listview import ListView
 from ...tuilib.widgets.spinner import AsyncDataContainer, FutureLabel
-from ...tuilib.widgets.progress import ProgressBarWrapper
-from ...types import InstruktDomNodeMixin, ProgressProtocol
+from ...types import InstruktDomNodeMixin
+from .console import ConsoleMessage, IndexConsole
 from .create import CreateIndex
 
 if t.TYPE_CHECKING:
-    from typing_extensions import Self
 
     from ...app import InstruktApp
     from ...indexes.manager import IndexManager
@@ -126,7 +122,7 @@ class IndexList(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
     def compose(self) -> ComposeResult:
         self.fetch_collections()
         yield Label("Collections", classes="header")
-        with ListView():
+        with ListView(id="index-collections"):
             for col in self.collections:
                 yield IndexCollectionItem(col, Label(col.name), name=col.name)
             yield ListItem(Label("New"), id="new")
@@ -159,184 +155,6 @@ class IndexDetails(AsyncDataContainer):
         self.border_title = "index details:"
 
 
-class BackupIndexDetails(Static, InstruktDomNodeMixin):
-
-    collection: reactive[Collection] = reactive(Collection("", "", {}))
-    collection_type = reactive("")
-    count = reactive(-1)
-
-    def on_mount(self) -> None:
-        self.border_title = "index details:"
-
-    def render(self) -> RenderResult:
-        # if no collection is selected render nothing
-        if len(self.collection.name) == 0:
-            return ""
-
-        embedding = self.embedding_fn
-        return f"""
-    Collection Name: {self.collection.name}
-    Document Count: {"[dim]loading ..." if self.count < 0 else "[r]" + str(self.count)}[/]
-    Type: {self.collection_type or "[dim]loading ...[/]"}
-
-    [b]Embeddings:[/b]  {embedding.extra.get("error", "")}
-    Function : {embedding.embedding_fn_cls} 
-    Model: {embedding.model_name} 
-        """
-
-    @property
-    def idx_manager(self) -> "IndexManager":
-        return self._app.context.index_manager
-
-    @property
-    def embedding_fn(self) -> EmbeddingDetails:
-        return self.idx_manager.get_embedding_fn(self.collection.name)
-
-    def clear(self) -> None:
-        self.collection = Collection("", "", {})
-        self.collection_type = ""
-        self.count = -1
-
-    async def get_index(self) -> Optional[ChromaWrapper]:
-        idx = await t.cast('InstruktApp',
-                           self.app).context.index_manager.aget_index(
-                               self.collection.name)
-        return idx
-
-    async def wwatch_collection(self, collection: Collection) -> None:
-        self.count = -1
-        idx = await self.get_index()
-        if idx is None:
-            return
-        self.count = idx.count
-        if isinstance(idx, ChromaWrapper):
-            self.collection_type = "Chroma DB"
-        else:
-            self.collection_type = type(idx).__name__
-
-
-
-class ConsoleHeader(Horizontal):
-
-    minimized = var[bool](False)
-
-    def compose(self) -> ComposeResult:
-        self.label = Label("\[c]onsole", classes="console--label")
-        self.message = Label(classes="console--msg")
-        self.progress = ProgressBar(show_eta=False, show_percentage=False)
-        yield self.label
-        yield self.message
-        yield self.progress
-
-    def update_label(self, content: RenderableType) -> None:
-        self.label.update(content)
-
-    def set_msg(self, content: RenderableType) -> None:
-        self.message.update(content)
-
-    @property
-    def pbar(self) -> ProgressProtocol:
-        """Returns wrapped progress bar with ProgressProtocol."""
-        return ProgressBarWrapper(self.progress)
-
-
-class IndexConsole(TextLog, can_focus=False, can_focus_children=False):
-
-    minimized = var[bool](False)
-    has_log = var[bool](False)
-    user_minimzed = var[bool](False)
-
-    def on_mount(self) -> None:
-        #DEBUG:
-        # self.set_msg("updating bar ...")
-        self.minimize()
-        self.call_later(self.begin_capture_print)
-
-    def compose(self) -> ComposeResult:
-        self.header = ConsoleHeader()
-        yield self.header
-        self.tl = TextLog(wrap=True, highlight=True)
-        yield self.tl
-
-    def watch_minimized(self, m: bool) -> None:
-        if m and self.has_log:
-            # self.border_title = "\[c]onsole [b yellow][/]"
-            self.query_one(ConsoleHeader).update_label(
-                "\[c]onsole [b yellow][/]")
-        else:
-            self.query_one(ConsoleHeader).update_label("\[c]onsole")
-
-    def watch_has_log(self, m: bool) -> None:
-        if m:
-            self.query_one(ConsoleHeader).update_label(
-                "\[c]onsole [b yellow][/]")
-        else:
-            self.query_one(ConsoleHeader).update_label("\[c]onsole")
-
-    def on_print(self, event: events.Print) -> None:
-        text = event.text
-        text = text.strip()
-        # clean up ansi escape sequences
-        text = re.sub(ANSI_ESCAPE_RE, "", text, flags=re.MULTILINE)
-
-        if len(text) > 0:
-            self.tl.write(text, expand=True)
-            self.has_log = True
-            if self.minimized and not self.user_minimzed:
-                self.open()
-
-    def clear(self):
-        self.has_log = False
-        return self.tl.clear()
-
-    def on_click(self, event: events.Click) -> None:
-        self.toggle_console(True)
-
-    def toggle_console(self, user: bool = False) -> None:
-        self.open() if self.minimized else self.minimize()
-        if user:
-            self.user_minimzed = True
-
-    def minimize(self, user: bool = False) -> None:
-        self.add_class("--minimize")
-        self.minimized = True
-        if user:
-            self.user_minimzed = True
-
-
-    def open(self) -> None:
-        self.remove_class("--minimize")
-        self.minimized = False
-
-    def is_empty(self) -> bool:
-        return len(self.tl.lines) == 0
-
-    def set_msg(self, content: RenderableType) -> None:
-        self.header.set_msg(content)
-
-    def clear_msg(self) -> "Self":
-        self.header.set_msg("")
-        return self
-
-    @property
-    def pbar(self) -> ProgressProtocol:
-        """Returns wrapped progress bar with ProgressProtocol."""
-        return self.header.pbar
-
-    @on(events.ScreenResume)
-    def on_resume(self, event: events.ScreenResume) -> None:
-        self.begin_capture_print()
-        self.user_minimzed = False
-
-    @on(events.ScreenSuspend)
-    def on_suspend(self, event: events.ScreenSuspend) -> None:
-        self.end_capture_print()
-
-        #WIP: should be done explicitly by the user
-        self.clear()
-        self.minimize()
-
-
 @dataclass(frozen=True)
 class _IndexDetails:
     idx: ChromaWrapper
@@ -357,6 +175,10 @@ class _IndexDetails:
             return type(self.idx).__name__
 
     @property
+    def description(self) -> str:
+        return self.idx.description or ""
+
+    @property
     def embedding(self) -> EmbeddingDetails:
         with index_manager() as im:
             return im.get_embedding_fn(self.name)
@@ -375,8 +197,6 @@ class IndexEntry(Horizontal):
 
 class IndexInfo(Container, InstruktDomNodeMixin):
 
-    _lock: asyncio.Lock = Lock()
-
     collection: reactive[Collection] = reactive(Collection("", "", {}))
 
     class Deleted(Message):
@@ -387,10 +207,12 @@ class IndexInfo(Container, InstruktDomNodeMixin):
         with IndexDetails(classes="--details --container"):
             yield IndexEntry(Label("Name:", classes="--label"),
                              FutureLabel(bind="{X.name}"))
-            yield IndexEntry(Label("Count:", classes="--label"),
+            yield IndexEntry(Label("Description:", classes="--label"),
+                             FutureLabel(bind="{X.description}"))
+            yield IndexEntry(Label("Docs:", classes="--label"),
                              FutureLabel(bind="{X.count}"))
             with Horizontal(classes="entry"):
-                yield Label("Type:", classes="--label")
+                yield Label("DB:", classes="--label")
                 yield FutureLabel(bind="{X.type}")
             yield FutureLabel(label="Embeddings: ",
                               nospin=True,
@@ -407,7 +229,7 @@ class IndexInfo(Container, InstruktDomNodeMixin):
         self.count = -1
 
         async def get_idx_details():
-            async with self._lock:
+            async with self.app._alock:
                 with index_manager() as im:
                     idx = await im.aget_index(self.collection.name)
                     assert idx is not None
@@ -420,10 +242,9 @@ class IndexInfo(Container, InstruktDomNodeMixin):
         idx_name = self.collection.name
         async with self._lock:
             with index_manager() as im:
-                idx = await im.aget_index(idx_name)
+                await im.aget_index(idx_name)
                 await im.adelete_index(idx_name)
                 self.post_message(self.Deleted())
-
 
     def clear(self) -> None:
         self.collection = Collection("", "", {})
@@ -450,11 +271,16 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
                       btn_id="new_index",
                       key_display="n"),
         Binding("c", "toggle_console(True)", "console", key_display="c"),
-        ActionBinding("s",
+        ActionBinding("ctrl+s",
                       "scan_data",
-                      "can_data",
+                      "scan_data",
                       btn_id="scan_data_btn",
-                      key_display="s"),
+                      key_display="C-s"),
+        ActionBinding("S",
+                      "stop_work",
+                      "top action",
+                      btn_id="stop",
+                      key_display="S"),
     ]
 
     AUTO_FOCUS = "IndexList ListView"
@@ -465,19 +291,28 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
         t.cast('HeaderTitle',
                self.query_one("HeaderTitle")).text = "Index Management"
 
+    @property
+    def console(self) -> IndexConsole | None:
+        """The index console ."""
+        return t.cast(IndexConsole, self.query_one(IndexConsole))
+
     async def action_create_index(self) -> None:
-        self.query_one(IndexConsole).open()
+        self.console.open()
         await self.query_one(CreateIndex).create_index()
 
     async def action_scan_data(self) -> None:
         await self.query_one(CreateIndex).scan_data()
 
     def action_toggle_console(self) -> None:
-        self.query_one(IndexConsole).toggle_console()
+        self.console.toggle_console()
 
     def action_delete_collection(self) -> None:
         idx_info = self.query_one(IndexInfo)
         self.call_next(idx_info.action_delete_collection)
+
+    def action_stop_work(self) -> None:
+        """cancel ongoing work"""
+        self.query_one(CreateIndex).cancel_work()
 
     def action_new_index(self) -> None:
         self.query_one(IndexList).new_index()
@@ -505,13 +340,11 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
             self.reset_form = True
 
         # begin console capture
-        idx_console = self.query_one(IndexConsole)
-        idx_console.post_message(events.ScreenResume())
+        self.console.post_message(events.ScreenResume())
 
     @on(events.ScreenSuspend)
     def suspend_screen(self) -> None:
-        idx_console = self.query_one(IndexConsole)
-        idx_console.post_message(events.ScreenSuspend())
+        self.console.post_message(events.ScreenSuspend())
 
     @on(IndexInfo.Deleted)
     @on(CreateIndex.Status)
@@ -528,27 +361,29 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
             self.call_later(index_list.fetch_collections)
 
             #NOTE: auto close index console when switching to it ?
-            # ic = self.query_one(IndexConsole)
+            # ic = self.console
             # self.set_timer(2, ic.minimize)
 
         if is_status_created(e):
-            self.query_one(IndexConsole).clear_msg().remove_class("--loading")
+            self.remove_class("--loading")
+            self.console.clear_msg().remove_class("--loading")
         #   ...
 
     @on(CreateIndex.Creating)
     def _creating_index(self) -> None:
-        cl = self.query_one(IndexConsole)
-        cl.set_msg("creating index ...")
-        cl.add_class("--loading")
+        self.add_class("--loading")
+        self.console.add_class("--loading")
 
     def action_escape(self) -> None:
-        cl = self.query_one(IndexConsole)
-        if cl.minimized:
+        cl = self.console
+        if isinstance(self.screen.focused, Input):
+            self.screen.query_one("#index-collections", ListView).focus()
+        elif cl.minimized:
             self.dismiss()
         else:
             cl.toggle_console(True)
 
 
-    # def action_quit_index(self):
-    #     self.dismiss()
-    #     self.app.uninstall_screen(self.screen)
+    @on(ConsoleMessage)
+    def msg_to_console(self, ev: ConsoleMessage) -> None:
+        self.console.print(ev.msg)

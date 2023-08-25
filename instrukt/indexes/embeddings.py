@@ -19,6 +19,7 @@
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 """Embeddings used in indexes."""
+#TODO: handle CUDA
 import typing as t
 from typing import NamedTuple
 
@@ -27,6 +28,7 @@ from langchain.embeddings import (
     HuggingFaceInstructEmbeddings,
     OpenAIEmbeddings,
 )
+
 if t.TYPE_CHECKING:
     from langchain.embeddings.base import Embeddings
 
@@ -40,12 +42,19 @@ class Embedding(NamedTuple):
 
 EMBEDDINGS: dict[str, Embedding] = {
     "default":
-    Embedding("Setence Transormers", HuggingFaceEmbeddings,
+    Embedding("Sentence Transormers (xs)", HuggingFaceEmbeddings,
+              dict(model_name="sentence-transformers/all-MiniLM-L6-v2", )),
+    "bge-base-en":
+    Embedding("BGE Base EN", HuggingFaceEmbeddings,
+              dict(model_name="BAAI/bge-base-en",
+                    # set True to compute cosine similarity)
+                   encode_kwargs = {'normalize_embeddings': True}
+                   )), 
+    "mpnet-base-v2":
+    Embedding("Sentence Transormers", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-mpnet-base-v2", )),
-    "openai":
-    Embedding("OpenAI", OpenAIEmbeddings, dict()),
     "instructor":
-    Embedding("Instructor", HuggingFaceInstructEmbeddings,
+    Embedding("Instructor (base)", HuggingFaceInstructEmbeddings,
               dict(
                   #TODO: use instructor-large
                   model_name="hkunlp/instructor-base", 
@@ -53,5 +62,7 @@ EMBEDDINGS: dict[str, Embedding] = {
                   query_instruction='Represent the question for retrieving supporting documents: ',
                   encode_kwargs = dict(show_progress_bar=True)
                   )),
+    "openai":
+    Embedding("OpenAI", OpenAIEmbeddings, dict()),
               }
 

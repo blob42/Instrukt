@@ -21,22 +21,13 @@
 """Chroma wrapper and utils."""
 
 import logging
-from typing import (
-                    cast,
-                    TYPE_CHECKING,
-                    Any,
-                    Dict,
-                    Optional,
-                    Sequence,
-                    Union
-                )
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Union, cast
 
-
-import chromadb
-from langchain.embeddings import ( HuggingFaceEmbeddings,
-                                    HuggingFaceInstructEmbeddings,
-                                   OpenAIEmbeddings
-                                )
+from langchain.embeddings import (
+    HuggingFaceEmbeddings,
+    HuggingFaceInstructEmbeddings,
+    OpenAIEmbeddings,
+)
 from langchain.vectorstores import Chroma as ChromaVectorStore
 
 from ..config import CHROMA_INSTALLED
@@ -45,7 +36,7 @@ from .retrieval import retrieval_tool_from_index
 from .schema import Collection
 
 if TYPE_CHECKING:
-    import chromadb  # type: ignore
+    import chromadb
     from langchain.embeddings.base import Embeddings
 
     from ..tools.base import SomeTool
@@ -64,6 +55,7 @@ class ChromaWrapper(ChromaVectorStore):
     def __init__(self,
                  client: "chromadb.Client",
                  collection_name: str,
+                 loading: bool = True,
                  embedding_function: Optional[TEmbeddings] = None,
                  collection_metadata: Optional[Dict[str, Any]] = None,
                  **kwargs):
@@ -85,21 +77,24 @@ class ChromaWrapper(ChromaVectorStore):
 
         collection_metadata["embedding_fn"] = embedding_fn_fqn
 
-        if type(embedding_function) in (HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings):
+        if type(embedding_function) in (HuggingFaceEmbeddings,
+                                        HuggingFaceInstructEmbeddings):
             collection_metadata["model_name"] = cast(
                 "HuggingFaceEmbeddings", embedding_function).model_name
-        elif type(embedding_function) in (OpenAIEmbeddings,):
-            collection_metadata["model_name"] = cast(OpenAIEmbeddings, embedding_function).model
+        elif type(embedding_function) in (OpenAIEmbeddings, ):
+            collection_metadata["model_name"] = cast(OpenAIEmbeddings,
+                                                     embedding_function).model
 
         _kwargs = {
             **kwargs,
             **{
                 "client": client,
                 "collection_name": collection_name,
-                "embedding_function": embedding_function,
-                "collection_metadata": collection_metadata,
             }
         }
+        if not loading:
+            _kwargs["collection_metadata"] = collection_metadata
+        _kwargs["embedding_function"] = embedding_function
         super().__init__(**_kwargs)
 
     async def adelete(self,
@@ -148,9 +143,13 @@ class ChromaWrapper(ChromaVectorStore):
     def get_retrieval_tool(self,
                            description: str | None = None,
                            return_direct: bool = False,
+                           with_sources: bool = False,
+                           with_citation: bool = False,
                            **kwargs) -> "SomeTool":
         """Get a retrieval tool for this collection."""
         return retrieval_tool_from_index(self,
                                          description,
                                          return_direct=return_direct,
+                                         with_sources=with_sources,
+                                         with_citation=with_citation,
                                          **kwargs)

@@ -21,6 +21,7 @@
 """Binding management."""
 from dataclasses import dataclass
 from typing import Literal
+
 from textual.binding import Binding, BindingType
 
 ButtonVariant = Literal["default", "primary", "success", "warning", "error"]

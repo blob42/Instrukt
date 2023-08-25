@@ -19,17 +19,15 @@
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
 """Main prompt."""
+import typing as t
+from difflib import get_close_matches
 from enum import Enum
 from importlib import import_module
-from typing import (
-    Any,
-    Optional,
-    Union,
-)
 
+from textual import events, on
 from textual.binding import Binding
+from textual.suggester import Suggester
 from textual.widgets import Input
-from textual import on
 from textual.worker import Worker, WorkerState
 
 from ..agent import AgentEvents
@@ -37,9 +35,93 @@ from ..commands.command import CMD_PREFIX
 from ..commands.history import CommandHistory
 from ..messages.agents import AgentMessage
 from ..messages.log import LogMessage
+from ..subprocess import ExternalProcessMixin
+from ..types import InstruktDomNodeMixin
 from .input import blur_on
 from .windows import ConsoleWindow
-from ..types import InstruktDomNodeMixin
+
+
+class Suggestion(t.NamedTuple):
+    suggestion: str
+    """Suggestion token"""
+
+    action: str
+    """Action to be called when the suggestion is selected"""
+
+    def __str__(self) -> str:
+        return self.suggestion
+
+TSuggestion = str | Suggestion
+
+class ActionSuggestions(dict[str, str]):
+    """Dict like class for storing suggestions with actions"""
+
+    def __init__(self, *suggestions: Suggestion, **kwargs) -> None:
+        super().__init__(**kwargs)
+        for suggestion in suggestions:
+            self.add(suggestion)
+
+    def add(self, suggestion: Suggestion) -> None:
+        self[suggestion.suggestion] = suggestion.action
+
+    def get_full(self, value: str) -> Suggestion | None:
+        if value in self:
+            return Suggestion(value, self[value])
+        else:
+            return None
+
+
+
+class ReplSuggester(Suggester):
+
+    suggestions: list[str] = [
+            # "gpt-3.5-turbo",
+            # "gpt-4",
+            # "gpt-3.5-turbo-0613",
+            ]
+
+    action_suggestions = ActionSuggestions(
+            # Suggestion("test", "say_hello"),
+            )
+
+    def __init__(self, *args, **kwargs):
+        self.current_suggestion = None
+        super().__init__(*args, **kwargs)
+
+    def add(self, *content: TSuggestion) -> None:
+        for c in content:
+            if isinstance(c, Suggestion):
+                self.action_suggestions.add(c)
+            else:
+                self.suggestions = list(set(self.suggestions + [c]))
+
+    @property
+    def current_suggestion(self):
+        """The current_suggestion property."""
+        if self._current_suggestion in self.action_suggestions:
+            return self.action_suggestions.get_full(self._current_suggestion)
+        return self._current_suggestion
+
+    @current_suggestion.setter
+    def current_suggestion(self, value):
+        self._current_suggestion = value
+
+    @property
+    def all(self) -> list[str]:
+        return self.suggestions + list(self.action_suggestions.keys())
+
+
+    async def get_suggestion(self, value) -> str | None:
+        suggestion = get_close_matches(value, self.all, n=1, cutoff=0.3)
+        res = suggestion[0] if suggestion else None
+        if res is not None:
+            self.current_suggestion = res
+        else:
+            self.current_suggestion = None
+        return res
+
+
+        
 
 
 class CmdMsg(str):
@@ -53,34 +135,31 @@ class ToAgentMsg(str):
 
 
 @blur_on(key="escape")
-class REPLPrompt(Input, InstruktDomNodeMixin):
+class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
 
     BINDINGS = [
         Binding("up", "history_prev", "previous command", show=False),
         Binding("down", "history_next", "next command", show=False),
-        Binding("ctrl+s", "stop_agent", "stop running agent", show=False),
-        Binding("ctrl+e", "external_editor", "external editor", show=True,
-                key_display="ctrl+e")
+        Binding("ctrl+s", "stop_agent", "stop agent", key_display="C-s"),
+        Binding("ctrl+e", "external_editor", "open editor", show=True,
+                key_display="C-e")
     ]
 
-    class Mode(Enum):
-        NORMAL = 0
-        SEARCH = 1
-
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+        super().__init__(suggester=ReplSuggester(), *args, **kwargs)
         self.placeholder = ""
         self.cmd_history = CommandHistory(
             config=self._app.context.config_manager.config)
         self.cmd_history.load()
 
         #WIP: use reactive attribute here
-        self.mode = self.Mode.NORMAL
+        self.llm_mode = None
+
 
     def on_mount(self) -> None:
         self.main_buffer = self._app.query_one(ConsoleWindow)
 
-    def _parse_input(self, msg: str) -> Optional[Union[CmdMsg, ToAgentMsg]]:
+    def _parse_input(self, msg: str) -> t.Optional[CmdMsg | ToAgentMsg]:
         if len(msg) == 0:
             return None
         if msg in ["help", "h", "?"]:
@@ -106,40 +185,18 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
         self.value = self.cmd_history.get_previous().entry
         self.call_next(self._update_curosr_pos)
 
-
-    # see https://github.com/Textualize/textual/discussions/165
     def action_external_editor(self) -> None:
         """Open an external editor for editing with an optinal starting text."""
-        import tempfile
-        import subprocess
-        import os
-        self.app._driver.stop_application_mode()
-        initial = self.value
-        try:
-            with tempfile.NamedTemporaryFile(mode="w+") as ef:
-                ef.write(initial)
-                ef.flush()
-                # Need to create a separate backup copy
-                # If we don't, the edited text will not be saved into the current file
-                # get EDITOR from env
-                editor = os.environ.get('EDITOR', 'vim')
-                subprocess.call([editor, '+set backupcopy=yes', ef.name])
-                ef.seek(0)
-                input_ = ef.read()
-                self.value = input_.strip()
-                self.call_next(self._update_curosr_pos)
-        finally:
-            self.app.refresh()
-            self.app._driver.start_application_mode()
-
-
-
+        output = self.edit(self.value.strip())
+        if output is not None:
+            self.value = output.strip()
+            self.call_next(self.action_submit)
 
     async def action_history_next(self) -> None:
         self.value = self.cmd_history.get_next().entry
         self.call_next(self._update_curosr_pos)
 
-    def _write_main_buffer(self, msg: Any) -> None:
+    def _write_main_buffer(self, msg: t.Any) -> None:
         """Write on main buffer"""
         self.main_buffer.write(msg, expand=True)
 
@@ -186,3 +243,30 @@ class REPLPrompt(Input, InstruktDomNodeMixin):
         agent = self._app.agent_manager.active_agent
         if agent is not None:
             await agent.stop_agent(self._app.context)
+
+
+    def key_tab(self, ev: events.Key) -> None:
+        self.log.debug(f"tab pressed {ev.key}")
+        if self.suggester.current_suggestion is not None and len(self.value) != 0:
+            ev.stop()
+            self.log.debug("suggesting")
+            self.log.debug(self.suggester.current_suggestion)
+            cur_sug = self.suggester.current_suggestion
+            if isinstance(cur_sug, Suggestion):
+                self.call_next(self.action_cursor_right)
+
+                #WIP: repl modes
+                # self.call_next(self.run_action, cur_sug.action)
+                # self.action_delete_left_word()
+            else:
+                self.call_next(self.action_cursor_right)
+        else:
+            self.log.debug("not suggesting")
+
+    def action_llm_mode(self, mode: str) -> None:
+        self.llm_mode = mode
+        self.parent.add_class("--has-mode")
+
+
+    # def action_say_hello(self) -> None:
+    #     self.log.debug("hello")

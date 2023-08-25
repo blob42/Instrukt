@@ -2,15 +2,15 @@
 
 import logging
 import os
-import subprocess
-from typing import TYPE_CHECKING
 import timeit
+from typing import TYPE_CHECKING
 
 from xdg import BaseDirectory
+
 from ..config import APP_SETTINGS
 
 if TYPE_CHECKING:
-    from debugpy import Endpoint
+    pass
 
 dap_conn = None
 DAP_PORT = 5678
@@ -50,6 +50,13 @@ def get_dbg_path() -> str:
     """Returns the debug path"""
     return BaseDirectory.save_cache_path("instrukt")
 
+def dap_listen() -> bool:
+    import debugpy
+    global dap_conn
+    if dap_conn is None:
+        dap_conn = debugpy.listen(DAP_PORT)
+        return True
+    return False
 
 def log_llm_output(msg: str) -> None:
     """Logs the msg to the file"""

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "instrukt"
-version = "0.5.0"
+version = "0.6.0"
 homepage = "https://github.com/blob42/instrukt"
 repository = "https://github.com/blob42/instrukt"
 documentation = "https://github.com/blob42/instrukt/docs"
@@ -38,7 +38,7 @@ instrukt = 'instrukt.app:run'
 python = ">=3.9,<4.0"
 textual = "^0.31.0"
 #textual = { path = "/home/spike/dev/instrukt-project/reference_libs/textual", develop=true}
-langchain = "^0.0.240"
+langchain = "0.0.266"
 pyxdg = "^0.28"
 tomli = "^2.0.1"
 pydantic = "^1.10.7"
@@ -59,6 +59,8 @@ tiktoken = {version = "^0.4.0"}
 sentence-transformers = {version = "^2.2.2", optional = true}
 instructorembedding = {version = "^1.0.1", optional = true}
 typing-extensions = "^4.7.1"
+esprima = {version = "^4.0.1", optional = true}
+chardet = "^5.2.0"
 
 [tool.poetry.extras]
 tools = ["wikipedia"]
@@ -66,11 +68,14 @@ tools = ["wikipedia"]
 #vectorstores = ["chromadb"]
 openai = ["openai"]
 local = ["sentence-transformers", "instructorembedding"]
+coding = ["esprima"]
 
+#TODO!: add chardet
 all = [
+    "esprima",
     "openai",
     "sentence-transformers",
-    "instructorembedding"
+    "instructorembedding",
 ]
 
 [tool.poetry.group.dev.dependencies]

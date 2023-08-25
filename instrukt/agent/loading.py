@@ -21,24 +21,28 @@
 """Instrukt agent loading."""
 
 import importlib
-import logging
-import json
 import inspect
+import json
+import logging
 import os
-from typing import Generator, Optional, Type, Any
-from xdg import BaseDirectory  # type: ignore
+import pkgutil
+import sys
+from pathlib import Path
+from typing import Generator, Optional, Type
+
+from instrukt.config import APP_SETTINGS
 
 from ..context import Context
 from ..errors import AgentError
 from ..messages.log import LogMessage
-from .base import InstruktAgent
 from ..schema import AgentManifest
-import pkgutil, importlib
-from pathlib import Path
+from .base import InstruktAgent
 
 log = logging.getLogger(__name__)
+
 AGENT_MODULES_PATHS = [Path(__file__).parent.parent / "agent_modules",
-                      Path(BaseDirectory.save_data_path("instrukt/agents"))]
+                      Path(APP_SETTINGS.custom_agents_path)]
+sys.path.extend([str(p) for p in AGENT_MODULES_PATHS])
 MODULE_ENTRY_POINT = "main.py"
 MODULE_MANIFEST = "manifest.json"
 IMPL_CLS = InstruktAgent
@@ -82,7 +86,7 @@ class ModuleManager:
             ValueError: If the agent module does not have a manifest.
         """
         for path in AGENT_MODULES_PATHS:
-            module_path = os.path.join(path, name)
+            os.path.join(path, name)
             manifest_path = os.path.join(path, name, MODULE_MANIFEST)
             if os.path.isfile(manifest_path):
                 with open(manifest_path, "r") as manifest_file:

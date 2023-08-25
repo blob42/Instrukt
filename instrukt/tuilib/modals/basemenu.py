@@ -18,14 +18,15 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
-from textual import on
-from textual.app import App
-from textual.screen import ModalScreen, Screen
-from textual.geometry import Region, Offset
 from typing import Any
-from textual import events
-from instrukt.utils.debug import notify
+
+from textual import events, on
+from textual.app import App
+from textual.geometry import Offset, Region
+from textual.screen import ModalScreen, Screen
+
 from ...types import InstruktDomNodeMixin
+
 
 class BaseModalMenu(ModalScreen[Any], InstruktDomNodeMixin):
 

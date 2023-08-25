@@ -23,10 +23,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import (
     Any,
-    Callable,
     Generic,
     Sequence,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -40,9 +38,8 @@ from langchain.schema import (
     OutputParserException,
 )
 
-from .strategy import Strategy
 from .strategies import json_react_strategies
-
+from .strategy import Strategy
 
 log = logging.getLogger(__name__)
 
@@ -51,7 +48,7 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
-class MultiStrategyParser(BaseOutputParser[T], ABC, Generic[T, S]):
+class MultiStrategyParser(BaseOutputParser[T], Generic[T, S], ABC):
     """A parser that tries multiple strategies to parse the output.
 
     Strategies are tried in order. The first one that succeeds is returned.

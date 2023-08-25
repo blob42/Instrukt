@@ -23,8 +23,6 @@ from typing import Tuple
 
 from instrukt.config import APP_SETTINGS
 
-from ..utils.misc import _version
-
 
 class Icons(dict[str, Tuple[str, str]]):
     """Custom dict subclass for storing icons.
@@ -59,18 +57,18 @@ ICONS = Icons({
     "index": ("indexes", ""),
 })
 
-INTRO_MESSAGE = f"""
-# Instrukt v{_version()} (alpha)
+INTRO_MESSAGE = """
+Welcome to Instrukt 👏: the swiss knife AI commander in the terminal !
 
-Welcome 👏 ! This is the main prompt and info window where you can find various information about the agents and commands available.
+This is the main prompt and info window where you can find various information about the agents and available commands.
 
-Use the prompt area below to execute Instrukt commands or send messages to active agents.
+Use the input area below to execute Instrukt commands or send messages to active agents.
 
 To get started, type `/help` or `.help` for a list of available commands.
 
-If you need more information about a specific command, type `.help <command>`.
+Type `.help <command>` to show the help for a specific command.
 
-You can also load the Instrukt manual by typing `.man`.
+You can load the full documentation by typing `.man` or pressing `h`.
 """
 
 #TODO!: contextual tips 
@@ -98,4 +96,6 @@ IPYTHON_SHELL_INTRO = """
     [b yellow]app[/]: Instrukt `Textual` app instance
     [b yellow]agent[/]: Current agent
     [b yellow]agent.base_agent[/]: Langchain agent instance
+    [b yellow]memory[/]: Current agent's memory
+    [b yellow]im[/]: Index Manager
 """

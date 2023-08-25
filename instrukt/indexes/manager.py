@@ -36,13 +36,12 @@ from langchain.embeddings.base import Embeddings as LcEmbeddings
 from pydantic import BaseModel, Field, PrivateAttr
 
 from ..config import APP_SETTINGS, ChromaSettings
-from ..context import Context, context_var
+from ..context import context_var
 from ..errors import IndexError
 from ..indexes.chroma import ChromaWrapper
 from ..indexes.loaders import get_loader
 from ..indexes.schema import Collection, EmbeddingDetails, Index
-from ..utils.asynctools import run_async
-from .loaders import LOADER_MAPPINGS, SuperDirectoryLoader
+from .loaders import LOADER_MAPPINGS, AutoDirLoader
 
 if t.TYPE_CHECKING:
     from ..indexes.chroma import TEmbeddings
@@ -128,23 +127,20 @@ class IndexManager(BaseModel):
         """Return the list of loaded indexes."""
         return list(self._indexes.keys())
 
-    def get_loader(self, index: Index):
-        if index.loader_type is not None:
-            _loader = LOADER_MAPPINGS.get(index.loader_type)
+    def get_loader(self, path: str, loader_type: str | None = None):
+        if loader_type is not None:
+            _loader = LOADER_MAPPINGS.get(loader_type)
             if _loader is not None:
                 loader_cls, loader_kwargs, _ = _loader
-                loader = loader_cls(index.path,
-                                    **loader_kwargs)  # type: ignore
+                loader = loader_cls(path, **loader_kwargs)  # type: ignore
             else:
                 loader = None
         else:
-            loader = get_loader(index.path)
+            loader = get_loader(path)
 
         if loader is None:
             raise IndexError("No loader found for the given path")
         return loader
-
-
 
     async def create(self, _ctx: contextvars.Context,
                      index: Index) -> ChromaWrapper | None:
@@ -155,46 +151,46 @@ class IndexManager(BaseModel):
 
         #WIP:
         # if index.type is defined use specified loader
-        loader = self.get_loader(index)
-
-        #TODO!: cutomize splitting/chunking heuristics per loader/data type
-        #TODO!: implement custom parallel directory loader
+        loader = self.get_loader(index.path, index.loader_type)
 
         assert ctx.app is not None, "missing App in Context"
-        if isinstance(loader, SuperDirectoryLoader):
-            # get progress bar
-            console = t.cast("IndexConsole", ctx.app.query_one("IndexConsole"))
-            assert console is not None
-            docs = loader.load_and_split_parallel(console.pbar)
-        else:
-            docs = loader.load_and_split()
+        console = t.cast("IndexConsole", ctx.app.query_one("IndexConsole"))
+        assert console is not None
+        if isinstance(loader, AutoDirLoader):
+            loader.pbar = console.pbar
+
+            if index.glob is not None:
+                loader.glob = [index.glob]
+
+        docs = loader.load_and_split()
+
+        if len(docs) == 0:
+            return None
 
         ctx.app.call_from_thread(ctx.app.refresh)
 
         #NOTE: the used embedding function used is stored within the collection metadata
-        # at the wrapper level.
+        # in the chroma wrapper module.
 
         self.chroma_kwargs['embedding_function'] = index.embedding_fn
 
         log.debug(f"chroma kwargs: {self.chroma_kwargs})")
 
-        new_index = ChromaWrapper(
-            self._client,
-            collection_name=index.name,
-            # embedding_function=index.get_embedding_fn(),
-            collection_metadata={
-                'description': index.description,
-            },
-            **self.chroma_kwargs)
+        new_index = ChromaWrapper(self._client,
+                                  collection_name=index.name,
+                                  loading=False,
+                                  collection_metadata={
+                                      'description': index.description,
+                                  },
+                                  **self.chroma_kwargs)
 
         # add documents to index
-        console.pbar.update_pbar(progress=0)
+        console.pbar.update_pbar(total=None, progress=0)
         console.pbar.update_msg("creating embeddings ...")
         with console.pbar.patch_tqdm_update():
             new_index.add_documents(docs)
 
         self._indexes[index.name] = new_index
-         
 
         return new_index
 
@@ -229,7 +225,7 @@ class IndexManager(BaseModel):
         #             SELECT collection_metadata.collection_id,
         #                       collections.name AS collection_name,
         #                       collection_metadata.str_value AS embedding_fn
-        #                       FROM collection_metadata 
+        #                       FROM collection_metadata
         #                       INNER JOIN collections
         #                       ON collection_metadata.collection_id = collections.id
         #                       WHERE collection_metadata.key = 'embedding_fn'
