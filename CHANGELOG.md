@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- wip: REPL input modes and auto completion
+- wip: Programming assistant agent
 - Progress bar for async events on tools
 - select and edit source documents used for retrieval Q&A with ctrl+p
 - Retrieval Q&A with agents returns source documents
