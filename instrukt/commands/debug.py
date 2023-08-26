@@ -23,8 +23,10 @@
 To activate these commands type `%debug` in the console.
 """
 
-import sys
+import logging
 
+from .._logging import LogCaptureHandler
+from ..context import global_context
 from ..utils.debug import dap_listen
 from .command import CallbackOutput, CmdLog
 from .root_cmd import ROOT as root
@@ -35,33 +37,41 @@ def toggle_langchain_debug():
     import langchain
     langchain.debug = not langchain.debug
 
+def enable_log_debug():
+    # set current log handler to debug
+    log = logging.getLogger()
+    for handler in log.handlers:
+        if isinstance(handler, LogCaptureHandler):
+            handler.setLevel(logging.DEBUG)
 
+def toggle_app_debug() -> bool:
+    """Toggle debug mode."""
+    with global_context() as ctx:
+        cfg = ctx.config_manager.config
+        if cfg.debug:
+            cfg.debug = False
+            return False
+
+        cfg.debug = True
+        return True
+
+toggle_app_debug()
 toggle_langchain_debug()
-"""Extra debug commands"""
+enable_log_debug()
 
 
-@root.command
-async def stderr(ctx) -> CallbackOutput:
-    """stderr file descriptor"""
-    # return sys.stdin.fileno(), sys.stdout.fileno()
-    return sys.stderr
-
+#WIP:
 @root.command
 async def toggle_dbg(ctx) -> CallbackOutput:
-    """Deactivate debug mode."""
-    from instrukt.config import APP_SETTINGS
-    if APP_SETTINGS.debug:
-        APP_SETTINGS.debug = False
-        return CmdLog("debug mode deactivated")
-
-    APP_SETTINGS.debug = True
-    return CmdLog("debug mode activated")
+    """Toggle debug mode."""
+    if toggle_app_debug():
+        return CmdLog("debug mode activated")
+    return CmdLog("debug mode deactivated")
 
 
 @root.command
 async def dap(ctx) -> CallbackOutput:
     """Toggle DAP debugging"""
-
 
     if dap_listen():
         return CmdLog("started DAP server")

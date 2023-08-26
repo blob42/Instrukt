@@ -15,16 +15,12 @@ if TYPE_CHECKING:
 dap_conn = None
 DAP_PORT = 5678
 
-#DEBUG: used for debugging purposes only
 if APP_SETTINGS.debug:
-
     def notify(msg: str) -> None:
         pass
+        #DEBUG:
         # call a system command `dunstify` to send`
         # subprocess.call(['dunstify', '-u', 'critical', msg])
-    # import debugpy
-    # dap_conn  = debugpy.listen(DAP_PORT)
-    # debugpy.wait_for_client()
 else:
     def notify(msg: str) -> None:
         pass

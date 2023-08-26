@@ -113,7 +113,6 @@ class InstruktApp(App[None]):
         Binding("?", "uniq_screen('keybindings')", "keys"),
         Binding("j", "focus_next_msg", "next msg" , show=False),
         Binding("k", "focus_previous_msg", "focus msg", key_display="j|k"),
-        Binding("exclamation_mark", "dap_listen", "debug with dap", show=False, priority=True),
     ]
 
     CSS_PATH = [
@@ -277,12 +276,15 @@ class InstruktApp(App[None]):
         for w in self.query(".window"):
             w.post_message(self.Ready())
 
-    def action_dap_listen(self) -> None:
-        from .utils.debug import dap_listen
-        if dap_listen():
-            self.post_message( LogMessage.info("started DAP"))
-        else:
-            self.post_message( LogMessage.info("DAP already listening"))
+    async def key_exclamation_mark(self, ev: events.Key) -> None:
+        if self.context.config_manager.config.debug:
+            ev.stop()
+            from .utils.debug import dap_listen
+            if dap_listen():
+                self.post_message( LogMessage.info("started DAP"))
+            else:
+                self.post_message( LogMessage.info("DAP already listening"))
+
 
 
     def action_focus_instruct_prompt(self) -> None:
