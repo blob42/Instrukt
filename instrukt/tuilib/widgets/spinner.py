@@ -28,6 +28,7 @@ import json
 import time
 import typing as t
 from typing import Any, Awaitable, Optional
+import logging
 
 import pkg_resources
 from rich.console import RenderableType
@@ -36,6 +37,8 @@ from rich.text import Text
 from textual.reactive import reactive, var
 from textual.widget import Widget
 from textual.widgets import Label, Static
+
+log = logging.getLogger(__name__)
 
 SPINNERS = json.loads(
     pkg_resources.resource_string(__name__, 'spinners.json').decode('utf-8'))
@@ -284,17 +287,21 @@ class AsyncDataContainer(Static):
         Returns:
             None
         """
-        self.resolved = fut.result()
-        self.log.debug(f"{self} resolved to data: {self.resolved}")
-        children = self.query(FutureLabel)
-        #TEST:
-        for c in children:
-            fstring = f"f'{c.bind}'"
-            res = eval(fstring, {}, {'X': self.resolved})
-            c.update(res)
+        try:
+            self.resolved = fut.result()
+            self.log.debug(f"{self} resolved to data: {self.resolved}")
+            children = self.query(FutureLabel)
+            #TEST:
+            for c in children:
+                fstring = f"f'{c.bind}'"
+                res = eval(fstring, {}, {'X': self.resolved})
+                c.update(res)
 
-        self.ready = True
-        self.future = None
+            self.ready = True
+        except Exception as e:
+            log.error(f"Error in {self}: {e}")
+        finally:
+            self.future = None
 
     def _track_future(self, fut: Any) -> asyncio.Future | None:
         """
