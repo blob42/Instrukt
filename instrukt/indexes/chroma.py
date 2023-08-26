@@ -71,8 +71,6 @@ class ChromaWrapper(ChromaVectorStore):
             embedding_function = HuggingFaceEmbeddings(
                 model_name=DEFAULT_EMBEDDINGS_MODEL)
 
-        #HACK: embedding_fn details are always saved again in the collection metadata
-        #TODO: should only stored when index is created
         embedding_fn_fqn = f"{type(embedding_function).__module__}.{type(embedding_function).__name__}"
 
         collection_metadata["embedding_fn"] = embedding_fn_fqn

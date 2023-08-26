@@ -110,3 +110,9 @@ interface:
 
 ```
 
+## Debug mode
+
+You can quickly activate debug mode with the command `%debug` in the prompt.
+
+Currently mostly useful for index creation, it will enable more verbose output in the
+index management log console.

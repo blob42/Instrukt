@@ -19,7 +19,7 @@
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 """Embeddings used in indexes."""
-#TODO: handle CUDA
+#TODO: CUDA
 import typing as t
 from typing import NamedTuple
 

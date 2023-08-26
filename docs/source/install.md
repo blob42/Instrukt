@@ -7,6 +7,13 @@ Instrukt is not yet available on package managers. To install it, you can instal
 - Python 3.9 or newer
 - a modern terminal emulator (e.g. alacritty, kitty, st, urxvt, xterm)
 
+## Easy install from pip repository
+
+`pip install instrukt[all]`
+
+- For indexes with local embeddings, you need to install the `local` extra.
+
+`pip install instrukt[local]`
 
 ## Installing from source
 
@@ -20,12 +27,12 @@ your pip version is old.
 - To do a comprehensive install with all features use:
 
 ```sh
-    poetry install -E tools -E local -E openai
+    poetry install -E all
 ```
 
 ## Extra Dependencies
 - xsel or xclip for copying messages to the clipboard.
-- libmagic (file type detection)
-- sqlite (for caching)
-- docker: optional for Patreons with access to the docker agent preview.
+- libmagic: file type detection
+- sqlite: caching
+- docker: [optional] for Patreons with access to the docker based agents.
 
