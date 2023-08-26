@@ -240,7 +240,7 @@ class IndexInfo(Container, InstruktDomNodeMixin):
 
     async def action_delete_collection(self) -> None:
         idx_name = self.collection.name
-        async with self._lock:
+        async with self.app._alock:
             with index_manager() as im:
                 await im.aget_index(idx_name)
                 await im.adelete_index(idx_name)

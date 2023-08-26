@@ -294,7 +294,10 @@ class InstruktApp(App[None]):
             pass
 
     def action_focus_next_msg(self) -> None:
-        conv = self.query_one("AgentConversation")
+        try:
+            conv = self.query_one("AgentConversation")
+        except NoMatches:
+            return
         focused = self.focused
         if isinstance(focused, ChatBubble):
             if conv.children[-1] != focused:
@@ -307,7 +310,10 @@ class InstruktApp(App[None]):
                 return
 
     def action_focus_previous_msg(self) -> None:
-        conv = self.query_one("AgentConversation")
+        try:
+            conv = self.query_one("AgentConversation")
+        except NoMatches:
+            return
         focused = self.focused
         if isinstance(focused, ChatBubble):
             # pos 0 is user msg normally
