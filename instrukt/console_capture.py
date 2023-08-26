@@ -21,6 +21,7 @@
 """Console/ output capture and redirection."""
 
 from abc import ABC
+import re
 from logging import Filter, Formatter, LogRecord
 from typing import ClassVar, Sequence
 
@@ -28,12 +29,17 @@ from typing import ClassVar, Sequence
 class ConsoleFilter(Filter, ABC):
     """Base filter class to use with output and log capture."""
 
-    modules: ClassVar[Sequence[str]]
+    modules: ClassVar[Sequence[str]] = []
     formatter: ClassVar[Formatter] = Formatter('%(message)s')
+    patterns: ClassVar[Sequence[re.Pattern]] = []
 
-    def __init__(self, *module_filters: str, **kwargs):
+    def __init__(self,
+                 module_filters: list[str] = [],
+                 pattern_filters: list[str] = [],
+                 **kwargs):
         super().__init__(**kwargs)
-        self._module_filters = set([*module_filters])
+        self._module_filters = set(module_filters)
+        self._pattern_filters = set(pattern_filters)
 
     @property
     def module_filters(self):
@@ -43,24 +49,55 @@ class ConsoleFilter(Filter, ABC):
     def module_filters(self, val):
         self._module_filters = val
 
-    
+    @property
+    def pattern_filters(self):
+        return set(self._pattern_filters).union(self.patterns)
+
+    @pattern_filters.setter
+    def pattern_filters(self, val):
+        self._pattern_filters = val
+
+    def match(self, record: LogRecord) -> bool:
+        """Check if record should be filtered."""
+        return any(p.match(record.getMessage())
+                   for p in self.pattern_filters)
 
     def filter(self, record: LogRecord) -> bool:
         """Implements logging.Filter"""
         from .config import APP_SETTINGS
         if APP_SETTINGS.debug:
             return True
-        return any(record.name.startswith(module) for module in self.module_filters)
+        return self.match(record) or self._filter(record)
+
+    def _filter(self, record: LogRecord) -> bool:
+        return any(record.name.startswith(module)
+                   for module in self.module_filters)
 
     def __or__(self, other):
-        new_filter = self.__class__()
-        new_filter.module_filters = self.module_filters.union(other.module_filters)
+        new_filter = ConsoleFilter(module_filters=self.module_filters,
+                                   pattern_filters=self.pattern_filters)
+        new_filter.module_filters = new_filter.module_filters.union(
+            other.module_filters)
+        new_filter.pattern_filters = new_filter.pattern_filters.union(
+            other.pattern_filters)
         return new_filter
 
     def __and__(self, other):
-        new_filter = self.__class__()
-        new_filter.module_filters = self.module_filters.intersection(other.module_filters)
+        new_filter = ConsoleFilter(module_filters=self.module_filters,
+                                   pattern_filters=self.pattern_filters)
+        new_filter.module_filters = new_filter.module_filters.intersection(
+            other.module_filters)
+        new_filter.pattern_filters = new_filter.pattern_filters.intersection(
+            other.pattern_filters)
         return new_filter
+
+
+class ErrorF(ConsoleFilter):
+    """Matches errors and exceptions"""
+    # match error | exception anywhere case insensitive
+    patterns = (
+            re.compile(r".*(error|exception).*", re.IGNORECASE),
+            )
 
 
 class LangchainF(ConsoleFilter):

@@ -7,6 +7,7 @@ from textual._context import active_app
 
 from .console_capture import (
     ConsoleFilter,
+    ErrorF,
     LangchainF,
     IndexCreationF,
 )
@@ -40,21 +41,21 @@ class LogCaptureHandler(Handler):
             else:
                 app.log.logging(message)
 
-
 def setup_logging():
-    log_ch = LogCaptureHandler()
 
-    log_ch.setFormatter(ConsoleFilter.formatter)
-    log_ch.setLevel(logging.DEBUG)
+    log_capture_handler.setFormatter(ConsoleFilter.formatter)
+    log_capture_handler.setLevel(logging.INFO)
 
-    log_ch.addFilter(IndexCreationF() | LangchainF())
+    filter = IndexCreationF() | LangchainF() | ErrorF()
+    log_capture_handler.addFilter(filter)
 
     # add Textual dev console handler
     logging.basicConfig(
         level=logging.DEBUG,
         # handlers=[TextualHandler()],
-        handlers=[log_ch],
+        handlers=[log_capture_handler],
     )
+
 
     # silence markdown-it
     mdlogger = logging.getLogger("markdown_it")
@@ -72,3 +73,4 @@ def setup_logging():
 
 
 ANSI_ESCAPE_RE = r"\x1b\[[AB]"
+log_capture_handler = LogCaptureHandler()
