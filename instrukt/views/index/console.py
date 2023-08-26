@@ -32,7 +32,7 @@ from textual.reactive import var
 from textual.widgets import (
     Label,
     ProgressBar,
-    TextLog,
+    RichLog,
 )
 
 from ..._logging import ANSI_ESCAPE_RE
@@ -73,7 +73,7 @@ class ConsoleHeader(Horizontal):
         return ProgressBarWrapper(self.progress)
 
 
-class IndexConsole(TextLog, can_focus=False, can_focus_children=False):
+class IndexConsole(RichLog, can_focus=False, can_focus_children=False):
     minimized = var[bool](False)
     has_log = var[bool](False)
     user_minimzed = var[bool](False)
@@ -87,7 +87,7 @@ class IndexConsole(TextLog, can_focus=False, can_focus_children=False):
     def compose(self) -> ComposeResult:
         self.header = ConsoleHeader()
         yield self.header
-        self.tl = TextLog(wrap=True, highlight=True)
+        self.tl = RichLog(wrap=True, highlight=True)
         yield self.tl
 
     def watch_minimized(self, m: bool) -> None:

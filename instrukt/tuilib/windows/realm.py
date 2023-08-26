@@ -31,11 +31,11 @@ from ...agent.events import AgentEvents
 from ...agent.state import AgentState
 from ...messages.agents import AgentLoaded, AgentMessage
 from ..strings import REALM_WINDOW_INTRO
-from ..widgets.textlog import TextLogUp
+from ..widgets.textlog import RichLogUp
 
 
 #TODO: realm window hidden by default, show when realm active
-class RealmWindow(TextLogUp, can_focus=False):
+class RealmWindow(RichLogUp, can_focus=False):
     """Window used for the agent's virtual environment"""
 
     def on_instrukt_app_ready(self):

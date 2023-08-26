@@ -24,13 +24,13 @@ from rich.markdown import Markdown
 
 from ...messages.log import LogLevel, LogMessage
 from ...tuilib.strings import INTRO_MESSAGE, TIPS
-from ...tuilib.widgets.textlog import TextLogUp
+from ...tuilib.widgets.textlog import RichLogUp
 
 if t.TYPE_CHECKING:
     from ...types import AnyMessage
 
 
-class ConsoleWindow(TextLogUp):
+class ConsoleWindow(RichLogUp):
     """Window with bottom-up scrolling view"""
 
     def on_instrukt_app_ready(self):

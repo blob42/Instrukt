@@ -21,11 +21,11 @@
 """Custom textlog widget"""
 
 from textual.strip import Strip
-from textual.widgets import TextLog
+from textual.widgets import RichLog
 
 
-class TextLogUp(TextLog):
-    """Custom TextLog widget with bottom-up scrolling view"""
+class RichLogUp(RichLog):
+    """Custom RichLog widget with bottom-up scrolling view"""
 
     def render_line(self, y: int) -> Strip:
         content_height = len(self.lines)

@@ -73,7 +73,7 @@ SettingsScreen {
 }
 
 
-#console-window TextLog {
+#console-window RichLog {
     background: transparent;
     padding: 0;
     padding-left: 1;
@@ -106,7 +106,7 @@ SettingsScreen {
     display: block;
 }
 
-#realm-container TextLog {
+#realm-container RichLog {
     /* background: orange; */
     background: rebeccapurple;
     overflow-y: auto;
