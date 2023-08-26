@@ -102,7 +102,7 @@ class IndexMenuScreen(BaseModalMenu, InstruktDomNodeMixin):
                     return
 
                 agent.add_tool(tool)
-                self._app.context.info(f"Added index <{index_name}> as tool")
+                self._app.context.info(f"Index <{index_name}> added to agent")
 
 
     def detach_index_tool(self, index_name: str) -> None:

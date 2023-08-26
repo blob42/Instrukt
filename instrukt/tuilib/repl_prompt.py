@@ -147,7 +147,7 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(suggester=ReplSuggester(), *args, **kwargs)
-        self.placeholder = ""
+        self.placeholder = ""
         self.cmd_history = CommandHistory(
             config=self._app.context.config_manager.config)
         self.cmd_history.load()

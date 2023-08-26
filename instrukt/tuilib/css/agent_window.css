@@ -14,9 +14,14 @@ AgentWindow .--topbar {
     width: 1fr;
 }
 
-#agent-menu AgentStatus {
+#agent-menu-info AgentStatus {
     width: 2fr;
 }
+#agent-menu AgentMenu {
+    align: right middle;
+    width: auto;
+}
+
 #agent-menu #progress {
     width: 1fr;
     text-align: right;

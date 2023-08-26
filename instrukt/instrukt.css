@@ -21,6 +21,10 @@ SettingsScreen {
     display: none;
 }
 
+.-no-agent InstruktHeader {
+    display: block;
+}
+
 .-show-new-agent MonitorPanel {
     display: none;
 }

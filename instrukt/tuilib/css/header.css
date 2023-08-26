@@ -1,8 +1,9 @@
 InstruktHeader {
+    display: none;
     layout: horizontal;
     dock: top;
     width: 100%;
-    background: $foreground 5%;
+    background: $panel;
     color: $text;
     height: 1;
 }
