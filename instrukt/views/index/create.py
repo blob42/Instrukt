@@ -462,8 +462,7 @@ class CreateIndex(VerticalScroll,
             input.value = ""
         self.state = FormState.INITIAL
 
-    @work(exclusive=True,
-          thread=True,
+    @work(thread=True,
           name="validate_new_index",
           exit_on_error=False)
     def __validate_new_index(self, form: FormGroup) -> FormValidity[FormGroup]:
@@ -528,11 +527,27 @@ class CreateIndex(VerticalScroll,
             self.log.debug("index created work handler !")
             # successs means worker success
 
-        if event.worker.state == WorkerState.CANCELLED or \
-                event.worker.state == WorkerState.ERROR:
-            self.screen.remove_class("--loading")  # type: ignore
-            self.screen.query_one("IndexConsole").clear_msg().remove_class(
-                "--loading")
+        if self.work_success("data_scan", event):
+            doc_stats = event.worker.result
+            self.query_one(Pretty).update(doc_stats)
+            self.query_one("VerticalScroll.--container").scroll_end()
+            console = self.screen.query_one("IndexConsole")
+            console.remove_class("--loading")
+            c_header = console.header
+            c_header.progress.update(total=None, progress=0)
+            c_header.progress.refresh()
+            c_header.set_msg("")
+
+
+        if event.worker.name != "validate_new_index":
+            if event.worker.state == WorkerState.CANCELLED or \
+                    event.worker.state == WorkerState.ERROR:
+
+                self.screen.remove_class("--loading")  # type: ignore
+                self.screen.query_one("IndexConsole").clear_msg().remove_class( "--loading")
+
+            if event.worker.state == WorkerState.ERROR:
+                self.post_message(ConsoleMessage(event.worker.error))
 
     async def create_index(self) -> None:
         """Create the index, this is a slow operation"""
@@ -605,22 +620,12 @@ class CreateIndex(VerticalScroll,
         c_header.set_msg("scanning data ...")  # type: ignore
         files = loader.detect_files()
 
+        self.cancel_work()
         self._current_work = self.run_worker(lambda: src_by_lang(files, True),
                                              name="data_scan",
                                              thread=True,
                                              exclusive=True,
                                              exit_on_error=False)
-        try:
-            doc_stats = await self._current_work.wait()
-            self.query_one(Pretty).update(doc_stats)
-            self.query_one("VerticalScroll.--container").scroll_end()
-        except WorkerFailed as e:
-            self.post_message(ConsoleMessage(e))
-
-        console.remove_class("--loading")
-        c_header.progress.update(total=None, progress=0)
-        c_header.progress.refresh()
-        c_header.set_msg("")
 
     def cancel_work(self) -> None:
         if self._current_work is not None:

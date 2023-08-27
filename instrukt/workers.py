@@ -33,3 +33,8 @@ class WorkResultMixin:
         """Returns whether the worker named `name` has errored."""
         return name == e.worker.name and  e.state == WorkerState.ERROR
 
+
+    def work_cancel_error(self, name: str, e: Worker.StateChanged) -> bool:
+        """Returns whether the worker named `name` has errored due to a cancel."""
+        return name == e.worker.name and (e.state == WorkerState.ERROR
+                                          or e.state == WorkerState.CANCELLED)
