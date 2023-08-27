@@ -18,12 +18,12 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
-"""Index retrieval utils."""
-
-import typing as t
+"""Retrieval from an index with RetrievalQA."""
 
 import logging
-from langchain.chains import RetrievalQA, RetrievalQAWithSourcesChain
+import typing as t
+
+from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     ChatPromptTemplate,
@@ -31,9 +31,10 @@ from langchain.prompts.chat import (
     SystemMessagePromptTemplate,
 )
 
-from ..config import APP_SETTINGS
-from ..errors import ToolError
-from ..tools.base import Tool
+from ...config import APP_SETTINGS
+from ...errors import ToolError
+from ...tools.base import Tool
+from .utils import make_description
 
 log = logging.getLogger(__name__)
 
@@ -42,9 +43,6 @@ if t.TYPE_CHECKING:
 
     from .chroma import ChromaWrapper
 
-TOOL_DESC_SUFFIX = """ NOTE: this tool is based on an LLM, do not summarize the user query. Enhance the query without losing context and nuances."""
-TOOL_DESC_FULL = """Useful to lookup information about <{name}>: {tool_desc}."""
-TOOL_DESC_SIMPLE = """Useful to lookup information about <{name}>."""
 
 _system_message = """You are Pr. Vivian. Your style is conversational, and you
 always aim to get straight to the point. Use the following pieces of context to answer
@@ -97,27 +95,17 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
     """
 
     if llm is None:
-        llm = ChatOpenAI(**APP_SETTINGS.openai.dict(exclude={"temperature", "model"}),
-                         model="gpt-3.5-turbo-0613",
-                         # model="gpt-4",
-                         temperature=0.3)
+        llm = ChatOpenAI(**APP_SETTINGS.openai.dict())
+        #DEBUG:
+        llm.temperature=0.3
 
 
     if index.count == 0:
         raise ToolError("index is empty")
-    name = index._collection.name
+    name: str = index._collection.name
 
-    if description is None:
-        if index.metadata is not None:
-            desc = index.metadata.get("description")
-            if desc is not None:
-                description = TOOL_DESC_FULL.format(name=name, tool_desc=desc)
-        else:
-            description = TOOL_DESC_SIMPLE
+    description = make_description(description, index, name)
 
-    assert description is not None
-    description.format(name=name)
-    description += TOOL_DESC_SUFFIX
 
     #TEST: k, mmr ...
     retriever = index.as_retriever(search_type="mmr",
@@ -127,32 +115,34 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
 
     #WIP: add citation support
     if with_citation:
-        qa = RetrievalQAWithSourcesChain.from_chain_type(
-            llm=llm,
-            retriever=retriever,
-            reduce_k_below_max_tokens = True,
-            max_tokens_limit = 2000, #TODO: calc limit from model + prompt
-            # chain_type_kwargs={
-            #     "prompt": CHAT_PROMPT,
-            #     # return_source_documents=True
-            # },
-        )
-        async def aqa(query, **ret_kwargs):
-            res = await qa.acall(dict(question=query),
-                                 return_only_outputs=True,
-                                 **ret_kwargs)
-            log.debug(f"sources: {res['sources']}")
-            return res["answer"]
-
-        return Tool(is_retrieval=True,
-                    name=name,
-                    description=description,
-                    func=lambda _: None,
-                    coroutine=aqa,
-                    return_direct=return_direct,
-                    **kwargs)
+        raise NotImplementedError("citation support not yet implemented")
+        #TODO:
+        # qa = RetrievalQAWithSourcesChain.from_chain_type(
+        #     llm=llm,
+        #     retriever=retriever,
+        #     reduce_k_below_max_tokens = True,
+        #     max_tokens_limit = 2000, #TODO: calc limit from model + prompt
+        #     # chain_type_kwargs={
+        #     #     "prompt": CHAT_PROMPT,
+        #     #     # return_source_documents=True
+        #     # },
+        # )
+        # async def aqa(query, **ret_kwargs):
+        #     res = await qa.acall(dict(question=query),
+        #                          return_only_outputs=True,
+        #                          **ret_kwargs)
+        #     log.debug(f"sources: {res['sources']}")
+        #     return res["answer"]
+        #
+        # return Tool(is_retrieval=True,
+        #             name=name,
+        #             description=description,
+        #             func=lambda _: None,
+        #             coroutine=aqa,
+        #             return_direct=return_direct,
+        #             **kwargs)
     else:
-        qa = RetrievalQA.from_chain_type(
+        qachain = RetrievalQA.from_chain_type(
             llm=llm,
             chain_type="stuff",
             retriever=retriever,
@@ -161,15 +151,16 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
             },
         )
         if with_sources:
-            qa.return_source_documents=True
-            qa.output_key="ret_output"
+            qachain.return_source_documents=True
+            qachain.output_key="ret_output"
         async def aqa(query, **ret_kwargs):
-            return await qa.acall(dict(query=query),
+            return await qachain.acall(dict(query=query),
                                  return_only_outputs=True,
                                  **ret_kwargs)
-        return Tool(is_retrieval=True,
-                    name=name,
+        return Tool(name=name,
                     description=description,
+                    is_retrieval=True,
+                    retrieval_runner=qachain,
                     func=lambda _: None,
                     coroutine=aqa,
                     return_direct=return_direct,
