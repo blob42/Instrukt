@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "instrukt"
-version = "0.6.0"
+version = "0.6.1"
 homepage = "https://github.com/blob42/instrukt"
 repository = "https://github.com/blob42/instrukt"
 documentation = "https://github.com/blob42/instrukt/docs"
-description = "Build and instruct AI agents to perform tasks and query infromation in a keyboard driven terminal UI."
+description = "A versatile AI environment to build and control AI agents using a terminal-based interface."
 authors = ["Chakib Benziane <instrukt@blob42.xyz>"]
 license = "AGPL3"
 readme = "README.md"
@@ -72,10 +72,18 @@ coding = ["esprima"]
 
 #TODO!: add chardet
 all = [
-    "esprima",
+    # openai
     "openai",
+
+    #local inference
     "sentence-transformers",
     "instructorembedding",
+
+    # language parsing
+    "esprima",
+
+    #tools
+    "wikipedia"
 ]
 
 [tool.poetry.group.dev.dependencies]
