@@ -19,13 +19,13 @@
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 """Embeddings used in indexes."""
-#TODO: CUDA
 import typing as t
 from typing import NamedTuple
 
 from langchain.embeddings import (
     HuggingFaceEmbeddings,
     HuggingFaceInstructEmbeddings,
+    HuggingFaceBgeEmbeddings,
     OpenAIEmbeddings,
 )
 
@@ -40,16 +40,15 @@ class Embedding(NamedTuple):
     kwargs: t.Dict[str, t.Any]
 
 
+#NOTE: sentence_transofmers progress bar is automatically displayed for logging
+# level INFO or DEBUG
 EMBEDDINGS: dict[str, Embedding] = {
     "default":
     Embedding("Sentence Transormers (xs)", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-MiniLM-L6-v2", )),
     "bge-base-en":
-    Embedding("BGE Base EN", HuggingFaceEmbeddings,
-              dict(model_name="BAAI/bge-base-en",
-                    # set True to compute cosine similarity)
-                   encode_kwargs = {'normalize_embeddings': True}
-                   )), 
+    Embedding("BGE Base EN", HuggingFaceBgeEmbeddings,
+              dict(model_name="BAAI/bge-base-en",)), 
     "mpnet-base-v2":
     Embedding("Sentence Transormers", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-mpnet-base-v2", )),
@@ -58,9 +57,6 @@ EMBEDDINGS: dict[str, Embedding] = {
               dict(
                   #TODO: use instructor-large
                   model_name="hkunlp/instructor-base", 
-                  embed_instruction='Represent the document for retrieval: ',
-                  query_instruction='Represent the question for retrieving supporting documents: ',
-                  encode_kwargs = dict(show_progress_bar=True)
                   )),
     "openai":
     Embedding("OpenAI", OpenAIEmbeddings, dict()),

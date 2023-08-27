@@ -26,13 +26,14 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Union, cast
 from langchain.embeddings import (
     HuggingFaceEmbeddings,
     HuggingFaceInstructEmbeddings,
+    HuggingFaceBgeEmbeddings,
     OpenAIEmbeddings,
 )
 from langchain.vectorstores import Chroma as ChromaVectorStore
 
 from ..config import CHROMA_INSTALLED
 from ..utils.asynctools import run_async
-from .retrieval import retrieval_tool_from_index
+from .retrieval.qa_tool import retrieval_tool_from_index
 from .schema import Collection
 
 if TYPE_CHECKING:
@@ -44,7 +45,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 TEmbeddings = Union["Embeddings", "HuggingFaceEmbeddings",
-                    "HuggingFaceInstructEmbeddings"]
+                    "HuggingFaceInstructEmbeddings", "HuggingFaceBgeEmbeddings"]
 
 DEFAULT_EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
 
@@ -76,7 +77,8 @@ class ChromaWrapper(ChromaVectorStore):
         collection_metadata["embedding_fn"] = embedding_fn_fqn
 
         if type(embedding_function) in (HuggingFaceEmbeddings,
-                                        HuggingFaceInstructEmbeddings):
+                                        HuggingFaceInstructEmbeddings,
+                                        HuggingFaceBgeEmbeddings):
             collection_metadata["model_name"] = cast(
                 "HuggingFaceEmbeddings", embedding_function).model_name
         elif type(embedding_function) in (OpenAIEmbeddings, ):

@@ -24,12 +24,14 @@ import contextvars
 import importlib
 import logging
 import typing as t
+import uuid
 
 import chromadb  # type: ignore
 from chromadb.db.impl.sqlite import SqliteDB  # type: ignore
 from langchain.embeddings import (
     HuggingFaceEmbeddings,
     HuggingFaceInstructEmbeddings,
+    HuggingFaceBgeEmbeddings,
     OpenAIEmbeddings,
 )
 from langchain.embeddings.base import Embeddings as LcEmbeddings
@@ -85,7 +87,11 @@ class IndexManager(BaseModel):
                     embedding.embedding_fn_cls)
                 if issubclass(
                         embedding_fn_cls,
-                    (HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings)):
+                    (
+                        HuggingFaceEmbeddings,
+                        HuggingFaceInstructEmbeddings,
+                        HuggingFaceBgeEmbeddings
+                    )):
                     embedding_inst = embedding_fn_cls(
                         model_name=embedding.model_name)
                 # use default embedding's model name (ie OpenAI ..)
@@ -188,6 +194,9 @@ class IndexManager(BaseModel):
         console.pbar.update_pbar(total=None, progress=0)
         console.pbar.update_msg("creating embeddings ...")
         with console.pbar.patch_tqdm_update():
+            ids = iter(str(uuid.uuid4())[:4] for _ in range(len(docs)))
+            for d in docs:
+                d.metadata["id"] = next(ids)
             new_index.add_documents(docs)
 
         self._indexes[index.name] = new_index
