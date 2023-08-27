@@ -28,8 +28,17 @@ import sys
 import threading
 import uuid
 from abc import ABC, abstractmethod
-from typing import (Any, ClassVar, Coroutine, Optional, Sequence, Type, Union,
-                    cast, Dict, Tuple)
+from typing import (
+    Any,
+    ClassVar,
+    Coroutine,
+    Iterable,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+    cast,
+)
 
 from langchain.agents import AgentExecutor, initialize_agent
 from langchain.agents.agent import (
@@ -48,8 +57,8 @@ from ..context import Context
 from ..errors import AgentError
 from ..llms.openai.token_usage import OpenAICallbackHandler
 from ..tools.base import LcToolWrapper, SomeTool
-from .state import AgentStateMachine
 from .memory import make_buffer_mem
+from .state import AgentStateMachine
 
 log = logging.getLogger(__name__)
 
@@ -79,7 +88,7 @@ class InstruktAgent(BaseModel, ABC):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     llm: BaseChatModel
-    toolset: Sequence[SomeTool] | None = None
+    toolset: Iterable[SomeTool] = []
     executor: Optional[AgentExecutor] = None
     realm: Optional[Any] = None  # DockerWrapper
     state: AgentStateMachine[Any] = Field(default_factory=AgentStateMachine)
@@ -120,8 +129,7 @@ class InstruktAgent(BaseModel, ABC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        if self.toolset is not None:
-            self._attached_tools = [t.name for t in self.toolset if t.attached]
+        self._attached_tools = [t.name for t in self.toolset if t.attached]
 
         if self.executor is None:
             self.executor = self._initialize_agent()
@@ -147,8 +155,8 @@ class InstruktAgent(BaseModel, ABC):
             return t
 
         tools = []  # type: ignore
-        if self.toolset is None:
-            return tools
+        if not self.toolset:
+            return []
 
         def attached_tool(t):
             return t.name in self._attached_tools
@@ -164,7 +172,7 @@ class InstruktAgent(BaseModel, ABC):
     @property
     def toolset_names(self) -> list[str]:
         """Return the names of the tools in toolset."""
-        if self.toolset is None:
+        if self.toolset:
             return []
         return [t.name for t in self.toolset]
 
@@ -255,7 +263,8 @@ class InstruktAgent(BaseModel, ABC):
 
     def update_tool_name(self, old: str, new: str) -> None:
         """Change the name of an attached tool."""
-        assert self.toolset is not None, "no toolset available."
+        if not self.toolset:
+            raise ValueError("no tool to update.")
         if self.executor is None:
             raise AgentError("Agent not initialized.")
         try:
@@ -286,7 +295,7 @@ class InstruktAgent(BaseModel, ABC):
             raise AgentError("Agent not initialized.")
 
         # if tool already in toolset, only try to attach it
-        if self.toolset is not None and tool in self.toolset:
+        if self.toolset and tool in self.toolset:
             self.attach_tool(tool.name)
         else:
             with self._lock:
@@ -304,7 +313,6 @@ class InstruktAgent(BaseModel, ABC):
 
     def attach_tool(self, name: str) -> None:
         """Attach a tool to the agent."""
-        assert self.toolset is not None, "no toolset available."
         if self.executor is None:
             raise AgentError("Agent not initialized.")
         if name not in [t.name for t in self.toolset]:
@@ -319,7 +327,8 @@ class InstruktAgent(BaseModel, ABC):
     def dettach_tool(self, name: str) -> None:
         """Dettach a tool from the agent."""
         log.debug(f"Dettaching tool <{name}>...")
-        assert self.toolset is not None, "no toolset available."
+        if not self.toolset:
+            raise ValueError("no toolset.")
         if name not in [t.name for t in self.toolset]:
             raise ValueError(f"Tool <{name}> not in toolset.")
         if name in self._attached_tools:
