@@ -8,7 +8,7 @@ from instrukt.config import APP_SETTINGS
 from instrukt.output_parsers.multi_strategy import multi_parser
 from instrukt.tools.base import TOOL_REGISTRY
 
-from .prompt import PREFIX
+from .prompt import PREFIX, SUFFIX
 
 if TYPE_CHECKING:
     from instrukt.context import Context
@@ -26,9 +26,10 @@ class CodingAI(InstruktAgent):
 
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict())
         llm.model_name="gpt-4"
-        llm.temperature=0.5
+        llm.temperature=0.4
         agent_kwargs = dict(
             system_message=PREFIX,
+            human_message=SUFFIX,
             output_parser= multi_parser,
         )
         executor_params = dict(
