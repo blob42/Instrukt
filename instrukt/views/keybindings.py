@@ -32,17 +32,17 @@ from textual.widgets import Static
 BINDING_TEXT = """
 [b r] General [/]
 
-Index Management	[b]I[/]
-Dev Console		[b]ctrl+d[/]
-Help/Manual		[b]h[/]
-Quit App		[b]Q[/]
-Force Quit		[b]ctrl+c[/]
-Focus On Prompt		[b]/ (slash)[/] | [b]i[/]
+Index Management		[b]I[/]
+Dev Console			[b]ctrl+d[/]
+Help/Manual			[b]h[/]
+Quit App			[b]Q[/]
+Force Quit			[b]ctrl+c[/]
+Focus On Prompt			[b]/ (slash)[/] | [b]i[/]
 
 [b r] Prompt (focused) [/]
 
-Stop Running Agent 	[b]ctrl+s[/]
-History			[b]up / down[/]
+Stop Running Agent 		[b]ctrl+s[/]
+History				[b]up / down[/]
 
 [b r] Agent Conversation [/]
 
@@ -50,12 +50,13 @@ Focus Next			[b]j[/]
 Focus Prev			[b]k[/]
 Focus Next			[b]ctrl+n[/]
 Focus Prev			[b]ctrl+p[/]
-open in editor 		[b]ctrl+e[/]
-Copy Message		click on message
+open in editor 			[b]ctrl+e[/]
+Copy Message			click on message
 
 [b r] Console Commands [/]
 
 `.help`
+`%debug`			enable debug mode
 
 """
 

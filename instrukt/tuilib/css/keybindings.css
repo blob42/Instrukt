@@ -4,7 +4,7 @@ KeyBindingsScreen {
 }
 
 KeyBindingsScreen ScrollableContainer {
-    width: 50%;
+    width: 70%;
     height: 80%;
     padding-left: 2;
     padding-top: 1;
@@ -12,5 +12,7 @@ KeyBindingsScreen ScrollableContainer {
     border-title-align: center;
     border-title-style: bold underline;
     background: $foreground 20%;
+    scrollbar-size-vertical: 1;
+    scrollbar-color: royalblue 70%;
 }
 
