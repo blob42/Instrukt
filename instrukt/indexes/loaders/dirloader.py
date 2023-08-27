@@ -164,7 +164,7 @@ class AutoDirLoader:
 
         def generate_blobs():
             for path in self.yield_paths():
-                log.debug(f"{path}")
+                log.info(f"{path}")
                 yield Blob.from_path(path)
 
         return generate_blobs()

@@ -75,7 +75,6 @@ The index management window allows you to manage and create new vectorstore inde
 If the colors seem off make sure to:
 
 - Try to set the `TERM=xterm-256color`.
-
 - Try on a different and modern terminal.
 - Make sure your terminal that supports 256 color palette.
 
