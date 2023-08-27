@@ -26,6 +26,7 @@ class CodingAI(InstruktAgent):
 
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict())
         llm.model_name="gpt-4"
+        llm.temperature=0.5
         agent_kwargs = dict(
             system_message=PREFIX,
             output_parser= multi_parser,
