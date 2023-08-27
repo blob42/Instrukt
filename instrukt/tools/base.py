@@ -68,6 +68,8 @@ class SomeTool(ABC):
     is_retrieval: bool = False
     """If this is a retrieval based tool."""
 
+    retrieval_runner: t.Any | None = None
+
     attached: bool = True
     """Whether the tool is attached to the agent at startup or not."""
 
@@ -81,6 +83,8 @@ class SomeTool(ABC):
 
     async def _arun(self, *args, **kwargs) -> t.Any:
         pass
+
+
 
 
 T = TypeVar("T", bound=t.Union[SomeTool, "BaseTool"])
@@ -203,7 +207,7 @@ class ToolRegistry:
     def load_from_lc_tool_names(
             self,
             tool_names: list[str],
-            llm: t.Optional["BaseLanguageModel"] = None) -> None:
+            llm: t.Optional["BaseLanguageModel[t.Any]"] = None) -> None:
         """Load tools from langchain tool names into the registry"""
         tools = self.from_lc_tool_names(tool_names, llm=llm)
         self.register_tools(*zip([t.name for t in tools], tools))
@@ -211,22 +215,24 @@ class ToolRegistry:
     @staticmethod
     def from_lc_tool_names(
         tool_names: list[str],
-        llm: t.Optional["BaseLanguageModel"] = None,
+        llm: t.Optional["BaseLanguageModel[t.Any]"] = None,
     ) -> list[SomeTool]:
         """Retu rn wrapped Langchain tools from names."""
         tools = load_tools(tool_names, llm=llm)
         return [LcToolWrapper(tool) for tool in tools]
 
 
-class Tool(LangchainTool, SomeTool, BaseModel):
+class Tool(LangchainTool, SomeTool):
     """ A wrapper class for langchain.tools.Tool that implements SomeTool."""
 
     coroutine: t.Callable[..., t.Awaitable[str]]
     is_retrieval: bool = False
     """If this is a retrieval tool"""
+    retrieval_runner: t.Any | None = None
 
     def wrapped(self) -> LcToolWrapper["BaseTool"]:
         return LcToolWrapper(self)
+
 
 
 TOOL_REGISTRY = ToolRegistry()
