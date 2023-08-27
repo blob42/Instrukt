@@ -76,8 +76,9 @@ class MessageContainer(Container):
         for src in self.sources:
             src_path = src.metadata.get("source")
             if src_path is not None:
-                src_path = Path(src_path).relative_to(Path.home())
-                src_path = str(Path(".../", *src_path.parts[-3:]))
+                if src_path.startswith(str(Path.home())):
+                    src_path = Path(src_path).relative_to(Path.home())
+                src_path = str(Path(".../", *(Path(src_path).parts)[-3:]))
                 self._path_map[src_path] = src
         return self._path_map.keys()
 
@@ -138,6 +139,7 @@ class ChatBubble(Horizontal, ExternalProcessMixin, can_focus=True):
     @on(events.Click)
     def copy_msg_clipboard(self, ev: events.Click) -> None:
         """Copy the content of the message to the clipboard."""
+        self.focus()
         if isinstance(self._msg, AgentChatMessage):
             try:
                 if pyperclip.is_available():

@@ -112,7 +112,9 @@ class PathBrowserModal(ModalScreen[Path | None], InstruktDomNodeMixin):
 
         if not _path.is_absolute():
             _path = _path.resolve()
-        _path = "~" / _path.relative_to(Path.home())
+        # if path under home shorten it with ~
+        if _path.home() in _path.parents:
+            _path = "~" / _path.relative_to(_path.home())
 
         self.path = _path
 
