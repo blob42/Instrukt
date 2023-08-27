@@ -20,6 +20,7 @@
 ##
 """Instrukt TUI App."""
 
+import typing as t
 import asyncio as _asyncio
 import os
 import platform
@@ -48,6 +49,7 @@ from .commands.root_cmd import ROOT as root_cmd
 from .context import context_var, init_context
 from .messages.agents import AgentLoaded, AgentMessage
 from .messages.log import LogMessage
+from .messages.base import RetrievalLLM
 from .tuilib.conversation import ChatBubble
 from .messages.indexes import IndexProgress, IndexAttached
 from .messages.agents import FutureAgentTask
@@ -256,6 +258,24 @@ class InstruktApp(App[None]):
             # notify(message.event.value)
         message.stop()
 
+    @on(RetrievalLLM)
+    def change_retrieval_llm(self, ev: RetrievalLLM) -> None:
+        """Change the retrieval LLM mode."""
+        from langchain.chains.retrieval_qa.base import BaseRetrievalQA
+        if self.active_agent is not None and self.active_agent.toolset is not None:
+            # find all retrival tool
+            ret_tools = [
+                tool for tool in self.active_agent.toolset if tool.is_retrieval
+            ]
+
+            for tool in ret_tools:
+                if isinstance(tool.retrieval_runner, BaseRetrievalQA):
+                    r = t.cast(BaseRetrievalQA, tool.retrieval_runner)
+                    r.combine_documents_chain.llm_chain.llm.model_name=ev.model
+                    self.app.context.info(f"using {ev.model} with {tool.name}")   # type: ignore
+
+
+
     def compose(self) -> ComposeResult:
         """Create child widgets"""
         from .tuilib.panels import InstPanel, MonitorPanel
@@ -325,7 +345,7 @@ class InstruktApp(App[None]):
                 messages.last().focus()
             except NoMatches:
                 return
-        
+
     def action_uniq_screen(self, screen_name: str) -> None:
         screen = self.SCREENS.get(screen_name)
         if len(self.screen_stack) > 0 and not isinstance(

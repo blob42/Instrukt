@@ -33,6 +33,7 @@ from textual.worker import Worker, WorkerState
 from ..agent import AgentEvents
 from ..commands.command import CMD_PREFIX
 from ..commands.history import CommandHistory
+from ..messages.base import RetrievalLLM
 from ..messages.agents import AgentMessage
 from ..messages.log import LogMessage
 from ..subprocess import ExternalProcessMixin
@@ -82,6 +83,8 @@ class ReplSuggester(Suggester):
 
     action_suggestions = ActionSuggestions(
             # Suggestion("test", "say_hello"),
+            Suggestion("r:gpt4", "ret_llm_mode('gpt-4')"),
+            Suggestion("r:gpt3", "ret_llm_mode('gpt-3.5-turbo')"),
             )
 
     def __init__(self, *args, **kwargs):
@@ -246,6 +249,7 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
 
 
     def key_tab(self, ev: events.Key) -> None:
+        """Handle auto completion and modal actions."""
         self.log.debug(f"tab pressed {ev.key}")
         if self.suggester.current_suggestion is not None and len(self.value) != 0:
             ev.stop()
@@ -253,20 +257,18 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
             self.log.debug(self.suggester.current_suggestion)
             cur_sug = self.suggester.current_suggestion
             if isinstance(cur_sug, Suggestion):
-                self.call_next(self.action_cursor_right)
+                # self.call_next(self.action_cursor_right)
 
                 #WIP: repl modes
-                # self.call_next(self.run_action, cur_sug.action)
-                # self.action_delete_left_word()
+                self.call_next(self.run_action, cur_sug.action)
+                self.action_delete_left_all()
             else:
                 self.call_next(self.action_cursor_right)
         else:
             self.log.debug("not suggesting")
 
-    def action_llm_mode(self, mode: str) -> None:
-        self.llm_mode = mode
-        self.parent.add_class("--has-mode")
-
+    def action_ret_llm_mode(self, mode: str):
+        self.post_message(RetrievalLLM(mode))
 
     # def action_say_hello(self) -> None:
     #     self.log.debug("hello")
