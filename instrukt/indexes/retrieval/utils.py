@@ -25,8 +25,9 @@ if t.TYPE_CHECKING:
 
 TOOL_DESC_FULL = """Useful to lookup information about <{name}>: {tool_desc}."""
 TOOL_DESC_SIMPLE = """Useful to lookup information about <{name}>."""
-TOOL_DESC_SUFFIX = """ NOTE: this tool is based on an LLM, do not summarize the user query. Enhance the query without losing context and nuances."""
-
+# TOOL_DESC_SUFFIX = """ NOTE: this tool is based on an LLM, do not summarize the user
+# query. Enhance the query without losing context and nuances."""
+TOOL_DESC_SUFFIX = """ [word-embedding db]""" 
 def make_description(description: str | None,
                      index: "ChromaWrapper",
                      name: str) -> str:

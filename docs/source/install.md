@@ -32,6 +32,7 @@ your pip version is old.
 
 ## Extra Dependencies
 - xsel or xclip for copying messages to the clipboard.
+- fzf for fuzzy selecting.
 - libmagic: file type detection
 - sqlite: caching
 - docker: [optional] for Patreons with access to the docker based agents.
