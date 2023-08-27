@@ -27,3 +27,8 @@ class RetrievalLLM(Message):
         super().__init__()
         self.model = model
         
+class ConsoleOpen(Message):
+    """Console window opened."""
+
+class ConsoleClose(Message):
+    """Console window closed."""

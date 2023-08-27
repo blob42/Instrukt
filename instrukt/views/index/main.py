@@ -41,6 +41,7 @@ from textual.widgets import (
     Static,
 )
 
+from ...messages.base import ConsoleOpen, ConsoleClose
 from ...binding import ActionBinding
 from ...context import index_manager
 from ...indexes.chroma import ChromaWrapper
@@ -341,6 +342,14 @@ class IndexScreen(Screen[t.Any], InstruktDomNodeMixin):
 
         # begin console capture
         self.console.post_message(events.ScreenResume())
+
+    @on(ConsoleOpen)
+    def console_opened(self) -> None:
+        self.add_class("--console-opened")
+
+    @on(ConsoleClose)
+    def console_closed(self) -> None:
+        self.remove_class("--console-opened")
 
     @on(events.ScreenSuspend)
     def suspend_screen(self) -> None:

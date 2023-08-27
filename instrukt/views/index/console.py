@@ -35,6 +35,7 @@ from textual.widgets import (
     RichLog,
 )
 
+from ...messages.base import ConsoleClose, ConsoleOpen
 from ..._logging import ANSI_ESCAPE_RE
 from ...tuilib.widgets.progress import ProgressBarWrapper
 from ...types import ProgressProtocol
@@ -137,12 +138,14 @@ class IndexConsole(RichLog, can_focus=False, can_focus_children=False):
 
     def minimize(self, user: bool = False) -> None:
         self.add_class("--minimize")
+        self.post_message(ConsoleClose())
         self.minimized = True
         if user:
             self.user_minimzed = True
 
     def open(self) -> None:
         self.remove_class("--minimize")
+        self.post_message(ConsoleOpen())
         self.minimized = False
 
     def is_empty(self) -> bool:

@@ -108,6 +108,10 @@ IndexConsole.--minimize {
     padding: 0;
 }
 
+/* IndexScreen.--console-opened #add-index-form { */
+/*     padding-bottom: 20; */
+/* } */
+
 IndexConsole ConsoleHeader {
     /* background: $success 70%; */
     height: 1;
