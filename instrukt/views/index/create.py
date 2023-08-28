@@ -539,6 +539,7 @@ class CreateIndex(VerticalScroll,
             c_header.set_msg("")
 
 
+        # clear loading state for cancelled and failed workers
         if event.worker.name != "validate_new_index":
             if event.worker.state == WorkerState.CANCELLED or \
                     event.worker.state == WorkerState.ERROR:
