@@ -49,6 +49,9 @@ EMBEDDINGS: dict[str, Embedding] = {
     "bge-base-en":
     Embedding("BGE Base EN", HuggingFaceBgeEmbeddings,
               dict(model_name="BAAI/bge-base-en",)), 
+    "bge-large-en":
+    Embedding("BGE Large EN", HuggingFaceBgeEmbeddings,
+              dict(model_name="BAAI/bge-large-en",)), 
     "mpnet-base-v2":
     Embedding("Sentence Transormers", HuggingFaceEmbeddings,
               dict(model_name="sentence-transformers/all-mpnet-base-v2", )),
