@@ -561,10 +561,10 @@ class CreateIndex(VerticalScroll,
         self.state = FormState.PROCESSING
         ctx = copy_context()
 
-        async def _create_index_worker(ctx: 'contextvars.Context', new_index):
+        def _create_index_worker(ctx: 'contextvars.Context', new_index):
             im = ctx.run(index_manager_var.get)
             assert im is not None
-            await im.create(ctx, new_index)
+            im.create(ctx, new_index)
             self.post_message(self.Status(FormState.CREATED))
             self.app.log("TODO: FormState.CREATED")
 
@@ -599,6 +599,7 @@ class CreateIndex(VerticalScroll,
     #REFACT:
     @on(Button.Pressed, "#scan, #scan_data_btn")
     async def scan_data(self, event: Button.Pressed | None = None):
+        self.cancel_work()
         if not self.can_scan:
             return
         console = self.screen.query_one("IndexConsole")
@@ -620,7 +621,6 @@ class CreateIndex(VerticalScroll,
         c_header.set_msg("scanning data ...")  # type: ignore
         files = loader.detect_files()
 
-        self.cancel_work()
         self._current_work = self.run_worker(lambda: src_by_lang(files, True),
                                              name="data_scan",
                                              thread=True,

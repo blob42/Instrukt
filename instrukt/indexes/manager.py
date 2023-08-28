@@ -148,7 +148,7 @@ class IndexManager(BaseModel):
             raise IndexError("No loader found for the given path")
         return loader
 
-    async def create(self, _ctx: contextvars.Context,
+    def create(self, _ctx: contextvars.Context,
                      index: Index) -> ChromaWrapper | None:
         """Create a new index from the given file or directory path."""
 
