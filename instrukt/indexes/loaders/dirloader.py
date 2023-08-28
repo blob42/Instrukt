@@ -177,6 +177,8 @@ class AutoDirLoader:
                 if self.pbar is not None:
                     self.pbar.update(1)
                 yield doc
+            if self.pbar is not None:
+                self.pbar.update_pbar(total=None)
 
         return generate_docs()
 
