@@ -93,10 +93,10 @@ class Agent(CmdGroup):
 
     @staticmethod
     async def cmd_clear_memory(ctx: Context) -> CallbackOutput:
-        """Clears the agent's memory."""
+        """Clears the agent memory."""
         ctx.app.agent_manager.active_agent.memory.clear()
         ctx.app.agent_manager.active_agent.reload_agent()
-        return CmdLog("Cleared agent's memory.")
+        return CmdLog("Cleared agent memory.")
 
     @staticmethod
     async def cmd_forget(ctx: Context, term: str) -> CallbackOutput:
