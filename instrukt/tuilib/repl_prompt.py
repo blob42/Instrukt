@@ -264,6 +264,9 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
                 self.action_delete_left_all()
             else:
                 self.call_next(self.action_cursor_right)
+                self.call_later(self.insert_text_at_cursor, ': ')
+
+
         else:
             self.log.debug("not suggesting")
 
