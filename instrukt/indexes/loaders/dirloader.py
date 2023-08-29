@@ -22,6 +22,7 @@
 #TODO: website loader for url paths
 #TODO: git loader for git repo paths
 
+import importlib
 import concurrent
 import fnmatch
 import itertools
@@ -277,6 +278,14 @@ class AutoDirLoader:
         """Detect metadata from a GenericLoader.
 
         and return an Iterator over Osrc,FileInfo)."""
+        try:
+            # try importing magic
+            importlib.import_module("magic")
+        except ImportError as e:
+            from ...tuilib.strings import LIBMAGIC_INSTALL
+            raise LoaderError(
+                    f"magic library missing:  {e}. {LIBMAGIC_INSTALL}")
+
         if self.pbar is not None:
             self.pbar.update_pbar(total=self.count_matching_paths(),
                                   progress=0)
