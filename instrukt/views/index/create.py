@@ -194,7 +194,7 @@ class CreateIndex(VerticalScroll,
                         classes="form-input",
                         id="embedding-fn",
                     ),
-                    label="embedding function",
+                    label="embeddings function",
                     id="embedding",
                     required=True,
                 )

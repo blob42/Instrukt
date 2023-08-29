@@ -96,9 +96,9 @@ class InstruktApp(App[None]):
 
     BINDINGS = [
         Binding("d", "toggle_dark", "dark mode", show=False),
-        Binding("c", "toggle_console", "console", key_display="c"),
+        Binding("c", "toggle_console", ICONS.console_action, key_display="c"),
         Binding("Q", "quit", "exit", show=False),
-        Binding("I", "uniq_screen('index_mgmt')", "indexes"),
+        Binding("I", "uniq_screen('index_mgmt')", "index"),
         Binding("slash", "focus_instruct_prompt", "goto prompt"),
         Binding("i", "focus_instruct_prompt", "goto prompt", show=False),
 
@@ -106,22 +106,22 @@ class InstruktApp(App[None]):
         # ("S", "push_screen('settings_screen')", "Settings"),
         Binding("ctrl+d",
                 "dev_console",
-                "shell",
+                ICONS.dev_console_action,
                 priority=True,
                 key_display="C-d"),
         Binding("h", "push_screen('manual_screen')", "help", key_display="h"),
 
         #TODO: set priority binding but allow in inputs
-        Binding("?", "uniq_screen('keybindings')", "keys"),
-        Binding("j", "focus_next_msg", "next msg" , show=False),
-        Binding("k", "focus_previous_msg", "focus msg", key_display="j|k"),
+        Binding("?", "uniq_screen('keybindings')", ICONS.keys_action),
+        Binding("k", "focus_next_msg", "next msg", key_display="j|k"),
+        Binding("j", "focus_previous_msg", "prev msg" , show=False),
     ]
 
     CSS_PATH = [
         "instrukt.css",
         *glob("{}/tuilib/css/*.css".format(os.path.dirname(__file__)))
     ]
-    TITLE = f"Instrukt v{_version()}"
+    TITLE = f"ﲵ⚡Instrukt v{_version()}"
     SCREENS = {
         "settings_screen": SettingsScreen(),
         "index_menu": IndexMenuScreen(),  #modal

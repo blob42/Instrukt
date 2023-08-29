@@ -1,6 +1,6 @@
 #  Instrukt
 
- **An AI Commander at your fingertips**
+ **Terminal AI Commander at your fingertips**
 
 <p align="center">
     <a href="https://www.youtube.com/watch?v=_mkIoqiY0dE" rel="nofollow">

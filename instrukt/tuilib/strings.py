@@ -56,10 +56,13 @@ ICONS = Icons({
     "agent_settings": ("settings", ""),
     "index": ("indexes", ""),
     "main_menu": ("C", ""),
+    "console_action": ("console", ""),
+    "dev_console_action": ("shell", ""),
+    "keys_action": ("keys", ""),
 })
 
 INTRO_MESSAGE = """
-Welcome to Instrukt 👏: the swiss knife AI commander in the terminal !
+Welcome to Instrukt: your integrated AI environment in the terminal !
 
 This is the main prompt and info window where you can find various information about the agents and available commands.
 

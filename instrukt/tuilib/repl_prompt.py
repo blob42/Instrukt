@@ -148,7 +148,7 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
         Binding("up", "history_prev", "previous command", show=False),
         Binding("down", "history_next", "next command", show=False),
         Binding("ctrl+s", "stop_agent", "stop agent", key_display="C-s"),
-        Binding("ctrl+e", "external_editor", "open editor", show=True,
+        Binding("ctrl+e", "external_editor", "editor", show=True,
                 key_display="C-e")
     ]
 

@@ -88,7 +88,7 @@ class InstruktAgent(BaseModel, ABC):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     llm: BaseChatModel
-    toolset: Iterable[SomeTool] = []
+    toolset: Sequence[SomeTool] = Field(default_factory=list)
     executor: Optional[AgentExecutor] = None
     realm: Optional[Any] = None  # DockerWrapper
     state: AgentStateMachine[Any] = Field(default_factory=AgentStateMachine)
@@ -100,7 +100,6 @@ class InstruktAgent(BaseModel, ABC):
 
     _attached_tools: list[str] = PrivateAttr(default_factory=list)
     _lock: threading.Lock = PrivateAttr(default_factory=threading.Lock)
-
     _task: asyncio.Task[Any] | None = PrivateAttr(default=None)
 
     class Config:

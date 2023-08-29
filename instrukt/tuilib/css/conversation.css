@@ -1,6 +1,7 @@
 AgentConversation.window {
     background: $panel;
     scrollbar-size-vertical: 1;
+    scrollbar-background: $panel;
 }
 
 ChatBubble {

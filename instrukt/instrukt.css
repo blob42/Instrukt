@@ -68,6 +68,7 @@ MainConsole ConsoleWindow {
     scrollbar-size-vertical: 1;
     scrollbar-gutter: stable;
     scrollbar-color: $foreground  20%;
+    scrollbar-background: $background-lighten-2;
 }
 
 #instrukt-prompt {
