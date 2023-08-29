@@ -8,6 +8,14 @@
  */
 
 
+App.--console-enabled MainConsole  {
+    display: block;
+}
+
+App.--console-enabled #main-menu {
+    display: none;
+}
+
 VerticalScroll {
     scrollbar-size-vertical: 1;
     scrollbar-color: royalblue 70%;
@@ -17,7 +25,7 @@ SettingsScreen {
     /* background: red; */
 }
 
-.-no-agent MonitorPanel {
+.-no-agent MonitorPane {
     display: none;
 }
 
@@ -25,28 +33,47 @@ SettingsScreen {
     display: block;
 }
 
-.-show-new-agent MonitorPanel {
+.-show-new-agent MonitorPane {
     display: none;
 }
 
-#instrukt-panel {
+MainConsole {
     /* background: darkgreen; */
+    display: none;
     width: 35w;
     height: 100%;
-    dock: left;
     overflow-y: auto;
 }
 
-
-#instrukt-panel #console-window {
-    height: 1fr;
-    border: heavy white 20%;
-    background: $background-lighten-2;
+#main-menu {
+    width: 3;
+    background: $panel-lighten-1;
 }
 
-#instrukt-panel #instrukt-prompt {
-    height: 3;
+#main-menu Button {
+    background: transparent;
+    border: none;
+    height: 1;
+    max-width: 3;
+}
+
+
+MainConsole ConsoleWindow {
+    border: heavy white 20%;
     background: $background-lighten-2;
+    padding: 0;
+    padding-left: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-size-vertical: 1;
+    scrollbar-gutter: stable;
+    scrollbar-color: $foreground  20%;
+}
+
+#instrukt-prompt {
+    height: 3; /* repl height */
+    background: $background-lighten-2;
+    dock: bottom;
 }
 
 /* WIP: */
@@ -65,7 +92,7 @@ SettingsScreen {
 
 #instrukt-prompt Input {
     outline: vkey $foreground 20%;
-    dock: bottom;
+    /* dock: bottom; */
     /* margin-bottom: 1; */
 }
 
@@ -77,36 +104,22 @@ SettingsScreen {
 }
 
 
-#console-window RichLog {
-    background: transparent;
-    padding: 0;
-    padding-left: 1;
-    padding-right: 0;
-    padding-bottom: 0;
-    /* border: round red; */
-    height: 1fr;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-size-vertical: 1;
-    scrollbar-gutter: stable;
-    scrollbar-color: $foreground  20%;
-}
-
-/* Main panel for agent and tools output */
-#monitor-panel {
+/* Main pane for agent and tools output */
+#monitor-pane {
     width: 1fr;
     height: 1fr;
 }
 
+
 /* realm window container */
-#monitor-panel #realm-container { 
+#monitor-pane #realm-container { 
     /* border: hkey $primary-lighten-2 80%; */
     /* background: red; */
     height: 4fr;
     display: none;
 }
 
-#monitor-panel.-show-realm #realm-container {
+#monitor-pane.-show-realm #realm-container {
     display: block;
 }
 
@@ -122,29 +135,29 @@ SettingsScreen {
     height: 1;
 }
 
-#monitor-panel Realm .--topbar-entry {
+#monitor-pane Realm .--topbar-entry {
     width: 1fr;
 }
 
 
 /* filler inside the header between left and right side */
-#monitor-panel Realm .--topbar #filler {
+#monitor-pane Realm .--topbar #filler {
     text-align: center;
     width: 2fr;
 }
 
 
-#monitor-panel .--topbar #realm-name {
+#monitor-pane .--topbar #realm-name {
     text-align: right;
 }
 
-#monitor-panel #agent-spinner {
+#monitor-pane #agent-spinner {
     width: 100%;
     display: none;
     content-align-horizontal: center;
 }
 
-MonitorPanel {
+MonitorPane {
     /* background: red; */
 }
 

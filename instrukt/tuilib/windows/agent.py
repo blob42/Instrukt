@@ -47,7 +47,7 @@ from ..widgets.spinner import FutureSpinner, SpinnerWidget
 if t.TYPE_CHECKING:
     from instrukt.agent.base import InstruktAgent
 
-    from ..panels import MonitorPanel
+    from ..panels import MonitorPane
 
 
 class LLMContext(Label):
@@ -188,7 +188,7 @@ class AgentConversation(VerticalScroll, InstruktDomNodeMixin, can_focus=False):
         await self.clear()
 
         agent: "InstruktAgent" = message.agent
-        monitor = t.cast('MonitorPanel', self.app.query_one("#monitor-panel"))
+        monitor = t.cast('MonitorPane', self.app.query_one("#monitor-pane"))
         if agent.realm is not None:
             await monitor.show_realm()
             self._app.notify_realm_buffer(message)

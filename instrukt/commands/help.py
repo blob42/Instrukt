@@ -25,7 +25,7 @@ from .root_cmd import ROOT as root
 
 """Main help for the command interface to Instrukt."""
 HELP_TEXT = """
-[b]Instrukt command interface help[/]:
+[b]command line help[/]:
 
 Call commands by prefixing them with a `.` or `/`, e.g. `/help`."""
 

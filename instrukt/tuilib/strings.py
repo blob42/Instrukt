@@ -55,6 +55,7 @@ ICONS = Icons({
     "agent_tools": ("tools", ""),
     "agent_settings": ("settings", ""),
     "index": ("indexes", ""),
+    "main_menu": ("C", ""),
 })
 
 INTRO_MESSAGE = """

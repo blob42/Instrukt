@@ -20,7 +20,6 @@
 ##
 """Instrukt TUI App."""
 
-import typing as t
 import asyncio as _asyncio
 import os
 import platform
@@ -34,11 +33,11 @@ from rich.text import Text
 from textual import events, on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal
+from textual.containers import Container, Horizontal, Vertical
 from textual.css.query import NoMatches
 from textual.message import Message
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Button, Footer, Header, Static
 from textual.worker import Worker, WorkerState
 
 from ._logging import setup_logging
@@ -48,16 +47,15 @@ from .agent.manager import AgentManager
 from .commands.command import CmdLog
 from .commands.root_cmd import ROOT as root_cmd
 from .context import context_var, init_context
-from .messages.agents import AgentLoaded, AgentMessage
-from .messages.log import LogMessage
+from .messages.agents import AgentLoaded, AgentMessage, FutureAgentTask
 from .messages.base import RetrievalLLM
+from .messages.indexes import IndexAttached, IndexProgress
+from .messages.log import LogMessage
 from .tuilib.conversation import ChatBubble
-from .messages.indexes import IndexProgress, IndexAttached
-from .messages.agents import FutureAgentTask
 from .tuilib.modals.index_menu import IndexMenuScreen
 from .tuilib.modals.tools_menu import ToolsMenuScreen
 from .tuilib.repl_prompt import REPLPrompt
-from .tuilib.strings import IPYTHON_SHELL_INTRO
+from .tuilib.strings import ICONS, IPYTHON_SHELL_INTRO
 from .tuilib.widgets.header import InstruktHeader
 from .tuilib.windows import AgentConversation, ConsoleWindow, RealmWindow
 from .utils.misc import _version
@@ -98,6 +96,7 @@ class InstruktApp(App[None]):
 
     BINDINGS = [
         Binding("d", "toggle_dark", "dark mode", show=False),
+        Binding("c", "toggle_console", "console", key_display="c"),
         Binding("Q", "quit", "exit", show=False),
         Binding("I", "uniq_screen('index_mgmt')", "indexes"),
         Binding("slash", "focus_instruct_prompt", "goto prompt"),
@@ -153,6 +152,9 @@ class InstruktApp(App[None]):
         self.agent_manager: AgentManager = AgentManager(self.context)
         self._ishell: InteractiveShellEmbed | None = None
         self._alock = _asyncio.Lock()
+
+        self.add_class("--console-enabled")
+
 
     async def on_mount(self):
         #DEBUG:
@@ -214,7 +216,7 @@ class InstruktApp(App[None]):
             progress = self.query_one("AgentWindowHeader #progress")
             progress.track_future(ev.future)
         except NoMatches:
-            self.log.warning(f"agent window header not found")
+            self.log.warning("agent window header not found")
 
 
     @on(Worker.StateChanged)
@@ -227,7 +229,10 @@ class InstruktApp(App[None]):
                 except NoMatches:
                     pass
 
-
+    @on(Button.Pressed, "#toggle_console")
+    def toggle_console(self, event: events.Click) -> None:
+        """Toggle console window."""
+        self.toggle_class("--console-enabled")
 
     @on(CmdLog)
     async def cmd_log(self, message: CmdLog) -> None:
@@ -283,19 +288,27 @@ class InstruktApp(App[None]):
                     r.combine_documents_chain.llm_chain.llm.model_name=ev.model
                     self.app.context.info(f"using {ev.model} with {tool.name}")   # type: ignore
 
+            #HACK: for demo purposes use same model on front agent
+            self.active_agent.llm.model_name = ev.model
 
 
     def compose(self) -> ComposeResult:
         """Create child widgets"""
-        from .tuilib.panels import InstPanel, MonitorPanel
+        from .tuilib.panels import MainConsole, MonitorPane
+        from .tuilib.repl_prompt import REPLPrompt
         from .tuilib.startup_menu import StartupMenu
         yield InstruktHeader(id="app-header")
         # yield Header(show_clock=True)
 
         with Horizontal():
-            yield InstPanel(id="instrukt-panel")
-            yield MonitorPanel(id="monitor-panel")
+            with Vertical(id="main-menu"):
+                yield Button(ICONS.main_menu, id="toggle_console")
+            yield MainConsole()
+            yield MonitorPane(id="monitor-pane")
             yield StartupMenu()
+            with Container(id="instrukt-prompt"):
+                yield Static("mode", id="repl-mode")
+                yield REPLPrompt()
 
         yield Footer()
 
@@ -304,6 +317,12 @@ class InstruktApp(App[None]):
         """Notify all windows that the app is ready"""
         for w in self.query(".window"):
             w.post_message(self.Ready())
+
+    def on_replprompt_cmd_event(self):
+        """User entered a command in the REPL prompt."""
+        if not self.has_class("--console-enabled"):
+            self.add_class("--console-enabled")
+
 
     async def key_exclamation_mark(self, ev: events.Key) -> None:
         if self.context.config_manager.config.debug:
@@ -321,6 +340,10 @@ class InstruktApp(App[None]):
             self.query_one(REPLPrompt).focus()
         except NoMatches:
             pass
+
+    def action_toggle_console(self) -> None:
+        self.toggle_class("--console-enabled")
+        
 
     def action_focus_next_msg(self) -> None:
         try:

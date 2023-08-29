@@ -34,4 +34,5 @@ async def clear_chat_buffer(ctx) -> None:
 async def quit(ctx) -> None:
     """Exit the app"""
     ctx.app.action_quit()
+
     

@@ -18,13 +18,14 @@
 ##  You should have received a copy of the GNU Affero General Public License along
 ##  with this program.  If not, see <http://www.gnu.org/licenses/>.
 ## 
-"""Panels and panel containers."""
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical
 from textual.reactive import reactive
-from textual.widgets import Static, Tab, Tabs
+from textual.widgets import Static, Tab, Tabs, Label, Button
+from textual import events
 
+from .strings import ICONS
 from ..agent.state import AgentState
 from ..messages.agents import AgentLoaded
 from ..types import InstruktDomNodeMixin
@@ -32,19 +33,15 @@ from .repl_prompt import REPLPrompt
 from .windows import AgentWindow, ConsoleWindow, RealmWindow, RealmWindowHeader
 
 
-class InstPanel(Vertical):
-    """Instruct panel"""
+class MainConsole(Vertical):
+    """Main console for REPL and commands output."""
 
     def compose(self) -> ComposeResult:
-        with Container(id="console-window"):
-            yield ConsoleWindow(highlight=True,
-                            markup=True,
-                            wrap=True,
-                            classes="window")
+        yield ConsoleWindow(highlight=True,
+                        markup=True,
+                        wrap=True,
+                        classes="window")
 
-        with Container(id="instrukt-prompt"):
-            yield Static("mode", id="repl-mode")
-            yield REPLPrompt()
 
 
 class Realm(Container):
@@ -135,8 +132,8 @@ class AgentTabs(Static, InstruktDomNodeMixin):
         message.stop()
 
 
-class MonitorPanel(Vertical, InstruktDomNodeMixin):
-    """Main monitor for agent outputs."""
+class MonitorPane(Vertical, InstruktDomNodeMixin):
+    """Monitor agent outputs including conversation."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

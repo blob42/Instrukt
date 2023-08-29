@@ -29,6 +29,7 @@ from textual.binding import Binding
 from textual.suggester import Suggester
 from textual.widgets import Input
 from textual.worker import Worker, WorkerState
+from textual.messages import Message
 
 from ..agent import AgentEvents
 from ..commands.command import CMD_PREFIX
@@ -140,6 +141,9 @@ class ToAgentMsg(str):
 @blur_on(key="escape")
 class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
 
+    class CmdEvent(Message):
+        """User input a command."""
+
     BINDINGS = [
         Binding("up", "history_prev", "previous command", show=False),
         Binding("down", "history_next", "next command", show=False),
@@ -212,6 +216,7 @@ class REPLPrompt(Input, InstruktDomNodeMixin, ExternalProcessMixin):
             self._write_main_buffer(msg)
 
         if isinstance(parsed, CmdMsg):
+            self.post_message(self.CmdEvent())
             if parsed == "debug":
                 return
             try:

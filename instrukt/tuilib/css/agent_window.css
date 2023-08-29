@@ -1,8 +1,8 @@
-#monitor-panel AgentWindow {
+#monitor-pane AgentWindow {
     height: 5fr;
 }
 
-#monitor-panel AgentWindow .--topbar {
+#monitor-pane AgentWindow .--topbar {
     background: $primary-background;
 }
 
