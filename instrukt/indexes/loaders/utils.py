@@ -230,6 +230,9 @@ def split_documents(
     for doc in _docs:
         src = doc.metadata["source"]
         assert src is not None
+        if infomap.get(src) is None:
+            log.warning(f"Skipping {src} as it has no file info")
+            continue
         doc.metadata["language"] = infomap[src].lang
         splitter = infomap[src].splitter
         assert splitter is not None

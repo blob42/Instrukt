@@ -47,6 +47,7 @@ lang_map = {
     '.html': 'html',
     '.css': 'css',
     '.json': 'json',
+    '.ipynb': 'json',
     '.xml': 'xml',
     '.yaml': 'yaml',
     '.toml': 'toml',
