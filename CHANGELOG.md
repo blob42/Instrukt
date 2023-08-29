@@ -39,6 +39,7 @@ the appropriate splitter based on the detected content type.
 
 ### Changed
 
+- Refactored the prompt input and console output for better UX.
 - Bumped `textual` to version **v0.34.0** (TextLog -> RichLog)
 - Improved key bindings
 - Memory mixin to handle retrieval answers with source documents
