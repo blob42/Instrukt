@@ -39,6 +39,7 @@ from textual.css.query import NoMatches
 from textual.message import Message
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
+from textual.worker import Worker, WorkerState
 
 from ._logging import setup_logging
 from .agent import AgentEvents
@@ -126,7 +127,7 @@ class InstruktApp(App[None]):
         "settings_screen": SettingsScreen(),
         "index_menu": IndexMenuScreen(),  #modal
         "tools_menu": ToolsMenuScreen(),  #modal
-        "index_mgmt": IndexScreen(),
+        "index_mgmt": IndexScreen(name="index"),
         "manual_screen": ManualScreen(),  #modal
         "keybindings": KeyBindingsScreen(),
     }
@@ -216,7 +217,15 @@ class InstruktApp(App[None]):
             self.log.warning(f"agent window header not found")
 
 
-
+    @on(Worker.StateChanged)
+    def _catch_failed_work(self, event: Worker.StateChanged) -> None:
+        if event.worker.state == WorkerState.ERROR:
+            # pass back the worker error to index screen
+            if self.screen.name == "index":
+                try:
+                    self.screen.query_one("CreateIndex")._on_work_change(event)
+                except NoMatches:
+                    pass
 
 
 

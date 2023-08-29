@@ -512,9 +512,8 @@ class CreateIndex(VerticalScroll,
     @on(Worker.StateChanged)
     def _on_work_change(self, event: Worker.StateChanged) -> None:
         #TODO!: handle error state at app level
-        # from textual.worker import WorkerState
         # if event.worker.state == WorkerState.ERROR:
-        # ...
+        #     self.log.error(f"worker {event.worker.name} failed")
 
         if self.work_success("validate_new_index", event):
             if event.worker.result is None:
