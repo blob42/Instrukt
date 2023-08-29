@@ -99,3 +99,7 @@ IPYTHON_SHELL_INTRO = """
     [b yellow]memory[/]: Current agent's memory
     [b yellow]im[/]: Index Manager
 """
+
+LIBMAGIC_INSTALL = """For debian based systems, you can install libmagic with:\
+ `sudo apt install libmagic1`"""
+
