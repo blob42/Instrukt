@@ -34,7 +34,7 @@ from textual.containers import Container, Horizontal
 from textual.widgets import Label, Static
 
 from ..config import APP_SETTINGS
-from ..output_parsers.parser_lib import sanitize_md_code
+from ..output_parsers.parser_lib import get_rich_md
 from ..schema import AgentChatMessage, ChatMessage, HumanChatMessage
 from ..subprocess import ExternalProcessMixin
 
@@ -194,10 +194,10 @@ class MessageBody(Label, can_focus=False):
         if is_human:
             super().__init__(content, **kwargs)
         else:
-            md = RichMarkdown(content,
+            md = get_rich_md(content,
                               code_theme=self.code_theme,
                               hyperlinks=False)
-            super().__init__(sanitize_md_code(md), markup=True, **kwargs)
+            super().__init__(md, markup=True, **kwargs)
         self._content = content
 
     def update(self, *content: RenderableType) -> None:
@@ -207,12 +207,10 @@ class MessageBody(Label, can_focus=False):
         if self._is_human:
             super().update(self._content)
         else:
-            # sanitize source code first
-
-            md = RichMarkdown(self._content,
+            md = get_rich_md(self._content,
                               code_theme=self.code_theme,
                               hyperlinks=False)
-            super().update(sanitize_md_code(md))
+            super().update(md)
 
     @on(events.Click)
     def hover(self):
