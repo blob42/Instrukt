@@ -115,6 +115,7 @@ class ReplSuggester(Suggester):
         return self.suggestions + list(self.action_suggestions.keys())
 
 
+    #FIX: return highest confidence
     async def get_suggestion(self, value) -> str | None:
         suggestion = get_close_matches(value, self.all, n=1, cutoff=0.3)
         res = suggestion[0] if suggestion else None

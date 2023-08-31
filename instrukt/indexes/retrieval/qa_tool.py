@@ -96,8 +96,8 @@ def retrieval_tool_from_index(index: "ChromaWrapper",
 
     if llm is None:
         llm = ChatOpenAI(**APP_SETTINGS.openai.dict())
-        #DEBUG:
-        llm.model_name="gpt-4"
+        #TODO!: document changing retrieval param using input `r:gptx` with auto complete
+        # llm.model_name="gpt-4"
         llm.temperature=0.3
 
 
