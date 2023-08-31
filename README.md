@@ -2,11 +2,8 @@
 
  **Terminal AI Commander at your fingertips**
 
-<p align="center">
-    <a href="https://www.youtube.com/watch?v=_mkIoqiY0dE" rel="nofollow">
-        <img src="https://camo.githubusercontent.com/e5ad6a03ceca6336a57e6da345659ca34ab7fff5d36eec88f986ea56e66aa8f5/68747470733a2f2f696d672e796f75747562652e636f6d2f76692f6a674c4d4b6f695f3364382f302e6a7067" alt="Instrukt v0.4.0 Demo" width="500">
-    </a>
-</p>
+
+<video src="https://github.com/blob42/Instrukt/assets/210457/ebb3e35a-c0d3-4d95-8761-b1629fba1ca3" width="200"/>
 
 **NOTE**: This is an alpha release, expect bugs and API changes.
 

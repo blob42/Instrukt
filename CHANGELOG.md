@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `output_parsers.parser_lib.get_rich_md` to sanitize agent output to markdown 
 - wip: REPL input modes and auto completion
 - wip: Programming assistant agent
 - Progress bar for async events on tools
