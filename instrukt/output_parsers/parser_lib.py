@@ -22,6 +22,7 @@
 import json
 import re
 from typing import Any
+from rich.markdown import Markdown
 
 from langchain.output_parsers.json import (
     parse_json_markdown as __lc_parse_json_markdown,
@@ -56,10 +57,27 @@ def parse_json_md_nested_code_block(text: str) -> dict[str, Any]:
 
     return parsed
 
+def get_rich_md(markup: str,
+                sanitize_md: bool = False,
+                **kwargs) -> Markdown:
+    _markup = markup
+    # pre sanitize output
+    _markup = re.sub(r"\\n", "\n", markup, re.MULTILINE)
+    _markup = re.sub(r"\\t", "\t", _markup, re.MULTILINE)
+    _markup = re.sub(r"\\'", "'",  _markup, re.MULTILINE)
+    _markup = re.sub(r'\\"', '\"', _markup, re.MULTILINE)
+
+    # post sanitize output
+    if sanitize_md:
+        return sanitize_md_code(Markdown(_markup, **kwargs))
+
+    return Markdown(_markup, **kwargs)
+
 def sanitize_md_code(md: Markdown) -> Markdown:
-    """Cleans out text containing source code from weird artifacts and escape characters."""
+    """Cleans out markdown source code fences from broken escape characters."""
     # ref https://github.com/executablebooks/markdown-it-py/tree/master/markdown_it/rules_block
     for token in md._flatten_tokens(md.parsed):
+        print(repr(token.content))
         node_type = token.type
         tag = token.tag
         # matches fenced code block (```)
