@@ -94,5 +94,13 @@
       "additional_kwargs": {},
       "example": false
     }
+  },
+  {
+    "type": "ai",
+    "data": {
+      "content": "Here are some papers on the topic of training language models to use tools:\\n\\n1. [ToolAlpaca: Generalized Tool Learning for Language Models with 3000 Simulated Cases](http://arxiv.org/abs/2306.05301v1)\\n2. [Towards Zero-shot Learning for Automatic Phonemic Transcription](http://arxiv.org/abs/2002.11781v1)\\n3. [Investigating Pre-trained Language Models on Cross-Domain Datasets, a Step Closer to General AI](http://arxiv.org/abs/2306.12205v1)\\n4. [Simple Natural Language Processing Tools for Danish](http://arxiv.org/abs/1906.11608v2)\\n5. [TALM: Tool Augmented Language Models](http://arxiv.org/abs/2205.12255v1)\\n\\nPlease note that these papers cover various",
+      "additional_kwargs": {},
+      "example": false
+    }
   }
 ]
