@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "instrukt"
-version = "0.6.1"
+version = "0.6.2"
 homepage = "https://github.com/blob42/instrukt"
 repository = "https://github.com/blob42/instrukt"
 documentation = "https://github.com/blob42/instrukt/docs"
