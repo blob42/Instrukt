@@ -52,7 +52,8 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 
 You can run instrukt on headless server such or a docker container with CUDA support.
 
-[See the quickstart guide for more details](docs/quickstart.md)
+Check the [quickstart](docs/source/quickstart.md) and [install](docs/source/install.md)
+guide for more details.
 
 #### From source:
 
@@ -62,7 +63,7 @@ You can run instrukt on headless server such or a docker container with CUDA sup
 - Run `poetry install -E all --with dev,test` 
 - This will install Instrukt including extra tools for agents. 
 
-[See the installation guide for more details](docs/install.md)
+[See the installation guide for more details](docs/source/install.md)
 
 
 ### Default Agents:
@@ -75,15 +76,16 @@ You can run instrukt on headless server such or a docker container with CUDA sup
 
 #### :computer: Keyboard and Mouse Terminal Interface:
 
-- A terminal-based interface for power keyboard users to instruct AI agents without ever leaving the keyboard.
-- [Rich](https://github.com/Textualize/rich) colorful agent outputs
-  with markdown and source code support thanks to the
-  [Textual](https://github.com/Textualize/textual) TUI library.
+- A terminal-based interface for power keyboard users to instruct AI agents without ever
+  leaving the keyboard.
+- [Rich](https://github.com/Textualize/rich) colorful agent outputs with markdown and
+  source code support thanks to the [Textual](https://github.com/Textualize/textual) TUI
+  library.
 - Run Instrukt on bare metal or docker containers with CUDA support.
 - Remote access with SSH and terminal multiplexers.
 
 #### :robot: Custom AI Agents:
-- Design custom [own agents](docs/quickstart.md#custom-agents) and tools. 
+- Design [custom agents](docs/source/quickstart.md#custom-agents) and tools. 
 - Agents are simple python packages can be shared and loaded by other users.
 
 #### :books: Chat with code and documents:
@@ -91,7 +93,7 @@ You can run instrukt on headless server such or a docker container with CUDA sup
 - Create and organize your indexes with an easy UI.
 - Index creation will **auto detect programming languages** and optimize the splitting/chunking
   strategy accordingly.
-- Fuzzy select source documents for retrieval Q&A with `ctrl+p`
+- Fuzzy select (fzf, dmenu ...) source documents for retrieval Q&A with `ctrl+p`
 
 #### :wrench: Tools:
 - Use the pre-defined toolset or design your own tools.
@@ -101,8 +103,8 @@ You can run instrukt on headless server such or a docker container with CUDA sup
 #### :zap: Prompt Console :
 - Integrated REPL-Prompt for quick interaction with agents, and a fast feedback loop for development and testing.
 - Automate repetitive tasks with custom commands.
-- Builtin prompt/chat history to quickly edit/correct messages.
-- Use an external `$EDITOR` for editing messages (e.g. vim). `ctrl+e`
+- Builtin prompt/chat history.
+- Use `vim`, `emacs` or any external `$EDITOR` to edit messages.
 
 #### :bird: LangChain:
 
