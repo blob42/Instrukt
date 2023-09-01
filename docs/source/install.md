@@ -1,7 +1,5 @@
 # Installation Guide
 
-Instrukt is not yet available on package managers. To install it, you can install it from the source code or download the [pre-built pacakges](https://github.com/blob42/Instrukt/releases).
-
 ## Minimum requirements
 
 - Python 3.9 or newer
@@ -10,10 +8,6 @@ Instrukt is not yet available on package managers. To install it, you can instal
 ## Install from pip repository
 
 `pip install instrukt[all]`
-
-- For indexes with local embeddings, you need to install the `local` extra.
-
-`pip install instrukt[local]`
 
 ## Installing from source
 
@@ -35,12 +29,13 @@ your pip version is old.
 - If you did not install the dependencies using poetry make sure to install textual dev
   dependencies with: `pip install textual[dev]`
 
-- From the project's root run: `textual run instrukt.app:InstruktApp`
+- From the project's root directory run: `textual run instrukt.app:InstruktApp`
 
 ## Extra Dependencies
-- xsel or xclip for copying messages to the clipboard.
-- fzf for fuzzy selecting.
+
 - libmagic: scanning and file type detection
 - sqlite: caching
+- fzf for fuzzy selecting.
+- xsel or xclip for copying messages to the clipboard.
 - docker: [optional] for Patreons with access to the docker based agents.
 
