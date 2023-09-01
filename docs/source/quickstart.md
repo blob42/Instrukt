@@ -21,7 +21,7 @@ running app namespace. Use it to introspect and debug agents and tools.
 
 ## Custom Agents
 
-Instrukt agents are simple python packages stored under the path `$HOME/.config/instrukt/agents`.
+Instrukt agents are simple python packages stored under the path `$HOME/.local/share/instrukt/agents`.
 
 You can create your own agents and share them with others. You can also set a custom path in the configuration file `~/.config/instrukt/instrukt.yml`. 
 
