@@ -10,6 +10,7 @@
 ## Use indxes and tools with agents
 
 - Attach indexes and tools to agents on the fly.
+- Use them for doing Retrieval Augmented Generation (RAG).
 
 [using indexes and tools with agents](https://github.com/blob42/Instrukt/assets/210457/86e498f9-deb2-4bba-9f39-f1efafeb581e)
 

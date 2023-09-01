@@ -1,11 +1,12 @@
-#  Instrukt
+# >_⚡  Instrukt
 
  **Terminal AI Commander at your fingertips**
 
+[coding assistant example](https://github.com/blob42/Instrukt/assets/210457/244fb490-4774-4877-abf6-f64e94f24922)
 
-<video src="https://github.com/blob42/Instrukt/assets/210457/ebb3e35a-c0d3-4d95-8761-b1629fba1ca3" width="200"/>
+Checkout more [demos](demos.md) for more examples.
 
-**NOTE**: This is an alpha release, expect bugs and API changes.
+**NOTE**: This is a work in progress, expect bugs and api changes.
 
 ## Introduction
 
@@ -15,11 +16,7 @@ Instrukt is a terminal-based environment for AI productivity and development. It
 - :card_file_box: Generate document indexes for question-answering
 - :toolbox: Create and attach tools to any agent
 
-Instrukt agents are simple **drop-in Python packages** that can be extended, shared with others, attached to tools, and augmented with document indexes. Instruct them in natural language and, for safety, attach them to inside secure containers (currently implemented with Docker) to perform tasks in their dedicated, sandboxed space :shield:.
-
-Instrukt is designed with with an easy interface and API for composing and using agents. It is built with [LangChain](https://github.com/hwchase17/langchain), extending its base agents and tools. 
-
-For agent developers, it offers a **builtin IPython console** for on-the-go debugging and introspection and allows for quick development and testing of `Langchain` agents in an interactive environment.
+Agents are simple **drop-in Python packages** that can be extended, shared with others, attached to tools and augmented with document indexes. Instruct them in natural language and, for safety, run them inside secure containers (currently implemented with Docker) to perform tasks in their dedicated, sandboxed space :shield:.
 
 Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https://github.com/Textualize/textual), [Chroma](https://github.com/chroma-core/chroma)
 
@@ -41,33 +38,31 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 
 ## Usage
 
-### Setup
+### Quickstart
 
-**note**: the package is not yet released on PyPi
+- `pip install instrukt[all]`
+- export `OPENAI_API_KEY` with your OpenAI API key.
+- run `instrukt`
+- If the color scheme is broken, export `TERM=xterm-256color`
 
-**From pre-built package**:
+You can run instrukt on headless server such or a docker container with CUDA support.
 
-- download and install the released package with `pip install package_name[tools]`.
+[See the quickstart guide for more details](docs/quickstart.md)
 
 #### From source:
 
 - Make sure the latest version of `poetry` is installed.
 - Set your virtualenv
 - Clone the repository
-- Run `poetry install -E tools --with dev` 
+- Run `poetry install -E all --with dev,test` 
 - This will install Instrukt including extra tools for agents. 
 
 [See the installation guide for more details](docs/install.md)
 
-### Requirements:
-
-- Export `OPENAI_API_KEY` environment variable with your OpenAI API key.
-- Use a modern terminal that supports 24-bit color and mouse input.
-
 ### Running:
 
-- Type `instrukt`.
-- On the first run, it will create a config file in
+- Run `instrukt`.
+- A configuration file will be created at:
   `~/.config/instrukt/instrukt.yml`
 
 #### From source
@@ -78,47 +73,47 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 
 ### Default Agents:
 
-**Chat Q&A**: A simple conversational agent. Attach document indexes and tools to create a question-answering agent. It also serves as an example for making custom agents.
+**Coding AI**: A coding assistant. Create indexes over any code base and attach it to the agent to do RAG (Retrieval Augmented Generation)
 
-**Demo**: The same agent used in the demo video.
+**Chat Q&A**: A simple conversational agent.
 
 ## Features 
 
 #### :computer: Keyboard and Mouse Terminal Interface:
 
 - A terminal-based interface for power keyboard users to instruct AI agents without ever leaving the keyboard.
-- Mouse support and [Rich](https://github.com/Textualize/rich) colorful agent outputs such as markdown and source
-  code thanks to the [Textual](https://github.com/Textualize/textual) TUI library.
-- Run Instrukt in bare metal and access it remotely via SSH and/or terminal
-  multiplexer.
+- [Rich](https://github.com/Textualize/rich) colorful agent outputs
+  with markdown and source code support thanks to the
+  [Textual](https://github.com/Textualize/textual) TUI library.
+- Run Instrukt on bare metal or docker containers with CUDA support.
+- Remote access with SSH and terminal multiplexers.
 
 #### :robot: Custom AI Agents:
-- Design your [own agents](docs/quickstart.md#custom-agents) and custom tools. 
+- Design custom [own agents](docs/quickstart.md#custom-agents) and tools. 
 - Agents are simple python packages can be shared and loaded by other users.
+
+#### :books: Chat with code and documents:
+- Index your data and let agents retrieve it for question-answering. 
+- Create and organize your indexes with an easy UI.
+- Index creation will **auto detect programming languages** and optimize the splitting/chunking
+  strategy accordingly.
+- Fuzzy select source documents for retrieval Q&A with `ctrl+p`
 
 #### :wrench: Tools:
 - Use the pre-defined toolset or design your own tools.
 - Attach or detach tools to agents on-the-go, tailoring your AI workflows to your needs.
 
-#### :books: Chat with your code and documents:
-- Index your data and let agents retrieve it for question-answering. 
-- Create and organize your indexes with an easy UI.
-- Index creation will **auto detect programming languages** and optimize the splitting/chunking
-  strategy accordingly.
 
 #### :zap: Prompt Console :
 - Integrated REPL-Prompt for quick interaction with agents, and a fast feedback loop for development and testing.
-- Add your own custom commands to automate repetitive tasks.
+- Automate repetitive tasks with custom commands.
 - Builtin prompt/chat history to quickly edit/correct messages.
-- Use an external editor for editing messages (e.g. vim). `ctrl+e`
+- Use an external `$EDITOR` for editing messages (e.g. vim). `ctrl+e`
 
 #### :bird: LangChain:
 
 - Leverage the LangChain ecosystem to automate anything.
-- Extensible API for integrating with other frameworks.
-
-#### :microscope: Developer Console:
-Debug and introspect agents using an in-built IPython console. `ctrl+d`
+- WIP: Extensible API for integrating with other frameworks.
 
 #### :shield: Secure Containers:
 
@@ -127,18 +122,23 @@ Debug and introspect agents using an in-built IPython console. `ctrl+d`
 
 **note**: The docker agent is only available to [Patreon](#patreon) supporters as an early preview.
 
+#### :microscope: Developer Console:
+Debug and introspect agents using an in-built IPython console. `ctrl+d`
+<p>
+<img src="assets/images/ipython-debug-shell.jpg" width=400 alt="ipython debug shell" />
+</p>
+
 
 ## Document Indexes and Question-Answering
 
-- Indexes can be  created using OpenAI or locally hosted embedding models.
-- They are stored locally using the [Chroma](https://github.com/chroma-core/chroma) embedding database.
-- You create and manage indexes using the **Index Management** UI (press `i`)
+- Indexes can be  created using OpenAI or local embeddings models.
+- [Chroma](https://github.com/chroma-core/chroma) for managing indexes.
+- Create and manage indexes using the **Index Management** UI (press `I`)
 - Indexing a directory will auto detect programming languages and use an appropriate
   splitting strategy optimized for the target language.
 - Indexes can be attached to any agent as a **retrieval** tool using the `index` menu
   in the top of the agent's window.
-- Once an index is attached you can do question-answering and the agent will
-  lookup your indexed documents whenever they are mentioned or needed.
+- Agents can use attached indexes for question-answering.
 
 ## Supported platforms:
 
@@ -148,17 +148,17 @@ Debug and introspect agents using an in-built IPython console. `ctrl+d`
 ### LLM Models
 
 - Currently only **OpenAI** supported.
-- Using private local models is the **next priority**.
+- Using private local models is the **next milestone**.
 
 ## Roadmap
 
-- [ ] Private local models
-    - [ ] Use text-generation-webui API
-    - [ ] Emulate [PrivateGPT](https://github.com/imartinez/privateGPT)
-    - [ ] Use a self hosted [go-skynet/LocalAI](https://github.com/go-skynet/LocalAI)
+- [ ] private local LLM models
     - [x] Local embeddings
-        - [x] HF SetenceTransformers or other embeddings models.
+        - [x] HF SetenceTransformers supported embeddings.
         - [x] [Instructor Embeddings](https://instructor-embedding.github.io/)
+    - [ ] use text-generation-webui API
+    - [ ] emulate [PrivateGPT](https://github.com/imartinez/privateGPT)
+    - [ ] use self hosted [go-skynet/LocalAI](https://github.com/go-skynet/LocalAI)
 - Indexing and embeddings
     - [x] Index directories and auto detect content. ( see `AutoDirLoader`)
     - [x] Detect programming languages and use the appropriate splitter.
@@ -170,7 +170,7 @@ Debug and introspect agents using an in-built IPython console. `ctrl+d`
     - [ ] Creating tools
     - [ ] Indexing and chat with documents and source code.
     - [ ] Example use cases  
-    - [ ] Tutorials for users non familiar with AI/LLM terms.
+    - [ ] Tutorials.
 
 ## Contributing
 
@@ -193,9 +193,9 @@ Join the [Discord](https://discord.gg/wxRwRcJ7) server to keep updated on the pr
 
 ## Vision
 
-I believe that AI should be accessible to everyone and not a walled garden for big corporations and SaaS services. 
+AI should be accessible to everyone and not a walled garden for big corporations and SaaS services. 
 
-I hope my contributions will help create tools that empower users without compromising their freedoms. The long-term goal for Instrukt is to make it usable with minimal reliance on external services, giving users the choice to opt for local models and self-hosted services.
+Instrukt is a modest contribution to create tools that empower users without compromising their freedoms. The short-term goal is to make it usable with minimal reliance on external APIs and services, giving users the choice to opt for local models and self-hosted services.
 
 # License
 

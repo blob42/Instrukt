@@ -7,7 +7,7 @@ Instrukt is not yet available on package managers. To install it, you can instal
 - Python 3.9 or newer
 - a modern terminal emulator (e.g. alacritty, kitty, st, urxvt, xterm)
 
-## Easy install from pip repository
+## Install from pip repository
 
 `pip install instrukt[all]`
 
