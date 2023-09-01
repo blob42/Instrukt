@@ -30,6 +30,13 @@ your pip version is old.
     poetry install -E all
 ```
 
+## Using textual dev console to troubleshoot the app
+
+- If you did not install the dependencies using poetry make sure to install textual dev
+  dependencies with: `pip install textual[dev]`
+
+- From the project's root run: `textual run instrukt.app:InstruktApp`
+
 ## Extra Dependencies
 - xsel or xclip for copying messages to the clipboard.
 - fzf for fuzzy selecting.

@@ -4,23 +4,25 @@
 
 [coding assistant example](https://github.com/blob42/Instrukt/assets/210457/244fb490-4774-4877-abf6-f64e94f24922)
 
-Checkout more [demos](demos.md) for more examples.
+Checkout [demos](demos.md) for more examples.
 
 **NOTE**: This is a work in progress, expect bugs and api changes.
 
 ## Introduction
 
-Instrukt is a terminal-based environment for AI productivity and development. It offers a platform where users can:
+Instrukt is a terminal-based AI integrated environment. It offers a platform where users can:
 
 - :robot: Create and instruct modular AI agents
 - :card_file_box: Generate document indexes for question-answering
 - :toolbox: Create and attach tools to any agent
 
-Agents are simple **drop-in Python packages** that can be extended, shared with others, attached to tools and augmented with document indexes. Instruct them in natural language and, for safety, run them inside secure containers (currently implemented with Docker) to perform tasks in their dedicated, sandboxed space :shield:.
+Agents are simple **drop-in Python packages** that can be extended, shared with others, attached to tools and augmented with document indexes.
+
+Instruct them in natural language and, for safety, run them inside secure containers (currently implemented with Docker) to perform tasks in their dedicated, sandboxed space :shield:.
 
 Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https://github.com/Textualize/textual), [Chroma](https://github.com/chroma-core/chroma)
 
-**Consulting Services**: Need help with Langchain or AI development/deployment ? You can reach out to me at [contact@blob42.xyz](mailto://contact@blob42.xyz)
+**Consulting Services**: Need help with Langchain or AI integration ? You can reach out to me at [contact@blob42.xyz](mailto://contact@blob42.xyz)
 
 ## TOC
 
@@ -45,6 +47,9 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 - run `instrukt`
 - If the color scheme is broken, export `TERM=xterm-256color`
 
+- A configuration file will be created at:
+  `~/.config/instrukt/instrukt.yml`
+
 You can run instrukt on headless server such or a docker container with CUDA support.
 
 [See the quickstart guide for more details](docs/quickstart.md)
@@ -59,17 +64,6 @@ You can run instrukt on headless server such or a docker container with CUDA sup
 
 [See the installation guide for more details](docs/install.md)
 
-### Running:
-
-- Run `instrukt`.
-- A configuration file will be created at:
-  `~/.config/instrukt/instrukt.yml`
-
-#### From source
-
-- If you did not install the dependencies using poetry make sure to install textual dev dependencies with: `pip install textual[dev]`
-
-- From the project's root run: `textual run instrukt.app:InstruktApp`
 
 ### Default Agents:
 
