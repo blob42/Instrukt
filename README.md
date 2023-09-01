@@ -52,6 +52,11 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 
 You can run instrukt on headless server such or a docker container with CUDA support.
 
+**NOTE**:
+- tested with python 3.10 or nvidia/cuda:12.1.1, there are some issues with 3.11 that will be fixed
+soon. 
+
+
 Check the [quickstart](docs/source/quickstart.md) and [install](docs/source/install.md)
 guide for more details.
 
@@ -93,7 +98,7 @@ guide for more details.
 - Create and organize your indexes with an easy UI.
 - Index creation will **auto detect programming languages** and optimize the splitting/chunking
   strategy accordingly.
-- Fuzzy select (fzf, dmenu ...) source documents for retrieval Q&A with `ctrl+p`
+- Fuzzy select (fzf, dmenu ...) source documents that were used for retrieval `ctrl+p`
 
 #### :wrench: Tools:
 - Use the pre-defined toolset or design your own tools.
