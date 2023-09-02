@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.6.3] 2023-09-02
+
+### Changed
+
+- bump chromadb to 0.4.8
+
+### Fixed
+
+- fix depenencies for python 3.11
+- add explicit dependency on wrapt
+
 ## [0.6.2] 2023-09-01
 
 ### Added
@@ -72,6 +85,7 @@ the appropriate splitter based on the detected content type.
 
 - Index view broke after textual update
 
-[unreleased]: https://github.com/blob42/Instrukt/compare/v0.6.2...HEAD
+[unreleased]: https://github.com/blob42/Instrukt/compare/v0.6.3...HEAD
+[0.6.3]: https://github.com/blob42/Instrukt/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/blob42/Instrukt/compare/v0.5.0...v0.6.2
 [0.5.0]: https://github.com/blob42/Instrukt/compare/v0.4.0...v0.5.0
