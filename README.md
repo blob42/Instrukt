@@ -52,9 +52,7 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 
 You can run instrukt on headless server such or a docker container with CUDA support.
 
-**NOTE**:
-- tested with python 3.10 or nvidia/cuda:12.1.1, there are some issues with 3.11 that will be fixed
-soon. 
+**NOTE**: if you are starting with a bare container, you need at least g++ and libmagic.
 
 
 Check the [quickstart](docs/source/quickstart.md) and [install](docs/source/install.md)

@@ -3,6 +3,7 @@
 ## Minimum requirements
 
 - Python 3.9 or newer
+- g++ (required for building chroma-hnswlib)
 - a modern terminal emulator (e.g. alacritty, kitty, st, urxvt, xterm)
 
 ## Install from pip repository
@@ -31,7 +32,7 @@ your pip version is old.
 
 - From the project's root directory run: `textual run instrukt.app:InstruktApp`
 
-## Extra Dependencies
+## Dependencies
 
 - libmagic: scanning and file type detection
 - sqlite: caching
