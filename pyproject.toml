@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "instrukt"
-version = "0.6.2"
+version = "0.6.3"
 homepage = "https://github.com/blob42/instrukt"
 repository = "https://github.com/blob42/instrukt"
 documentation = "https://github.com/blob42/instrukt/docs"
@@ -43,8 +43,7 @@ pyxdg = "^0.28"
 tomli = "^2.0.1"
 pydantic = "^1.10.7"
 pyyaml = "^6.0"
-# chromadb = { git = "https://github.com/blob42/chromadb", branch="fix-duckdb-atexit"}
-chromadb = "^0.4.0"
+chromadb = "^0.4.8"
 pydantic-yaml = "^0.11.2"
 nest-asyncio = "^1.5.6"
 ipython = "^8.13.2"
@@ -56,22 +55,26 @@ pyperclip = "^1.8.2"
 wikipedia = { version = "^1.4.0", optional = true }
 openai = {version = "^0.27.8", optional = true}
 tiktoken = {version = "^0.4.0"}
-sentence-transformers = {version = "^2.2.2", optional = true}
+sentence-transformers = "^2.2.2"
 instructorembedding = {version = "^1.0.1", optional = true}
 typing-extensions = "^4.7.1"
 esprima = {version = "^4.0.1", optional = true}
 chardet = "^5.2.0"
+torch = {version = "2.0.1", optional = true}
+wrapt = "^1.15.0"
 
 [tool.poetry.extras]
 tools = ["wikipedia"]
 #loaders = ["unstructured"]
 #vectorstores = ["chromadb"]
 openai = ["openai"]
+torch = ["torch"]
 local = ["sentence-transformers", "instructorembedding"]
 coding = ["esprima"]
 
 #TODO!: add chardet
 all = [
+    "torch",
     # openai
     "openai",
 
@@ -122,6 +125,12 @@ autodoc-pydantic = "^1.9.0"
 sphinx-rtd-theme = "^1.2.2"
 sphinx-markdown-builder = "^0.6.2"
 toml = "^0.10.2"
+
+
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [tool.ruff]
 select = [
