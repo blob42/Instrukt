@@ -6,7 +6,7 @@ BUILD := poetry build --no-cache
 
 
 # version extratected from pyproject.toml
-package := $(shell grep "^name" pyproject.toml | cut -d "=" -f 2 | sed 's/ //g' | sed 's/"//g')
+package := $(shell grep "^name" pyproject.toml | head -n1 | cut -d "=" -f 2 | sed 's/ //g' | sed 's/"//g')
 docs_dst := $(package)/docs
 docs_src := docs/build/markdown
 docs := $(shell find $(docs_src) -type f -name "*.md")
