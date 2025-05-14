@@ -33,7 +33,6 @@ Built with: [Langchain](https://github.com/hwchase17/langchain), [Textual](https
 - [Document Indexes and Question-Answering](#document-indexes-and-question-answering)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
-- [Patreon](#patreon)
 - [Social](#social)
 - [Vision](#vision)
 - [License](#license)
@@ -119,7 +118,6 @@ guide for more details.
 - Run agents inside secure docker containers for safety and privacy.
 - Use [gVisor](https://gvisor.dev/) runtime for a full isolation of the agent.
 
-**note**: The docker agent is only available to [Patreon](#patreon) supporters as an early preview.
 
 #### :microscope: Developer Console:
 Debug and introspect agents using an in-built IPython console. `ctrl+d`
@@ -182,13 +180,6 @@ You can help with:
 - If you don't have technical skills you can help with documentation, adding examples
   and tutorials or create new user stories.
 
-## Patreon
-
-By becoming a patron, you will help me continue committing time to the development of Instrukt and bring to life all the planned features. Check out the [Patreon page](https://www.patreon.com/Instrukt) for more details on the rewards for early supporters.
-
-## Social
-
-Join the [Discord](https://discord.gg/wxRwRcJ7) server to keep updated on the progress or ask for help.
 
 ## Vision
 
